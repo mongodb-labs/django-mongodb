@@ -37,7 +37,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04]
-        python-version: ["3.7", "3.11", "pypy-3.9"]
+        python-version: ["3.8", "3.11", "pypy-3.9"]
+      fail-fast: false
     name: CPython ${{ matrix.python-version }}-${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +50,7 @@ jobs:
           cache-dependency-path: 'pyproject.toml'
       - name: Install dependencies
         run: |
-          pip install -u pip
+          pip install -U pip
           pip install -e ".[test]"
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.10.0
@@ -70,6 +71,10 @@ jobs:
           cache-dependency-path: 'pyproject.toml'
           # Build docs on lowest supported Python for furo
           python-version: '3.8'
+      - name: Install dependencies
+        run: |
+          pip install -U pip
+          pip install -e ".[docs]"
       - name: Build docs
         run: |
           cd docs
