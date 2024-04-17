@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "MongoDB backend for Django"
 readme = "README.md"
 license = {file="LICENSE"}
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [
     { name = "The MongoDB Python Team" },
 ]
@@ -19,23 +19,17 @@ keywords = [
     "django"
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 2 - Pre-Alpha",
+    "Framework :: Django",
+    "Framework :: Django :: 5.0",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
-    "Operating System :: MacOS :: MacOS X",
-    "Operating System :: Microsoft :: Windows",
-    "Operating System :: POSIX",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Database",
-    "Typing :: Typed",
 ]
 dependencies = [
     "pymongo>=4.6,<5.0",
@@ -52,7 +46,7 @@ Source = "https://github.com/mongodb-labs/django-mongodb"
 Tracker = "https://github.com/mongodb-labs/django-mongodb/issues"
 
 [tool.setuptools.dynamic]
-version = {attr = "django_mongodb._version.__version__"}
+version = {attr = "django_mongodb.__version__"}
 
 [tool.pytest.ini_options]
 minversion = "7"
@@ -105,43 +99,20 @@ select = [
 ]
 ignore = [
   "PLR",    # Design related pylint codes
-  "E501",   # Line too long
-  "PT004",  # Use underscore for non-returning fixture (use usefixture instead)
-  "UP007",  # Use `X | Y` for type annotation
   "EM101",  # Exception must not use a string literal, assign to variable first
   "EM102",  # Exception must not use an f-string literal, assign to variable first
-  "G004",   # Logging statement uses f-string"
-  "UP006",  # Use `type` instead of `Type` for type annotation"
-  "RET505", # Unnecessary `elif` after `return` statement"
-  "RET506", # Unnecessary `elif` after `raise` statement
-  "SIM108", # Use ternary operator"
-  "PTH123", # `open()` should be replaced by `Path.open()`"
-  "SIM102", # Use a single `if` statement instead of nested `if` statements
-  "SIM105", # Use `contextlib.suppress(OSError)` instead of `try`-`except`-`pass`
   "ARG002", # Unused method argument:
   "S101",   # Use of `assert` detected
-  "SIM114", # Combine `if` branches using logical `or` operator
-  "PGH003", # Use specific rule codes when ignoring type issues
   "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
-  "EM103",  # Exception must not use a `.format()` string directly, assign to variable first
-  "C408",   # Unnecessary `dict` call (rewrite as a literal)
-  "SIM117", # Use a single `with` statement with multiple contexts instead of nested `with` statements
 ]
-unfixable = [
-  "RUF100", # Unused noqa
-  "T20",  # Removes print statements
-  "F841", # Removes unused variables
-]
+unfixable = []
 exclude = []
-flake8-unused-arguments.ignore-variadic-names = true
-isort.required-imports = ["from __future__ import annotations"]
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?)|dummy.*)$"
 
 [tool.ruff.lint.per-file-ignores]
-"django_mongodb/__init__.py" = ["E402"]
-"test/*.py" = ["PT", "E402", "PLW", "SIM", "E741", "PTH", "S", "B904", "E722", "T201",
-    "RET", "ARG", "F405", "B028", "PGH001", "B018", "F403", "RUF015", "E731", "B007",
-    "UP031", "F401", "B023", "F811"]
+".github/workflows/mongodb_settings.py" = [
+    "S105",  # Possible hardcoded password assigned to: "SECRET_KEY"
+]
 
 [tool.coverage.report]
 exclude_lines = [
