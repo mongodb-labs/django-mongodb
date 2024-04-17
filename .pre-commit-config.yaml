@@ -72,17 +72,8 @@ repos:
       args: ["--schemafile", "https://json.schemastore.org/github-workflow"]
       stages: [manual]
 
-- repo: https://github.com/ariebovenberg/slotscheck
-  rev: v0.17.0
-  hooks:
-  - id: slotscheck
-    files: \.py$
-    exclude: "^(test|docs)/"
-    stages: [manual]
-    args: ["--no-strict-imports"]
-
 - repo: https://github.com/codespell-project/codespell
   rev: "v2.2.6"
   hooks:
   - id: codespell
-    args: ["-L", ""]
+    args: ["-L", "nin"]
