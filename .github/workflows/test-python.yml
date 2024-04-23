@@ -70,6 +70,7 @@ jobs:
           basic
           empty
           from_db_value
+          lookup.tests.LookupTests.test_escaping
           model_fields.test_datetimefield
           model_fields.test_decimalfield
           model_fields.test_charfield
