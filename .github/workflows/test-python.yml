@@ -74,7 +74,9 @@ jobs:
           model_fields.test_datetimefield
           model_fields.test_decimalfield
           model_fields.test_charfield
+          model_fields.test_floatfield
           model_fields.test_textfield
+          model_fields.test_uuid.TestAsPrimaryKey.test_update_with_related_model_instance
           or_lookups
 
   docs:
