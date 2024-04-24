@@ -2,6 +2,7 @@ import re
 from functools import wraps
 
 from django.db import DatabaseError, IntegrityError, NotSupportedError
+from django.db.models.lookups import UUIDTextMixin
 from django.db.models.query import QuerySet
 from django.db.models.sql.where import OR, SubqueryConstraint
 from django.utils.tree import Node
@@ -257,6 +258,9 @@ class MongoQuery:
         Produce arguments suitable for add_filter from a WHERE tree leaf
         (a tuple).
         """
+        if isinstance(child, UUIDTextMixin):
+            raise NotSupportedError("Pattern lookups on UUIDField are not supported.")
+
         rhs, rhs_params = child.process_rhs(self.compiler, self.connection)
 
         lookup_type = child.lookup_name

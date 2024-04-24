@@ -2,6 +2,7 @@ from django.db.backends.base.features import BaseDatabaseFeatures
 
 
 class DatabaseFeatures(BaseDatabaseFeatures):
+    supports_foreign_keys = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/7
     supports_transactions = False
     uses_savepoints = False
@@ -33,6 +34,19 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",
         # Empty queryset ORed (|) with another gives empty results.
         "or_lookups.tests.OrLookupsTests.test_empty_in",
+        # Joins not supported.
+        "model_fields.test_uuid.TestAsPrimaryKey.test_two_level_foreign_keys",
     }
 
-    django_test_skips = {}
+    django_test_skips = {
+        "Pattern lookups on UUIDField are not supported.": {
+            "model_fields.test_uuid.TestQuerying.test_contains",
+            "model_fields.test_uuid.TestQuerying.test_endswith",
+            "model_fields.test_uuid.TestQuerying.test_filter_with_expr",
+            "model_fields.test_uuid.TestQuerying.test_icontains",
+            "model_fields.test_uuid.TestQuerying.test_iendswith",
+            "model_fields.test_uuid.TestQuerying.test_iexact",
+            "model_fields.test_uuid.TestQuerying.test_istartswith",
+            "model_fields.test_uuid.TestQuerying.test_startswith",
+        },
+    }
