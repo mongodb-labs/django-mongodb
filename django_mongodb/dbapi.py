@@ -1,3 +1,6 @@
+from bson import Binary  # noqa: F401
+
+
 class Error(Exception):
     pass
 
@@ -32,7 +35,3 @@ class ProgrammingError(DatabaseError):
 
 class NotSupportedError(DatabaseError):
     pass
-
-
-def Binary(value):
-    return value
