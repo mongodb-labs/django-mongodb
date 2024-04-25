@@ -49,4 +49,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_uuid.TestQuerying.test_istartswith",
             "model_fields.test_uuid.TestQuerying.test_startswith",
         },
+        "QuerySet.update() with expression not supported.": {
+            "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
+        },
     }
