@@ -73,6 +73,7 @@ jobs:
           model_fields.test_decimalfield
           model_fields.test_charfield
           model_fields.test_floatfield
+          model_fields.test_integerfield
           model_fields.test_textfield
           model_fields.test_uuid
           or_lookups

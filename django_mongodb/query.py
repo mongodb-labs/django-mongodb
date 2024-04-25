@@ -1,6 +1,7 @@
 import re
 from functools import wraps
 
+from django.core.exceptions import FullResultSet
 from django.db import DatabaseError, IntegrityError, NotSupportedError
 from django.db.models.lookups import UUIDTextMixin
 from django.db.models.query import QuerySet
@@ -174,7 +175,10 @@ class MongoQuery:
 
                 continue
 
-            field, lookup_type, value = self._decode_child(child)
+            try:
+                field, lookup_type, value = self._decode_child(child)
+            except FullResultSet:
+                continue
 
             if lookup_type in ("month", "day"):
                 raise DatabaseError("MongoDB does not support month/day queries.")
