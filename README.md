@@ -47,7 +47,10 @@ DATABASES = {
 ## Known issues and limitations
 
 - The following `QuerySet` methods aren't supported:
+  - `annotate()`
   - `aggregate()`
+  - `dates()`
+  - `datetimes()`
   - `distinct()`
   - `extra()`
   - `select_related()`

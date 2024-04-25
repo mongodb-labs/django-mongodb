@@ -50,6 +50,13 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "TimeField": "date",
         "UUIDField": "string",
     }
+    operators = {
+        "exact": "= %s",
+        "gt": "> %s",
+        "gte": ">= %s",
+        "lt": "< %s",
+        "lte": "<= %s",
+    }
 
     display_name = "MongoDB"
     vendor = "mongodb"

@@ -2,6 +2,7 @@ from django.db.backends.base.features import BaseDatabaseFeatures
 
 
 class DatabaseFeatures(BaseDatabaseFeatures):
+    supports_date_lookup_using_string = False
     supports_foreign_keys = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/8
     supports_json_field = False
@@ -20,19 +21,18 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "basic.tests.ModelLookupTest.test_rich_lookup",
         "basic.tests.ModelLookupTest.test_too_many",
         "basic.tests.ModelTest.test_year_lookup_edge_case",
+        "lookup.tests.LookupTests.test_chain_date_time_lookups",
+        "lookup.test_timefield.TimeFieldLookupTests.test_hour_lookups",
+        "lookup.test_timefield.TimeFieldLookupTests.test_minute_lookups",
+        "lookup.test_timefield.TimeFieldLookupTests.test_second_lookups",
         "timezones.tests.LegacyDatabaseTests.test_query_datetime_lookups",
         "timezones.tests.NewDatabaseTests.test_query_convert_timezones",
         "timezones.tests.NewDatabaseTests.test_query_datetime_lookups",
         "timezones.tests.NewDatabaseTests.test_query_datetime_lookups_in_other_timezone",
+        # 'NulledTransform' object has no attribute 'alias'
+        "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
-        # QuerySet.extra() not supported.
-        "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes",
-        "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes_and_values",
-        # QuerySet.aggregate() not supported: https://github.com/mongodb-labs/django-mongodb/issues/12
-        "from_db_value.tests.FromDBValueTest.test_aggregation",
-        "timezones.tests.LegacyDatabaseTests.test_query_aggregation",
-        "timezones.tests.NewDatabaseTests.test_query_aggregation",
         # filtering on large decimalfield, see https://code.djangoproject.com/ticket/34590
         # for some background.
         "model_fields.test_decimalfield.DecimalFieldTests.test_lookup_decimal_larger_than_max_digits",
@@ -40,8 +40,26 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # 'TruncDate' object has no attribute 'alias'
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",
-        # Empty queryset ORed (|) with another gives empty results.
+        # Incorrect empty QuerySet handling: https://github.com/mongodb-labs/django-mongodb/issues/22
+        "lookup.tests.LookupTests.test_in",
         "or_lookups.tests.OrLookupsTests.test_empty_in",
+        # Slicing with QuerySet.count() doesn't work.
+        "lookup.tests.LookupTests.test_count",
+        # Custom lookups not supported.
+        "lookup.tests.LookupTests.test_custom_lookup_none_rhs",
+        # Lookup in order_by() not supported: argument of type 'LessThan' is not iterable
+        "lookup.tests.LookupQueryingTests.test_lookup_in_order_by",
+        # annotate() after values() doesn't raise NotSupportedError.
+        "lookup.tests.LookupTests.test_exact_query_rhs_with_selected_columns",
+        # tuple index out of range in _normalize_lookup_value()
+        "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one",
+        "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one_offset",
+        # Regex lookup doesn't work on non-string fields.
+        "lookup.tests.LookupTests.test_regex_non_string",
+        # Substr not implemented.
+        "lookup.tests.LookupTests.test_pattern_lookups_with_substr",
+        # Querying ObjectID with string doesn't work.
+        "lookup.tests.LookupTests.test_lookup_int_as_str",
     }
 
     django_test_skips = {
@@ -64,6 +82,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "update.tests.AdvancedTests.test_update_transformed_field",
         },
         "AutoField not supported.": {
+            "lookup.tests.LookupTests.test_in_ignore_none_with_unhashable_items",
             "model_fields.test_autofield.AutoFieldTests",
             "model_fields.test_autofield.BigAutoFieldTests",
             "model_fields.test_autofield.SmallAutoFieldTests",
@@ -104,6 +123,36 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Test assumes integer primary key.": {
             "model_fields.test_foreignkey.ForeignKeyTests.test_to_python",
         },
+        # https://github.com/mongodb-labs/django-mongodb/issues/12
+        "QuerySet.aggregate() not supported.": {
+            "lookup.tests.LookupQueryingTests.test_aggregate_combined_lookup",
+            "from_db_value.tests.FromDBValueTest.test_aggregation",
+            "timezones.tests.LegacyDatabaseTests.test_query_aggregation",
+            "timezones.tests.NewDatabaseTests.test_query_aggregation",
+        },
+        "QuerySet.annotate() not supported.": {
+            "lookup.test_decimalfield.DecimalFieldLookupTests",
+            "lookup.tests.LookupTests.test_exact_exists",
+            "lookup.tests.LookupTests.test_nested_outerref_lhs",
+            "lookup.tests.LookupQueryingTests.test_alias",
+            "lookup.tests.LookupQueryingTests.test_annotate",
+            "lookup.tests.LookupQueryingTests.test_annotate_field_greater_than_field",
+            "lookup.tests.LookupQueryingTests.test_annotate_field_greater_than_literal",
+            "lookup.tests.LookupQueryingTests.test_annotate_field_greater_than_value",
+            "lookup.tests.LookupQueryingTests.test_annotate_greater_than_or_equal",
+            "lookup.tests.LookupQueryingTests.test_annotate_greater_than_or_equal_float",
+            "lookup.tests.LookupQueryingTests.test_annotate_less_than_float",
+            "lookup.tests.LookupQueryingTests.test_annotate_literal_greater_than_field",
+            "lookup.tests.LookupQueryingTests.test_annotate_value_greater_than_value",
+            "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter",
+            "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter_false",
+            "lookup.tests.LookupQueryingTests.test_combined_lookups",
+            "lookup.tests.LookupQueryingTests.test_conditional_expression",
+            "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
+            "lookup.tests.LookupQueryingTests.test_filter_lookup_lhs",
+            "lookup.tests.LookupQueryingTests.test_filter_subquery_lhs",
+            "lookup.tests.LookupQueryingTests.test_filter_wrapped_lookup_lhs",
+        },
         "QuerySet.dates() is not supported on MongoDB.": {
             "dates.tests.DatesTests.test_dates_trunc_datetime_fields",
             "dates.tests.DatesTests.test_related_model_traverse",
@@ -124,6 +173,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes",
             "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes_and_values",
             "defer.tests.DeferTests.test_defer_extra",
+            "lookup.tests.LookupTests.test_values",
+            "lookup.tests.LookupTests.test_values_list",
         },
         "Queries with multiple tables are not supported.": {
             "defer.tests.BigChildDeferTests.test_defer_baseclass_when_subclass_has_added_field",
@@ -136,6 +187,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "defer.tests.DeferTests.test_only_baseclass_when_subclass_has_no_added_fields",
             "defer.tests.TestDefer2.test_defer_inheritance_pk_chaining",
             "defer_regress.tests.DeferRegressionTest.test_ticket_16409",
+            "lookup.tests.LookupQueryingTests.test_multivalued_join_reuse",
+            "lookup.tests.LookupTests.test_filter_by_reverse_related_field_transform",
+            "lookup.tests.LookupTests.test_lookup_collision",
+            "lookup.tests.LookupTests.test_lookup_rhs",
+            "lookup.tests.LookupTests.test_isnull_non_boolean_value",
             "model_fields.test_manytomanyfield.ManyToManyFieldDBTests.test_value_from_object_instance_with_pk",
             "model_fields.test_uuid.TestAsPrimaryKey.test_two_level_foreign_keys",
             "timezones.tests.LegacyDatabaseTests.test_query_annotation",
@@ -148,6 +204,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "update.tests.SimpleTest.test_empty_update_with_inheritance",
             "update.tests.SimpleTest.test_foreign_key_update_with_id",
             "update.tests.SimpleTest.test_nonempty_update_with_inheritance",
+        },
+        "Test inspects query for SQL": {
+            "lookup.tests.LookupTests.test_in_ignore_none",
+            "lookup.tests.LookupTests.test_textfield_exact_null",
         },
         "Test executes raw SQL.": {
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",

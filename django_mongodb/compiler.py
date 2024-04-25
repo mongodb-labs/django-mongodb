@@ -6,7 +6,7 @@ from django.db import (
     NotSupportedError,
     connections,
 )
-from django.db.models import NOT_PROVIDED, Count, Expression
+from django.db.models import NOT_PROVIDED, Count, Expression, Value
 from django.db.models.aggregates import Aggregate
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.sql import compiler
@@ -97,6 +97,12 @@ class SQLCompiler(compiler.SQLCompiler):
         """Check if the current query is supported by the database."""
         if self.query.is_empty():
             raise EmptyResultSet()
+        # Supported annotations are Exists() and Count().
+        if self.query.annotations and self.query.annotations not in (
+            {"a": Value(1)},
+            {"__count": Count("*")},
+        ):
+            raise NotSupportedError("QuerySet.annotate() is not supported on MongoDB.")
         if self.query.distinct:
             # This is a heuristic to detect QuerySet.datetimes() and dates().
             # "datetimefield" and "datefield" are the names of the annotations
