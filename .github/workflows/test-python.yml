@@ -71,14 +71,7 @@ jobs:
           empty
           from_db_value
           lookup.tests.LookupTests.test_escaping
-          model_fields.test_binaryfield
-          model_fields.test_datetimefield
-          model_fields.test_decimalfield
-          model_fields.test_charfield
-          model_fields.test_floatfield
-          model_fields.test_integerfield
-          model_fields.test_textfield
-          model_fields.test_uuid
+          model_fields
           or_lookups
 
   docs:

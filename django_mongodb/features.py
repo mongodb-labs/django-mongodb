@@ -3,6 +3,8 @@ from django.db.backends.base.features import BaseDatabaseFeatures
 
 class DatabaseFeatures(BaseDatabaseFeatures):
     supports_foreign_keys = False
+    # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/8
+    supports_json_field = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/7
     supports_transactions = False
     uses_savepoints = False
@@ -35,6 +37,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Empty queryset ORed (|) with another gives empty results.
         "or_lookups.tests.OrLookupsTests.test_empty_in",
         # Joins not supported.
+        "model_fields.test_manytomanyfield.ManyToManyFieldDBTests.test_value_from_object_instance_with_pk",
         "model_fields.test_uuid.TestAsPrimaryKey.test_two_level_foreign_keys",
     }
 
@@ -51,5 +54,34 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "QuerySet.update() with expression not supported.": {
             "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
+        },
+        "AutoField not supported.": {
+            "model_fields.test_autofield.AutoFieldTests",
+            "model_fields.test_autofield.BigAutoFieldTests",
+            "model_fields.test_autofield.SmallAutoFieldTests",
+        },
+        "QuerySet.select_related() not supported.": {
+            "model_fields.test_booleanfield.BooleanFieldTests.test_select_related",
+            "model_fields.test_foreignkey.ForeignKeyTests.test_empty_string_fk",
+        },
+        "MongoDB does not enforce UNIQUE constraints.": {
+            "auth_tests.test_basic.BasicTestCase.test_unicode_username",
+            "auth_tests.test_migrations.ProxyModelWithSameAppLabelTests.test_migrate_with_existing_target_permission",
+            "constraints.tests.UniqueConstraintTests.test_database_constraint",
+            "contenttypes_tests.test_operations.ContentTypeOperationsTests.test_content_type_rename_conflict",
+            "contenttypes_tests.test_operations.ContentTypeOperationsTests.test_existing_content_type_rename",
+            "custom_pk.tests.CustomPKTests.test_unique_pk",
+            "force_insert_update.tests.ForceInsertInheritanceTests.test_force_insert_with_existing_grandparent",
+            "get_or_create.tests.GetOrCreateTestsWithManualPKs.test_create_with_duplicate_primary_key",
+            "get_or_create.tests.GetOrCreateTestsWithManualPKs.test_savepoint_rollback",
+            "get_or_create.tests.GetOrCreateThroughManyToMany.test_something",
+            "get_or_create.tests.UpdateOrCreateTests.test_manual_primary_key_test",
+            "get_or_create.tests.UpdateOrCreateTestsWithManualPKs.test_create_with_duplicate_primary_key",
+            "model_fields.test_filefield.FileFieldTests.test_unique_when_same_filename",
+            "one_to_one.tests.OneToOneTests.test_multiple_o2o",
+            "queries.test_bulk_update.BulkUpdateTests.test_database_routing_batch_atomicity",
+        },
+        "Test assumes integer primary key.": {
+            "model_fields.test_foreignkey.ForeignKeyTests.test_to_python",
         },
     }
