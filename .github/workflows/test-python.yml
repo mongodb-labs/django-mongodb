@@ -73,6 +73,7 @@ jobs:
           lookup.tests.LookupTests.test_escaping
           model_fields
           or_lookups
+          sessions_tests
 
   docs:
     name: Docs Checks

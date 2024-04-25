@@ -58,7 +58,7 @@ class SQLCompiler(compiler.SQLCompiler):
             yield self._make_result(entity, columns, tuple_expected=tuple_expected)
 
     def has_results(self):
-        return self.get_count(check_exists=True)
+        return bool(self.get_count(check_exists=True))
 
     def _make_result(self, entity, columns, tuple_expected=False):
         """
