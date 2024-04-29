@@ -22,9 +22,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "basic.tests.ModelTest.test_year_lookup_edge_case",
         # "Save with update_fields did not affect any rows."
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
-        # QuerySet.extra() not supported.
-        "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes",
-        "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes_and_values",
         # QuerySet.aggregate() crashes: https://github.com/mongodb-labs/django-mongodb/issues/10
         "from_db_value.tests.FromDBValueTest.test_aggregation",
         # filtering on large decimalfield, see https://code.djangoproject.com/ticket/34590
@@ -36,9 +33,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",
         # Empty queryset ORed (|) with another gives empty results.
         "or_lookups.tests.OrLookupsTests.test_empty_in",
-        # Joins not supported.
-        "model_fields.test_manytomanyfield.ManyToManyFieldDBTests.test_value_from_object_instance_with_pk",
-        "model_fields.test_uuid.TestAsPrimaryKey.test_two_level_foreign_keys",
     }
 
     django_test_skips = {
@@ -61,8 +55,20 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_autofield.SmallAutoFieldTests",
         },
         "QuerySet.select_related() not supported.": {
+            "defer.tests.DeferTests.test_defer_foreign_keys_are_deferred_and_not_traversed",
+            "defer.tests.DeferTests.test_defer_with_select_related",
+            "defer.tests.DeferTests.test_only_with_select_related",
+            "defer.tests.TestDefer2.test_defer_proxy",
+            "defer_regress.tests.DeferRegressionTest.test_basic",
+            "defer_regress.tests.DeferRegressionTest.test_common_model_different_mask",
             "model_fields.test_booleanfield.BooleanFieldTests.test_select_related",
             "model_fields.test_foreignkey.ForeignKeyTests.test_empty_string_fk",
+            "defer_regress.tests.DeferRegressionTest.test_defer_annotate_select_related",
+            "defer_regress.tests.DeferRegressionTest.test_defer_with_select_related",
+            "defer_regress.tests.DeferRegressionTest.test_only_with_select_related",
+            "defer_regress.tests.DeferRegressionTest.test_proxy_model_defer_with_select_related",
+            "defer_regress.tests.DeferRegressionTest.test_reverse_one_to_one_relations",
+            "defer_regress.tests.DeferRegressionTest.test_ticket_23270",
         },
         "MongoDB does not enforce UNIQUE constraints.": {
             "auth_tests.test_basic.BasicTestCase.test_unicode_username",
@@ -83,5 +89,24 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "Test assumes integer primary key.": {
             "model_fields.test_foreignkey.ForeignKeyTests.test_to_python",
+        },
+        "QuerySet.extra() is not supported.": {
+            "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes",
+            "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes_and_values",
+            "defer.tests.DeferTests.test_defer_extra",
+        },
+        "Queries with multiple tables are not supported.": {
+            "defer.tests.BigChildDeferTests.test_defer_baseclass_when_subclass_has_added_field",
+            "defer.tests.BigChildDeferTests.test_defer_subclass",
+            "defer.tests.BigChildDeferTests.test_defer_subclass_both",
+            "defer.tests.BigChildDeferTests.test_only_baseclass_when_subclass_has_added_field",
+            "defer.tests.BigChildDeferTests.test_only_subclass",
+            "defer.tests.DeferTests.test_defer_baseclass_when_subclass_has_no_added_fields",
+            "defer.tests.DeferTests.test_defer_of_overridden_scalar",
+            "defer.tests.DeferTests.test_only_baseclass_when_subclass_has_no_added_fields",
+            "defer.tests.TestDefer2.test_defer_inheritance_pk_chaining",
+            "defer_regress.tests.DeferRegressionTest.test_ticket_16409",
+            "model_fields.test_manytomanyfield.ManyToManyFieldDBTests.test_value_from_object_instance_with_pk",
+            "model_fields.test_uuid.TestAsPrimaryKey.test_two_level_foreign_keys",
         },
     }
