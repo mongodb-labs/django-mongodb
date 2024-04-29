@@ -133,7 +133,8 @@ class MongoQuery:
     def get_cursor(self):
         if self.query.low_mark == self.query.high_mark:
             return []
-        fields = [col.field.name for col in self.columns] if self.columns else None
+
+        fields = [col.target.column for col in self.columns] if self.columns else None
         cursor = self.collection.find(self.mongo_query, fields)
         if self.ordering:
             cursor.sort(self.ordering)
