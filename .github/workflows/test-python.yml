@@ -69,7 +69,8 @@ jobs:
           python3 django_repo/tests/runtests.py --settings mongodb_settings -v 2
           basic
           empty
-          defer.tests.DeferTests.test_only_values_does_not_defer
+          defer
+          defer_regress
           from_db_value
           lookup.tests.LookupTests.test_escaping
           model_fields
