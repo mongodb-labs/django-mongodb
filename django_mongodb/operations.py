@@ -2,7 +2,9 @@ import datetime
 import decimal
 import uuid
 
+from django.conf import settings
 from django.db.backends.base.operations import BaseDatabaseOperations
+from django.utils import timezone
 
 
 class DatabaseOperations(BaseDatabaseOperations):
@@ -31,6 +33,9 @@ class DatabaseOperations(BaseDatabaseOperations):
     def convert_datetimefield_value(self, value, expression, connection):
         if value is not None:
             value = datetime.datetime.fromisoformat(value)
+            if not settings.USE_TZ and timezone.is_aware(value):
+                # Django expects naive datetimes when settings.USE_TZ is False.
+                value = timezone.make_naive(value)
         return value
 
     def convert_decimalfield_value(self, value, expression, connection):

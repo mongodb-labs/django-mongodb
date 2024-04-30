@@ -20,6 +20,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "basic.tests.ModelLookupTest.test_rich_lookup",
         "basic.tests.ModelLookupTest.test_too_many",
         "basic.tests.ModelTest.test_year_lookup_edge_case",
+        "timezones.tests.LegacyDatabaseTests.test_query_datetime_lookups",
+        "timezones.tests.NewDatabaseTests.test_query_convert_timezones",
+        "timezones.tests.NewDatabaseTests.test_query_datetime_lookups",
+        "timezones.tests.NewDatabaseTests.test_query_datetime_lookups_in_other_timezone",
         # "Save with update_fields did not affect any rows."
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
         # QuerySet.extra() not supported.
@@ -27,6 +31,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes_and_values",
         # QuerySet.aggregate() not supported: https://github.com/mongodb-labs/django-mongodb/issues/12
         "from_db_value.tests.FromDBValueTest.test_aggregation",
+        "timezones.tests.LegacyDatabaseTests.test_query_aggregation",
+        "timezones.tests.NewDatabaseTests.test_query_aggregation",
         # filtering on large decimalfield, see https://code.djangoproject.com/ticket/34590
         # for some background.
         "model_fields.test_decimalfield.DecimalFieldTests.test_lookup_decimal_larger_than_max_digits",
@@ -51,6 +57,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "QuerySet.update() with expression not supported.": {
             "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
+            "timezones.tests.NewDatabaseTests.test_update_with_timedelta",
             "update.tests.AdvancedTests.test_update_annotated_queryset",
             "update.tests.AdvancedTests.test_update_negated_f",
             "update.tests.AdvancedTests.test_update_negated_f_conditional_annotation",
@@ -97,6 +104,19 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Test assumes integer primary key.": {
             "model_fields.test_foreignkey.ForeignKeyTests.test_to_python",
         },
+        "QuerySet.dates() is not supported on MongoDB.": {
+            "dates.tests.DatesTests.test_dates_trunc_datetime_fields",
+            "dates.tests.DatesTests.test_related_model_traverse",
+        },
+        "QuerySet.datetimes() is not supported on MongoDB.": {
+            "datetimes.tests.DateTimesTests.test_21432",
+            "datetimes.tests.DateTimesTests.test_datetimes_has_lazy_iterator",
+            "datetimes.tests.DateTimesTests.test_datetimes_returns_available_dates_for_given_scope_and_given_field",
+            "datetimes.tests.DateTimesTests.test_related_model_traverse",
+            "timezones.tests.LegacyDatabaseTests.test_query_datetimes",
+            "timezones.tests.NewDatabaseTests.test_query_datetimes",
+            "timezones.tests.NewDatabaseTests.test_query_datetimes_in_other_timezone",
+        },
         "QuerySet.distinct() is not supported.": {
             "update.tests.AdvancedTests.test_update_all",
         },
@@ -118,6 +138,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "defer_regress.tests.DeferRegressionTest.test_ticket_16409",
             "model_fields.test_manytomanyfield.ManyToManyFieldDBTests.test_value_from_object_instance_with_pk",
             "model_fields.test_uuid.TestAsPrimaryKey.test_two_level_foreign_keys",
+            "timezones.tests.LegacyDatabaseTests.test_query_annotation",
+            "timezones.tests.NewDatabaseTests.test_query_annotation",
             "update.tests.AdvancedTests.test_update_annotated_multi_table_queryset",
             "update.tests.AdvancedTests.test_update_fk",
             "update.tests.AdvancedTests.test_update_ordered_by_inline_m2m_annotation",
@@ -126,5 +148,14 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "update.tests.SimpleTest.test_empty_update_with_inheritance",
             "update.tests.SimpleTest.test_foreign_key_update_with_id",
             "update.tests.SimpleTest.test_nonempty_update_with_inheritance",
+        },
+        "Test executes raw SQL.": {
+            "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",
+            "timezones.tests.LegacyDatabaseTests.test_cursor_execute_returns_naive_datetime",
+            "timezones.tests.LegacyDatabaseTests.test_raw_sql",
+            "timezones.tests.NewDatabaseTests.test_cursor_execute_accepts_aware_datetime",
+            "timezones.tests.NewDatabaseTests.test_cursor_execute_returns_aware_datetime",
+            "timezones.tests.NewDatabaseTests.test_cursor_explicit_time_zone",
+            "timezones.tests.NewDatabaseTests.test_raw_sql",
         },
     }

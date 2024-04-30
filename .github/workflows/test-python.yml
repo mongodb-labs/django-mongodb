@@ -68,6 +68,8 @@ jobs:
         run: >
           python3 django_repo/tests/runtests.py --settings mongodb_settings -v 2
           basic
+          dates
+          datetimes
           empty
           defer
           defer_regress
@@ -78,6 +80,7 @@ jobs:
           model_fields
           or_lookups
           sessions_tests
+          timezones
           update
 
   docs:

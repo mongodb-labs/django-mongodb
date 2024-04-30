@@ -98,6 +98,14 @@ class SQLCompiler(compiler.SQLCompiler):
         if self.query.is_empty():
             raise EmptyResultSet()
         if self.query.distinct:
+            # This is a heuristic to detect QuerySet.datetimes() and dates().
+            # "datetimefield" and "datefield" are the names of the annotations
+            # the methods use. A user could annotate with the same names which
+            # would give an incorrect error message.
+            if "datetimefield" in self.query.annotations:
+                raise NotSupportedError("QuerySet.datetimes() is not supported on MongoDB.")
+            if "datefield" in self.query.annotations:
+                raise NotSupportedError("QuerySet.dates() is not supported on MongoDB.")
             raise NotSupportedError("QuerySet.distinct() is not supported on MongoDB.")
         if self.query.extra:
             raise NotSupportedError("QuerySet.extra() is not supported on MongoDB.")
