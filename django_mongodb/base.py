@@ -91,7 +91,10 @@ class DatabaseWrapper(BaseDatabaseWrapper):
             self.operation_flags = {"save": flags, "delete": flags, "update": flags}
 
         self.connection = MongoClient(
-            host=settings_dict["HOST"] or None, port=int(settings_dict["PORT"] or 27017), **options
+            host=settings_dict["HOST"] or None,
+            port=int(settings_dict["PORT"] or 27017),
+            tz_aware=True,
+            **options,
         )
         db_name = settings_dict["NAME"]
         if db_name:

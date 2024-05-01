@@ -54,6 +54,8 @@ DATABASES = {
 
 - Queries with joins aren't supported.
 
+- `DateTimeField` doesn't support microsecond precision.
+
 ## Troubleshooting
 
 TODO

@@ -10,13 +10,19 @@ from django.utils import timezone
 class DatabaseOperations(BaseDatabaseOperations):
     compiler_module = "django_mongodb.compiler"
 
+    def adapt_datetimefield_value(self, value):
+        if not settings.USE_TZ and timezone.is_naive(value):
+            value = timezone.make_aware(value)
+        return value
+
     def get_db_converters(self, expression):
         converters = super().get_db_converters(expression)
         internal_type = expression.output_field.get_internal_type()
         if internal_type == "DateField":
             converters.append(self.convert_datefield_value)
         elif internal_type == "DateTimeField":
-            converters.append(self.convert_datetimefield_value)
+            if not settings.USE_TZ:
+                converters.append(self.convert_datetimefield_value)
         elif internal_type == "DecimalField":
             converters.append(self.convert_decimalfield_value)
         elif internal_type == "TimeField":
@@ -32,10 +38,8 @@ class DatabaseOperations(BaseDatabaseOperations):
 
     def convert_datetimefield_value(self, value, expression, connection):
         if value is not None:
-            value = datetime.datetime.fromisoformat(value)
-            if not settings.USE_TZ and timezone.is_aware(value):
-                # Django expects naive datetimes when settings.USE_TZ is False.
-                value = timezone.make_naive(value)
+            # Django expects naive datetimes when settings.USE_TZ is False.
+            value = timezone.make_naive(value)
         return value
 
     def convert_decimalfield_value(self, value, expression, connection):
