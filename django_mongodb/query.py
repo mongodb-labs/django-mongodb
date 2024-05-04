@@ -181,11 +181,6 @@ class MongoQuery:
             except FullResultSet:
                 continue
 
-            if lookup_type in ("month", "day"):
-                raise DatabaseError("MongoDB does not support month/day queries.")
-            if self._negated and lookup_type == "range":
-                raise DatabaseError("Negated range lookups are not supported.")
-
             column = field.column
             existing = subquery.get(column)
 
@@ -278,17 +273,6 @@ class MongoQuery:
         rhs, rhs_params = child.process_rhs(self.compiler, self.connection)
 
         lookup_type = child.lookup_name
-
-        # Since NoSql databases generally don't support aggregation or
-        # annotation, pass true unless the query has a get_aggregation() method.
-        # It's a little troubling however that the _nomalize_lookup_value
-        # method seems to only use this value in the case that the value is an
-        # iterable and the lookup_type equals isnull.
-        annotation = (
-            self.get_aggregation(using=self.connection)[None]
-            if hasattr(self, "get_aggregation")
-            else True
-        )
         value = rhs_params
         packed = child.lhs.get_group_by_cols()[0]
         alias = packed.alias
@@ -309,19 +293,18 @@ class MongoQuery:
 
             field = next(f for f in opts.fields if f.column == column)
 
-        value = self._normalize_lookup_value(lookup_type, value, field, annotation)
+        value = self._normalize_lookup_value(lookup_type, value, field)
 
         return field, lookup_type, value
 
-    def _normalize_lookup_value(self, lookup_type, value, field, annotation):
+    def _normalize_lookup_value(self, lookup_type, value, field):
         """
-        Undo preparations done by Field.get_db_prep_lookup() not suitable for
-        MongoDB, and pass the lookup argument through
+        Undo preparations done by lookups or Field.get_db_prep_lookup() not
+        suitable for MongoDB, and pass the lookup argument through
         DatabaseOperations.prep_lookup_value().
         """
         # Undo Field.get_db_prep_lookup() putting most values in a list
-        # (a subclass may override this, so check if it's a list) and
-        # losing the (True / False) argument to the "isnull" lookup.
+        # (a subclass may override this, so check if it's a list).
         if lookup_type not in ("in", "range", "year") and isinstance(value, tuple | list):
             if len(value) > 1:
                 raise DatabaseError(
@@ -329,9 +312,9 @@ class MongoQuery:
                     "not to be a list. Only 'in'-filters can be used with "
                     "lists." % lookup_type
                 )
-            value = annotation if lookup_type == "isnull" else value[0]
+            value = value[0]
 
-        # Remove percent signs added by Field.get_db_prep_lookup() for LIKE
+        # Remove percent signs added by PatternLookup.process_rhs() for LIKE
         # queries.
         if lookup_type in ("startswith", "istartswith"):
             value = value[:-1]

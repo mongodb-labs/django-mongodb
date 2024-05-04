@@ -53,13 +53,23 @@ class SQLCompiler(compiler.SQLCompiler):
             except EmptyResultSet:
                 results = []
 
+        converters = self.get_converters(columns)
         for entity in results:
-            yield self._make_result(entity, columns, tuple_expected=tuple_expected)
+            yield self._make_result(entity, columns, converters, tuple_expected=tuple_expected)
 
     def has_results(self):
         return bool(self.get_count(check_exists=True))
 
-    def _make_result(self, entity, columns, tuple_expected=False):
+    def get_converters(self, columns):
+        converters = {}
+        for column in columns:
+            backend_converters = self.connection.ops.get_db_converters(column)
+            field_converters = column.field.get_db_converters(self.connection)
+            if backend_converters or field_converters:
+                converters[column.target.column] = backend_converters + field_converters
+        return converters
+
+    def _make_result(self, entity, columns, converters, tuple_expected=False):
         """
         Decode values for the given fields from the database entity.
 
@@ -73,12 +83,9 @@ class SQLCompiler(compiler.SQLCompiler):
             value = entity.get(column, NOT_PROVIDED)
             if value is NOT_PROVIDED:
                 value = field.get_default()
-            else:
+            elif converters:
                 # Decode values using Django's database converters API.
-                converters = self.connection.ops.get_db_converters(col) + field.get_db_converters(
-                    self.connection
-                )
-                for converter in converters:
+                for converter in converters.get(column, ()):
                     value = converter(value, col, self.connection)
             result.append(value)
         if tuple_expected:
