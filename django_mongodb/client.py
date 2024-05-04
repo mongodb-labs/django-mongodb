@@ -4,7 +4,6 @@ from django.db.backends.base.client import BaseDatabaseClient
 
 
 class DatabaseClient(BaseDatabaseClient):
-
     executable_name = "mongosh"
 
     @classmethod
@@ -13,7 +12,7 @@ class DatabaseClient(BaseDatabaseClient):
         uri = options.get("uri")
         args = [cls.executable_name]
         if not uri:
-            host = settings_dict.get("HOST")
+            host = settings_dict["HOST"]
             port = settings_dict.get("PORT")
             if port and host:
                 host += f":{port}"
@@ -21,11 +20,10 @@ class DatabaseClient(BaseDatabaseClient):
             dbname = settings_dict.get("NAME", "")
             user = settings_dict.get("USER")
             passwd = settings_dict.get("PASSWORD")
-            auth_database = options.get("authentication_database")
-            auth_mechanism = options.get("authentication_mechanism")
-            retry_writes = options.get("retry_writes")
-
-            protocol = options.get("PROTOCOL", "mongodb")
+            auth_database = options.get("authenticationDatabase")
+            auth_mechanism = options.get("authenticationMechanism")
+            retry_writes = options.get("retryWrites")
+            protocol = options.get("protocol", "mongodb")
 
             if user:
                 args += ["--username", user]
