@@ -79,12 +79,14 @@ class DatabaseOperations(BaseDatabaseOperations):
         """
         Perform type-conversion on `value` before using as a filter parameter.
 
-        This precomputes `field`'s kind and a db_type for the field (or the
-        primary key of the related model for ForeignKeys etc.) and knows that
-        arguments to the `isnull` lookup (`True` or `False`) should not be
-        converted, while some other lookups take a list of arguments.
+        This precomputes `field`'s kind  (or the primary key of the related
+        model for ForeignKeys etc.) and knows that arguments to the `isnull`
+        lookup (`True` or `False`) should not be converted, while some other
+        lookups take a list of arguments.
         """
-        field, field_kind, db_type = self._convert_as(field, lookup)
+        if getattr(field, "rel", None) is not None:
+            field = field.rel.get_related_field()
+        field_kind = field.get_internal_type()
 
         # Argument to the "isnull" lookup is just a boolean, while some
         # other lookups take a list of values.
@@ -92,32 +94,14 @@ class DatabaseOperations(BaseDatabaseOperations):
             return value
         if lookup in ("in", "range", "year"):
             return [
-                self._prep_lookup_value(subvalue, field, field_kind, db_type, lookup)
-                for subvalue in value
+                self._prep_lookup_value(subvalue, field, field_kind, lookup) for subvalue in value
             ]
-        return self._prep_lookup_value(value, field, field_kind, db_type, lookup)
+        return self._prep_lookup_value(value, field, field_kind, lookup)
 
-    def _prep_lookup_value(self, value, field, field_kind, db_type, lookup):
+    def _prep_lookup_value(self, value, field, field_kind, lookup):
         if value is None:
             return None
 
         if field_kind == "DecimalField":
             value = self.adapt_decimalfield_value(value, field.max_digits, field.decimal_places)
         return value
-
-    def _convert_as(self, field, lookup):
-        """
-        Compute parameters that should be used for preparing the field
-        for the database or deconverting a database value for it.
-        """
-        db_type = field.db_type(self.connection)
-
-        if getattr(field, "rel", None) is not None:
-            field = field.rel.get_related_field()
-        field_kind = field.get_internal_type()
-
-        # Values for standard month / day queries are integers.
-        if field_kind in ("DateField", "DateTimeField") and lookup in ("month", "day"):
-            db_type = "integer"
-
-        return field, field_kind, db_type
