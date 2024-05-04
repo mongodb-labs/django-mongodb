@@ -73,6 +73,8 @@ jobs:
           defer_regress
           from_db_value
           lookup.tests.LookupTests.test_escaping
+          lookup.tests.LookupTests.test_isnull_textfield
+          lookup.tests.LookupQueryingTests.test_isnull_lookup_in_filter
           model_fields
           or_lookups
           sessions_tests
