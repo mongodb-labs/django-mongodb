@@ -6,8 +6,8 @@ from django.utils.version import get_version_tuple
 def check_django_compatability():
     """
     Verify that this version of django-mongodb is compatible with the
-    installed version of Django. For example, any django-mongodb 2.2.x is
-    compatible with Django 2.2.y.
+    installed version of Django. For example, any django-mongodb 5.0.x is
+    compatible with Django 5.0.y.
     """
     from . import __version__
 

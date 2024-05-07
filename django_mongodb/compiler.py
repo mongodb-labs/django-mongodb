@@ -7,12 +7,13 @@ from django.db import (
     connections,
 )
 from django.db.models import NOT_PROVIDED, Count, Expression
+from django.db.models.aggregates import Aggregate
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.sql import compiler
 from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE, MULTI
 
 from .base import Cursor
-from .query import MongoQuery, safe_call
+from .query import MongoQuery, wrap_database_errors
 
 
 class SQLCompiler(compiler.SQLCompiler):
@@ -93,14 +94,8 @@ class SQLCompiler(compiler.SQLCompiler):
         return result
 
     def check_query(self):
-        """
-        Check if the current query is supported by the database.
-
-        Queries requiring JOINs (many-to-many relations, abstract model bases,
-        or model spanning filtering), using DISTINCT (QuerySet.distinct()) or
-        using the SQL-specific QuerySet.extra() aren't supported.
-        """
-        if hasattr(self.query, "is_empty") and self.query.is_empty():
+        """Check if the current query is supported by the database."""
+        if self.query.is_empty():
             raise EmptyResultSet()
         if self.query.distinct:
             raise NotSupportedError("QuerySet.distinct() is not supported on MongoDB.")
@@ -110,6 +105,11 @@ class SQLCompiler(compiler.SQLCompiler):
             raise NotSupportedError("QuerySet.select_related() is not supported on MongoDB.")
         if len([a for a in self.query.alias_map if self.query.alias_refcount[a]]) > 1:
             raise NotSupportedError("Queries with multiple tables are not supported on MongoDB.")
+        if any(
+            isinstance(a, Aggregate) and not isinstance(a, Count)
+            for a in self.query.annotations.values()
+        ):
+            raise NotSupportedError("QuerySet.aggregate() isn't supported on MongoDB.")
 
     def get_count(self, check_exists=False):
         """
@@ -164,11 +164,9 @@ class SQLCompiler(compiler.SQLCompiler):
         field_ordering = []
         for order in ordering:
             if LOOKUP_SEP in order:
-                raise DatabaseError(
-                    "Ordering can't span tables on non-relational backends " "(%s)." % order
-                )
+                raise NotSupportedError("Ordering can't span tables on MongoDB (%s)." % order)
             if order == "?":
-                raise DatabaseError("Randomized ordering isn't supported by the backend.")
+                raise NotSupportedError("Randomized ordering isn't supported by MongoDB.")
 
             ascending = not order.startswith("-")
             if not self.query.standard_ordering:
@@ -189,7 +187,6 @@ class SQLInsertCompiler(SQLCompiler):
     def execute_sql(self, returning_fields=None):
         self.pre_sql_setup()
 
-        to_insert = []
         # pk_field = self.query.get_meta().pk
         keys = []
         for obj in self.query.objs:
@@ -207,37 +204,18 @@ class SQLInsertCompiler(SQLCompiler):
                     )
 
                 field_values[field.column] = value
-            to_insert.append(field_values)
-
             # TODO: pass the key value through db converters (use pk_field).
-            keys.append(self.insert(to_insert, returning_fields=returning_fields))
+            keys.append(self.insert(field_values, returning_fields=returning_fields))
 
         return keys
 
-    @safe_call
-    def insert(self, docs, returning_fields=None):
-        """
-        Store a document using field columns as element names.
-
-        If just a {pk_field: None} mapping is given a new empty document is
-        created, otherwise value for a primary key may not be None.
-        """
-        for doc in docs:
-            if doc.get("_id", NOT_PROVIDED) is None:
-                if len(doc) == 1:
-                    # insert with empty model
-                    doc.clear()
-                else:
-                    raise DatabaseError("Can't save entity with _id set to None")
-
+    @wrap_database_errors
+    def insert(self, doc, returning_fields=None):
+        """Store a document using field columns as element names."""
         collection = self.get_collection()
         options = self.connection.operation_flags.get("save", {})
-
-        if returning_fields:
-            return [collection.insert_one(doc, **options).inserted_id]
-
-        collection.insert_one(doc, **options)
-        return []
+        inserted_id = collection.insert_one(doc, **options).inserted_id
+        return [inserted_id] if returning_fields else []
 
 
 class SQLDeleteCompiler(SQLCompiler):
@@ -281,7 +259,7 @@ class SQLUpdateCompiler(SQLCompiler):
 
         return self.execute_update(spec, multi)
 
-    @safe_call
+    @wrap_database_errors
     def execute_update(self, update_spec, multi=True, **kwargs):
         collection = self.get_collection()
         try:

@@ -46,7 +46,13 @@ DATABASES = {
 
 ## Known issues and limitations
 
-TODO
+- The following `QuerySet` methods aren't supported:
+  - `aggregate()`
+  - `distinct()`
+  - `extra()`
+  - `select_related()`
+
+- Queries with joins aren't supported.
 
 ## Troubleshooting
 

@@ -11,7 +11,7 @@ from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
 
-def safe_call(func):
+def wrap_database_errors(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -29,7 +29,6 @@ def safe_regex(regex, *re_args, **re_kwargs):
         return re.compile(regex % re.escape(value), *re_args, **re_kwargs)
 
     wrapper.__name__ = "safe_regex (%r)" % regex
-
     return wrapper
 
 
@@ -52,8 +51,6 @@ OPERATORS_MAP = {
     "icontains": safe_regex("%s", re.IGNORECASE),
     "regex": lambda val: re.compile(val),
     "iregex": lambda val: re.compile(val, re.IGNORECASE),
-    # Date OPs.
-    "year": lambda val: {"$gte": val[0], "$lt": val[1]},
 }
 
 NEGATED_OPERATORS_MAP = {
@@ -69,10 +66,10 @@ NEGATED_OPERATORS_MAP = {
 
 class MongoQuery:
     """
-    Compilers build a MongoQuery when they want to fetch some data.
-    They work by first allowing sql.compiler.SQLCompiler to partly build
-    a sql.Query, constructing a MongoQuery query on top of it, and then
-    iterating over its results.
+    Compilers build a MongoQuery when they want to fetch some data. They work
+    by first allowing sql.compiler.SQLCompiler to partly build a sql.Query,
+    constructing a MongoQuery query on top of it, and then iterating over its
+    results.
 
     This class provides a framework for converting the SQL constraint tree
     built by Django to a "representation" more suitable for MongoDB.
@@ -96,7 +93,7 @@ class MongoQuery:
         """Return an iterator over the query results."""
         yield from self.get_cursor()
 
-    @safe_call
+    @wrap_database_errors
     def count(self, limit=None):
         """
         Return the number of objects that would be returned, if this query was
@@ -105,7 +102,6 @@ class MongoQuery:
         kwargs = {"limit": limit} if limit is not None else {}
         return self.collection.count_documents(self.mongo_query, **kwargs)
 
-    @safe_call
     def order_by(self, ordering):
         """
         Reorder query results or execution order. Called by compiler during
@@ -124,7 +120,7 @@ class MongoQuery:
                 direction = ASCENDING if ascending else DESCENDING
                 self.ordering.append((field.column, direction))
 
-    @safe_call
+    @wrap_database_errors
     def delete(self):
         """Execute a delete query."""
         options = self.connection.operation_flags.get("delete", {})
@@ -210,7 +206,7 @@ class MongoQuery:
                 else:
                     # {'a': o1} + {'a': {'$not': o2}} --> {'a': {'$all': [o1], '$nin': [o2]}}
                     if already_negated:
-                        assert lookup.keys() == ["$ne"]
+                        assert list(lookup) == ["$ne"]
                         lookup = lookup["$ne"]
                     assert not isinstance(lookup, dict)
                     subquery[column] = {"$all": [existing], "$nin": [lookup]}
@@ -219,8 +215,8 @@ class MongoQuery:
                 if not_:
                     assert not existing
                     if isinstance(lookup, dict):
-                        assert lookup.keys() == ["$ne"]
-                        lookup = lookup.values()[0]
+                        assert list(lookup) == ["$ne"]
+                        lookup = next(iter(lookup.values()))
                     assert not isinstance(lookup, dict), (not_, lookup)
                     if self._negated:
                         # {'not': {'a': o1}} + {'a': {'not': o2}} --> {'a': {'nin': [o1, o2]}}
@@ -271,7 +267,6 @@ class MongoQuery:
             raise NotSupportedError("Pattern lookups on UUIDField are not supported.")
 
         rhs, rhs_params = child.process_rhs(self.compiler, self.connection)
-
         lookup_type = child.lookup_name
         value = rhs_params
         packed = child.lhs.get_group_by_cols()[0]
@@ -280,15 +275,15 @@ class MongoQuery:
         field = child.lhs.output_field
         opts = self.query.model._meta
         if alias and alias != opts.db_table:
-            raise DatabaseError("This database doesn't support JOINs and multi-table inheritance.")
+            raise NotSupportedError("MongoDB doesn't support JOINs and multi-table inheritance.")
 
         # For parent.child_set queries the field held by the constraint
         # is the parent's primary key, while the field the filter
         # should consider is the child's foreign key field.
         if column != field.column:
             if not field.primary_key:
-                raise DatabaseError(
-                    "This database doesn't support filtering on non-primary key ForeignKey fields."
+                raise NotSupportedError(
+                    "MongoDB doesn't support filtering on non-primary key ForeignKey fields."
                 )
 
             field = next(f for f in opts.fields if f.column == column)
@@ -299,13 +294,11 @@ class MongoQuery:
 
     def _normalize_lookup_value(self, lookup_type, value, field):
         """
-        Undo preparations done by lookups or Field.get_db_prep_lookup() not
-        suitable for MongoDB, and pass the lookup argument through
-        DatabaseOperations.prep_lookup_value().
+        Undo preparations done by lookups not suitable for MongoDB, and pass
+        the lookup argument through DatabaseOperations.prep_lookup_value().
         """
-        # Undo Field.get_db_prep_lookup() putting most values in a list
-        # (a subclass may override this, so check if it's a list).
-        if lookup_type not in ("in", "range", "year") and isinstance(value, tuple | list):
+        # Undo Lookup.get_db_prep_lookup() putting params in a list.
+        if lookup_type not in ("in", "range"):
             if len(value) > 1:
                 raise DatabaseError(
                     "Filter lookup type was %s; expected the filter argument "
@@ -332,8 +325,8 @@ class MongoQuery:
         """
         result = []
         for child in children:
-            if SubqueryConstraint is not None and isinstance(child, SubqueryConstraint):
-                raise DatabaseError("Subqueries are not supported.")
+            if isinstance(child, SubqueryConstraint):
+                raise NotSupportedError("Subqueries are not supported.")
 
             if isinstance(child, tuple):
                 constraint, lookup_type, _, value = child
@@ -344,7 +337,7 @@ class MongoQuery:
                 #       evaluate subqueries instead of passing them as SQL
                 #       strings (QueryWrappers) to filtering.
                 if isinstance(value, QuerySet):
-                    raise DatabaseError("Subqueries are not supported.")
+                    raise NotSupportedError("Subqueries are not supported.")
 
                 # Remove leafs that were automatically added by
                 # sql.Query.add_filter() to handle negations of outer joins.

@@ -4,7 +4,7 @@ from django.db.backends.base.features import BaseDatabaseFeatures
 class DatabaseFeatures(BaseDatabaseFeatures):
     supports_foreign_keys = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/8
-    supports_json_field = False  # Not implemented
+    supports_json_field = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/7
     supports_transactions = False
     uses_savepoints = False
@@ -22,7 +22,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "basic.tests.ModelTest.test_year_lookup_edge_case",
         # "Save with update_fields did not affect any rows."
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
-        # QuerySet.aggregate() crashes: https://github.com/mongodb-labs/django-mongodb/issues/10
+        # QuerySet.extra() not supported.
+        "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes",
+        "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes_and_values",
+        # QuerySet.aggregate() not supported: https://github.com/mongodb-labs/django-mongodb/issues/12
         "from_db_value.tests.FromDBValueTest.test_aggregation",
         # filtering on large decimalfield, see https://code.djangoproject.com/ticket/34590
         # for some background.
