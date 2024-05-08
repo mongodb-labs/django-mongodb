@@ -244,7 +244,6 @@ class SQLUpdateCompiler(SQLCompiler):
         return self.update(values)
 
     def update(self, values):
-        multi = True
         spec = {}
         for field, value in values:
             if field.primary_key:
@@ -253,14 +252,10 @@ class SQLUpdateCompiler(SQLCompiler):
                 raise NotSupportedError("QuerySet.update() with expression not supported.")
             # .update(foo=123) --> {'$set': {'foo': 123}}
             spec.setdefault("$set", {})[field.column] = value
-
-            if field.unique:
-                multi = False
-
-        return self.execute_update(spec, multi)
+        return self.execute_update(spec)
 
     @wrap_database_errors
-    def execute_update(self, update_spec, multi=True, **kwargs):
+    def execute_update(self, update_spec, **kwargs):
         collection = self.get_collection()
         try:
             criteria = self.build_query().mongo_query
@@ -268,8 +263,7 @@ class SQLUpdateCompiler(SQLCompiler):
             return 0
         options = self.connection.operation_flags.get("update", {})
         options = dict(options, **kwargs)
-        method = "update_many" if multi else "update_one"
-        return getattr(collection, method)(criteria, update_spec, **options).matched_count
+        return collection.update_many(criteria, update_spec, **options).matched_count
 
 
 class SQLAggregateCompiler(SQLCompiler):
