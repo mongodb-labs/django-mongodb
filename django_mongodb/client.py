@@ -1,12 +1,10 @@
 import signal
-import urllib
 
 from django.db.backends.base.client import BaseDatabaseClient
 
 
 class DatabaseClient(BaseDatabaseClient):
     executable_name = "mongosh"
-    help_options = ("--help", "-h")
 
     @classmethod
     def settings_to_cmd_args_env(cls, settings_dict, parameters):
@@ -29,7 +27,6 @@ class DatabaseClient(BaseDatabaseClient):
         if user:
             args += ["--username", user]
         if passwd:
-            passwd = urllib.parse.quote_plus(passwd)
             args += ["--password", passwd]
         if auth_database:
             args += ["--authenticationDatabase", auth_database]
@@ -38,12 +35,10 @@ class DatabaseClient(BaseDatabaseClient):
         if retry_writes is not None:
             args += ["--retryWrites", str(retry_writes).lower()]
 
-        if dbname:
-            args.append(dbname)
+        args.append(dbname)
 
         if parameters:
-            if not any(param in cls.help_options for param in parameters):
-                args.append("--shell")
+            args.append("--shell")
             args += parameters
         return args, None
 
