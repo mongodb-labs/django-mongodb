@@ -78,6 +78,7 @@ jobs:
           model_fields
           or_lookups
           sessions_tests
+          update
 
   docs:
     name: Docs Checks

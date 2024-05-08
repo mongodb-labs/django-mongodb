@@ -51,6 +51,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "QuerySet.update() with expression not supported.": {
             "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
+            "update.tests.AdvancedTests.test_update_annotated_queryset",
+            "update.tests.AdvancedTests.test_update_negated_f",
+            "update.tests.AdvancedTests.test_update_negated_f_conditional_annotation",
+            "update.tests.AdvancedTests.test_update_transformed_field",
         },
         "AutoField not supported.": {
             "model_fields.test_autofield.AutoFieldTests",
@@ -93,6 +97,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Test assumes integer primary key.": {
             "model_fields.test_foreignkey.ForeignKeyTests.test_to_python",
         },
+        "QuerySet.distinct() is not supported.": {
+            "update.tests.AdvancedTests.test_update_all",
+        },
         "QuerySet.extra() is not supported.": {
             "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes",
             "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes_and_values",
@@ -111,5 +118,13 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "defer_regress.tests.DeferRegressionTest.test_ticket_16409",
             "model_fields.test_manytomanyfield.ManyToManyFieldDBTests.test_value_from_object_instance_with_pk",
             "model_fields.test_uuid.TestAsPrimaryKey.test_two_level_foreign_keys",
+            "update.tests.AdvancedTests.test_update_annotated_multi_table_queryset",
+            "update.tests.AdvancedTests.test_update_fk",
+            "update.tests.AdvancedTests.test_update_ordered_by_inline_m2m_annotation",
+            "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation",
+            "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation_desc",
+            "update.tests.SimpleTest.test_empty_update_with_inheritance",
+            "update.tests.SimpleTest.test_foreign_key_update_with_id",
+            "update.tests.SimpleTest.test_nonempty_update_with_inheritance",
         },
     }
