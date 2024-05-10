@@ -1,11 +1,11 @@
 import re
 from functools import wraps
 
-from django.core.exceptions import FullResultSet
+from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError, NotSupportedError
 from django.db.models.lookups import UUIDTextMixin
 from django.db.models.query import QuerySet
-from django.db.models.sql.where import OR, SubqueryConstraint
+from django.db.models.sql.where import AND, OR, SubqueryConstraint
 from django.utils.tree import Node
 from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import DuplicateKeyError, PyMongoError
@@ -142,6 +142,11 @@ class MongoQuery:
     def add_filters(self, filters, query=None):
         children = self._get_children(filters.children)
 
+        if filters.connector == AND:
+            full_needed, empty_needed = len(children), 1
+        else:
+            full_needed, empty_needed = 1, len(children)
+
         if query is None:
             query = self.mongo_query
 
@@ -162,7 +167,20 @@ class MongoQuery:
                 if filters.connector == OR and filters.negated:
                     raise NotImplementedError("Negated ORs are not supported.")
 
-                self.add_filters(child, query=subquery)
+                try:
+                    self.add_filters(child, query=subquery)
+                except EmptyResultSet:
+                    empty_needed -= 1
+                    if empty_needed == 0:
+                        exc = FullResultSet if filters.negated else EmptyResultSet
+                        raise exc from None
+                    continue
+                except FullResultSet:
+                    full_needed -= 1
+                    if full_needed == 0:
+                        exc = EmptyResultSet if filters.negated else FullResultSet
+                        raise exc from None
+                    continue
 
                 if filters.connector == OR and subquery:
                     or_conditions.extend(subquery.pop("$or", []))
@@ -173,7 +191,21 @@ class MongoQuery:
 
             try:
                 field, lookup_type, value = self._decode_child(child)
+            except EmptyResultSet:
+                empty_needed -= 1
+                if empty_needed == 0:
+                    if filters.negated:
+                        self._negated = not self._negated
+                    exc = FullResultSet if filters.negated else EmptyResultSet
+                    raise exc from None
+                continue
             except FullResultSet:
+                full_needed -= 1
+                if full_needed == 0:
+                    if filters.negated:
+                        self._negated = not self._negated
+                    exc = EmptyResultSet if filters.negated else FullResultSet
+                    raise exc from None
                 continue
 
             column = field.column

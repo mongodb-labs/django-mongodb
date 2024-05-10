@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.exceptions import EmptyResultSet
+from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import (
     DatabaseError,
     IntegrityError,
@@ -128,7 +128,10 @@ class SQLCompiler(compiler.SQLCompiler):
         self.check_query()
         self.setup_query()
         query = self.query_class(self, columns)
-        query.add_filters(self.query.where)
+        try:
+            query.add_filters(self.query.where)
+        except FullResultSet:
+            query.mongo_query = []
         query.order_by(self._get_ordering())
 
         # This at least satisfies the most basic unit tests.

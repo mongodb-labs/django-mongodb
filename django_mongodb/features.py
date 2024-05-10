@@ -34,8 +34,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # 'TruncDate' object has no attribute 'alias'
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",
-        # Empty queryset ORed (|) with another gives empty results.
-        "or_lookups.tests.OrLookupsTests.test_empty_in",
     }
 
     django_test_skips = {

@@ -77,6 +77,7 @@ jobs:
           lookup.tests.LookupQueryingTests.test_isnull_lookup_in_filter
           model_fields
           or_lookups
+          queries.tests.Ticket12807Tests.test_ticket_12807
           sessions_tests
           update
 
