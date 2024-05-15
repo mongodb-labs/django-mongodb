@@ -11,9 +11,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     uses_savepoints = False
 
     django_test_expected_failures = {
-        "basic.tests.ModelInstanceCreationTests.test_save_parent_primary_with_default",
+        # Database defaults not supported: bson.errors.InvalidDocument:
+        # cannot encode object: <django.db.models.expressions.DatabaseDefault
         "basic.tests.ModelInstanceCreationTests.test_save_primary_with_db_default",
-        "basic.tests.ModelInstanceCreationTests.test_save_primary_with_default",
         # Date lookups aren't implemented: https://github.com/mongodb-labs/django-mongodb/issues/9
         # (e.g. 'ExtractMonth' object has no attribute 'alias')
         "basic.tests.ModelLookupTest.test_does_not_exist",

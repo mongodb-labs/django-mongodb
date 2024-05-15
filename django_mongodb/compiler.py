@@ -1,11 +1,5 @@
-from django.conf import settings
 from django.core.exceptions import EmptyResultSet
-from django.db import (
-    DatabaseError,
-    IntegrityError,
-    NotSupportedError,
-    connections,
-)
+from django.db import DatabaseError, IntegrityError, NotSupportedError
 from django.db.models import NOT_PROVIDED, Count, Expression, Value
 from django.db.models.aggregates import Aggregate
 from django.db.models.constants import LOOKUP_SEP
@@ -144,11 +138,6 @@ class SQLCompiler(compiler.SQLCompiler):
         query = self.query_class(self, columns)
         query.add_filters(self.query.where)
         query.order_by(self._get_ordering())
-
-        # This at least satisfies the most basic unit tests.
-        force_debug_cursor = connections[self.using].force_debug_cursor
-        if force_debug_cursor or (force_debug_cursor is None and settings.DEBUG):
-            self.connection.queries_log.append({"sql": repr(query)})
         return query
 
     def get_columns(self):

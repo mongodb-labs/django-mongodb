@@ -11,6 +11,7 @@ from .features import DatabaseFeatures
 from .introspection import DatabaseIntrospection
 from .operations import DatabaseOperations
 from .schema import DatabaseSchemaEditor
+from .utils import CollectionDebugWrapper
 
 
 class Cursor:
@@ -74,7 +75,10 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         del self.connection
 
     def get_collection(self, name, **kwargs):
-        return Collection(self.database, name, **kwargs)
+        collection = Collection(self.database, name, **kwargs)
+        if self.queries_logged:
+            collection = CollectionDebugWrapper(collection, self)
+        return collection
 
     def __getattr__(self, attr):
         """
