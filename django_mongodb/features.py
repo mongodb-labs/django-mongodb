@@ -4,6 +4,7 @@ from django.db.backends.base.features import BaseDatabaseFeatures
 class DatabaseFeatures(BaseDatabaseFeatures):
     supports_date_lookup_using_string = False
     supports_foreign_keys = False
+    supports_ignore_conflicts = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/8
     supports_json_field = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/7
@@ -63,6 +64,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     }
 
     django_test_skips = {
+        "Insert expressions aren't supported.": {
+            "bulk_create.tests.BulkCreateTests.test_bulk_insert_now",
+            "bulk_create.tests.BulkCreateTests.test_bulk_insert_expressions",
+        },
         "Pattern lookups on UUIDField are not supported.": {
             "model_fields.test_uuid.TestQuerying.test_contains",
             "model_fields.test_uuid.TestQuerying.test_endswith",
@@ -82,6 +87,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "update.tests.AdvancedTests.test_update_transformed_field",
         },
         "AutoField not supported.": {
+            "bulk_create.tests.BulkCreateTests.test_bulk_insert_nullable_fields",
             "lookup.tests.LookupTests.test_in_ignore_none_with_unhashable_items",
             "model_fields.test_autofield.AutoFieldTests",
             "model_fields.test_autofield.BigAutoFieldTests",

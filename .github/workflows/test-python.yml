@@ -70,6 +70,7 @@ jobs:
           auth_tests.test_models.UserManagerTestCase
           backends.base.test_base.DatabaseWrapperTests
           basic
+          bulk_create
           dates
           datetimes
           empty

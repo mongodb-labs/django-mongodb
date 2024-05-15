@@ -189,9 +189,7 @@ class SQLCompiler(compiler.SQLCompiler):
 class SQLInsertCompiler(SQLCompiler):
     def execute_sql(self, returning_fields=None):
         self.pre_sql_setup()
-
-        # pk_field = self.query.get_meta().pk
-        keys = []
+        objs = []
         for obj in self.query.objs:
             field_values = {}
             for field in self.query.fields:
@@ -207,18 +205,16 @@ class SQLInsertCompiler(SQLCompiler):
                     )
 
                 field_values[field.column] = value
-            # TODO: pass the key value through db converters (use pk_field).
-            keys.append(self.insert(field_values, returning_fields=returning_fields))
-
-        return keys
+            objs.append(field_values)
+        return [self.insert(objs, returning_fields=returning_fields)]
 
     @wrap_database_errors
-    def insert(self, doc, returning_fields=None):
-        """Store a document using field columns as element names."""
+    def insert(self, docs, returning_fields=None):
+        """Store a list of documents using field columns as element names."""
         collection = self.get_collection()
         options = self.connection.operation_flags.get("save", {})
-        inserted_id = collection.insert_one(doc, **options).inserted_id
-        return [inserted_id] if returning_fields else []
+        inserted_ids = collection.insert_many(docs, **options).inserted_ids
+        return inserted_ids if returning_fields else []
 
 
 class SQLDeleteCompiler(SQLCompiler):

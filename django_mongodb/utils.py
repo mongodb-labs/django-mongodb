@@ -84,7 +84,7 @@ class CollectionDebugWrapper:
 
     # These are the operations that this backend uses.
     count_documents = logging_wrapper("count_documents")
-    insert_one = logging_wrapper("insert_one")
+    insert_many = logging_wrapper("insert_many")
     delete_many = logging_wrapper("delete_many")
     update_many = logging_wrapper("update_many")
 
