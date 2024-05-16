@@ -13,13 +13,12 @@ from django.db.models import NOT_PROVIDED, Count, Expression
 from django.db.models.aggregates import Aggregate
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Col
-from django.db.models.fields import (
-    DateTimeField,
-)
 from django.db.models.fields.related_lookups import In, MultiColSource, RelatedIn
 from django.db.models.functions.datetime import Extract
 from django.db.models.lookups import (
+    Contains,
     Exact,  # ,  IExact
+    IsNull,
     StartsWith,
 )
 from django.db.models.sql import compiler
@@ -176,6 +175,8 @@ class SQLCompiler(compiler.SQLCompiler):
     def _compile_exact(self, node):
         lhs_mql = self._compile(node.lhs)
         rhs_mql = self._compile(node.rhs)
+        if isinstance(node.lhs, Extract):
+            return {"$expr": {"$eq": [lhs_mql, rhs_mql]}}
         return {lhs_mql: rhs_mql}
 
     def _compile_col(self, node):
@@ -185,7 +186,7 @@ class SQLCompiler(compiler.SQLCompiler):
         result = None
         if isinstance(node, WhereNode):
             result = self._compile_where_node(node)
-        elif isinstance(node, str | list | int | ObjectId):
+        elif isinstance(node, str | bool | list | int | ObjectId):
             result = self._compile_leaf_node(node)
         elif isinstance(node, Exact):
             result = self._compile_exact(node)
@@ -199,13 +200,27 @@ class SQLCompiler(compiler.SQLCompiler):
             result = {lhs_mql: {"$in": rhs_mql}}
         elif isinstance(node, Extract):
             lhs_mql = self._compile(node.lhs)
-            lhs_output_field = node.lhs.output_field
-            if isinstance(lhs_output_field, DateTimeField):
-                pass
+            if node.lookup_name == "week":
+                operator = "$week"
+            elif node.lookup_name == "month":
+                operator = "$month"
+            elif node.lookup_name == "year":
+                operator = "$year"
+            else:
+                raise NotSupportedError(f"Node of type {type(node)} is not supported")
+            # check if it is an expression or a column, now I take as it's column
+            result = {operator: f"${lhs_mql}"}
         elif isinstance(node, StartsWith):
             lhs_mql = self._compile(node.lhs)
             rhs_mql = self._compile(node.rhs)
             result = {lhs_mql: safe_regex("^%s")(rhs_mql)}
+        elif isinstance(node, Contains):
+            lhs_mql = self._compile(node.lhs)
+            rhs_mql = self._compile(node.rhs)
+            result = {lhs_mql: safe_regex("%s")(rhs_mql)}
+        elif isinstance(node, IsNull):
+            lhs_mql = self._compile(node.lhs)
+            result = {lhs_mql: None} if node.rhs is True else {lhs_mql: {"$ne": None}}
         else:
             raise NotSupportedError(f"Node of type {type(node)} is not supported")
         return result
