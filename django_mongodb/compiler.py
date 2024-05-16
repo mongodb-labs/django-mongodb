@@ -1,5 +1,8 @@
+import re
+
+from bson.objectid import ObjectId
 from django.conf import settings
-from django.core.exceptions import EmptyResultSet
+from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import (
     DatabaseError,
     IntegrityError,
@@ -9,11 +12,30 @@ from django.db import (
 from django.db.models import NOT_PROVIDED, Count, Expression
 from django.db.models.aggregates import Aggregate
 from django.db.models.constants import LOOKUP_SEP
+from django.db.models.expressions import Col
+from django.db.models.fields import (
+    DateTimeField,
+)
+from django.db.models.fields.related_lookups import In, MultiColSource, RelatedIn
+from django.db.models.functions.datetime import Extract
+from django.db.models.lookups import (
+    Exact,  # ,  IExact
+    StartsWith,
+)
 from django.db.models.sql import compiler
 from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE, MULTI
+from django.db.models.sql.where import AND, XOR, WhereNode
 
 from .base import Cursor
 from .query import MongoQuery, wrap_database_errors
+
+
+def safe_regex(regex, *re_args, **re_kwargs):
+    def wrapper(value):
+        return re.compile(regex % re.escape(value), *re_args, **re_kwargs)
+
+    wrapper.__name__ = "safe_regex (%r)" % regex
+    return wrapper
 
 
 class SQLCompiler(compiler.SQLCompiler):
@@ -123,12 +145,77 @@ class SQLCompiler(compiler.SQLCompiler):
         except EmptyResultSet:
             return 0
 
+    def _compile_where_node(self, node):
+        if node.connector == AND:
+            operator = "$and"
+        elif node.connector == XOR:
+            operator = "$ne"
+        else:
+            operator = "$or"
+
+        children_mql = []
+        for child in node.children:
+            try:
+                mql = self._compile(child)
+            except (EmptyResultSet, FullResultSet):
+                pass
+            else:
+                if mql:
+                    children_mql.append(mql)
+
+        mql = {operator: children_mql} if children_mql else {}
+
+        if node.negated and mql:
+            mql = {"$not": mql}
+
+        return mql
+
+    def _compile_leaf_node(self, node):
+        return node
+
+    def _compile_exact(self, node):
+        lhs_mql = self._compile(node.lhs)
+        rhs_mql = self._compile(node.rhs)
+        return {lhs_mql: rhs_mql}
+
+    def _compile_col(self, node):
+        return node.target.column
+
+    def _compile(self, node):
+        result = None
+        if isinstance(node, WhereNode):
+            result = self._compile_where_node(node)
+        elif isinstance(node, str | list | int | ObjectId):
+            result = self._compile_leaf_node(node)
+        elif isinstance(node, Exact):
+            result = self._compile_exact(node)
+        elif isinstance(node, Col):
+            result = node.target.column
+        elif isinstance(node, RelatedIn | In):
+            if isinstance(node.lhs, MultiColSource):
+                raise NotImplementedError("It will be there, I promise! :D")
+            lhs_mql = self._compile(node.lhs)
+            rhs_mql = self._compile(node.rhs)
+            result = {lhs_mql: {"$in": rhs_mql}}
+        elif isinstance(node, Extract):
+            lhs_mql = self._compile(node.lhs)
+            lhs_output_field = node.lhs.output_field
+            if isinstance(lhs_output_field, DateTimeField):
+                pass
+        elif isinstance(node, StartsWith):
+            lhs_mql = self._compile(node.lhs)
+            rhs_mql = self._compile(node.rhs)
+            result = {lhs_mql: safe_regex("^%s")(rhs_mql)}
+        else:
+            raise NotSupportedError(f"Node of type {type(node)} is not supported")
+        return result
+
     def build_query(self, columns=None):
         """Check if the query is supported and prepare a MongoQuery."""
         self.check_query()
         self.setup_query()
         query = self.query_class(self, columns)
-        query.add_filters(self.query.where)
+        query.mongo_query = self._compile(self.query.where)
         query.order_by(self._get_ordering())
 
         # This at least satisfies the most basic unit tests.
