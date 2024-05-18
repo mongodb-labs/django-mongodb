@@ -51,6 +51,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "UUIDField": "string",
     }
 
+    display_name = "MongoDB"
     vendor = "mongodb"
     Database = Database
     SchemaEditorClass = DatabaseSchemaEditor
