@@ -11,7 +11,7 @@ class DatabaseOperations(BaseDatabaseOperations):
     compiler_module = "django_mongodb.compiler"
 
     def adapt_datetimefield_value(self, value):
-        if not settings.USE_TZ and timezone.is_naive(value):
+        if not settings.USE_TZ and value is not None and timezone.is_naive(value):
             value = timezone.make_aware(value)
         return value
 
