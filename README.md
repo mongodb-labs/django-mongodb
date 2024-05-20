@@ -40,9 +40,13 @@ DATABASES = {
         "NAME": "my_database",
         "USER": "my_user",
         "PASSWORD": "my_password",
+        "OPTIONS": {...},
     },
 }
 ```
+
+`OPTIONS` is an optional dictionary of parameters that will be passed to
+[`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
 
 ## Known issues and limitations
 
