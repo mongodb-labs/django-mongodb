@@ -16,11 +16,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # cannot encode object: <django.db.models.expressions.DatabaseDefault
         "basic.tests.ModelInstanceCreationTests.test_save_primary_with_db_default",
         # Date lookups aren't implemented: https://github.com/mongodb-labs/django-mongodb/issues/9
-        # (e.g. 'ExtractMonth' object has no attribute 'alias')
+        # (e.g. ExtractWeekDay is not supported.)
         "basic.tests.ModelLookupTest.test_does_not_exist",
         "basic.tests.ModelLookupTest.test_equal_lookup",
         "basic.tests.ModelLookupTest.test_rich_lookup",
-        "basic.tests.ModelLookupTest.test_too_many",
         "basic.tests.ModelTest.test_year_lookup_edge_case",
         "lookup.tests.LookupTests.test_chain_date_time_lookups",
         "lookup.test_timefield.TimeFieldLookupTests.test_hour_lookups",
@@ -30,7 +29,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "timezones.tests.NewDatabaseTests.test_query_convert_timezones",
         "timezones.tests.NewDatabaseTests.test_query_datetime_lookups",
         "timezones.tests.NewDatabaseTests.test_query_datetime_lookups_in_other_timezone",
-        # 'NulledTransform' object has no attribute 'alias'
+        # 'NulledTransform' object has no attribute 'as_mql'.
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
@@ -38,21 +37,17 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # for some background.
         "model_fields.test_decimalfield.DecimalFieldTests.test_lookup_decimal_larger_than_max_digits",
         "model_fields.test_decimalfield.DecimalFieldTests.test_lookup_really_big_value",
-        # 'TruncDate' object has no attribute 'alias'
+        # 'TruncDate' object has no attribute 'as_mql'.
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",
-        # Incorrect empty QuerySet handling: https://github.com/mongodb-labs/django-mongodb/issues/22
-        "lookup.tests.LookupTests.test_in",
-        "or_lookups.tests.OrLookupsTests.test_empty_in",
         # Slicing with QuerySet.count() doesn't work.
         "lookup.tests.LookupTests.test_count",
-        # Custom lookups not supported.
-        "lookup.tests.LookupTests.test_custom_lookup_none_rhs",
-        # Lookup in order_by() not supported: argument of type 'LessThan' is not iterable
+        # Lookup in order_by() not supported:
+        # unsupported operand type(s) for %: 'function' and 'str'
         "lookup.tests.LookupQueryingTests.test_lookup_in_order_by",
         # annotate() after values() doesn't raise NotSupportedError.
         "lookup.tests.LookupTests.test_exact_query_rhs_with_selected_columns",
-        # tuple index out of range in _normalize_lookup_value()
+        # tuple index out of range in process_rhs()
         "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one",
         "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one_offset",
         # Regex lookup doesn't work on non-string fields.

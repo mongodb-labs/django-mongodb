@@ -1,3 +1,5 @@
+import re
+
 from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.signals import connection_created
@@ -10,6 +12,7 @@ from .creation import DatabaseCreation
 from .features import DatabaseFeatures
 from .introspection import DatabaseIntrospection
 from .operations import DatabaseOperations
+from .query_utils import safe_regex
 from .schema import DatabaseSchemaEditor
 from .utils import CollectionDebugWrapper
 
@@ -52,11 +55,23 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "UUIDField": "string",
     }
     operators = {
-        "exact": "= %s",
-        "gt": "> %s",
-        "gte": ">= %s",
-        "lt": "< %s",
-        "lte": "<= %s",
+        "exact": lambda val: val,
+        "gt": lambda val: {"$gt": val},
+        "gte": lambda val: {"$gte": val},
+        "lt": lambda val: {"$lt": val},
+        "lte": lambda val: {"$lte": val},
+        "in": lambda val: {"$in": val},
+        "range": lambda val: {"$gte": val[0], "$lte": val[1]},
+        "isnull": lambda val: None if val else {"$ne": None},
+        "iexact": safe_regex("^%s$", re.IGNORECASE),
+        "startswith": safe_regex("^%s"),
+        "istartswith": safe_regex("^%s", re.IGNORECASE),
+        "endswith": safe_regex("%s$"),
+        "iendswith": safe_regex("%s$", re.IGNORECASE),
+        "contains": safe_regex("%s"),
+        "icontains": safe_regex("%s", re.IGNORECASE),
+        "regex": lambda val: re.compile(val),
+        "iregex": lambda val: re.compile(val, re.IGNORECASE),
     }
 
     display_name = "MongoDB"

@@ -1,4 +1,4 @@
-from django.core.exceptions import EmptyResultSet
+from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError, NotSupportedError
 from django.db.models import NOT_PROVIDED, Count, Expression, Value
 from django.db.models.aggregates import Aggregate
@@ -136,7 +136,10 @@ class SQLCompiler(compiler.SQLCompiler):
         self.check_query()
         self.setup_query()
         query = self.query_class(self, columns)
-        query.add_filters(self.query.where)
+        try:
+            query.mongo_query = self.query.where.as_mql(self, self.connection)
+        except FullResultSet:
+            query.mongo_query = {}
         query.order_by(self._get_ordering())
         return query
 
