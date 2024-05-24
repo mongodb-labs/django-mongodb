@@ -5,6 +5,7 @@ from bson.decimal128 import Decimal128
 from django.conf import settings
 from django.db.backends.base.operations import BaseDatabaseOperations
 from django.utils import timezone
+from django.utils.regex_helper import _lazy_re_compile
 
 
 class DatabaseOperations(BaseDatabaseOperations):
@@ -133,3 +134,43 @@ class DatabaseOperations(BaseDatabaseOperations):
         if field_kind == "DecimalField":
             value = self.adapt_decimalfield_value(value, field.max_digits, field.decimal_places)
         return value
+
+    """Django uses these methods to generate SQL queries before it generates MQL queries."""
+
+    # EXTRACT format cannot be passed in parameters.
+    _extract_format_re = _lazy_re_compile(r"[A-Z_]+")
+
+    def date_extract_sql(self, lookup_type, sql, params):
+        if lookup_type == "week_day":
+            # For consistency across backends, we return Sunday=1, Saturday=7.
+            return f"EXTRACT(DOW FROM {sql}) + 1", params
+        if lookup_type == "iso_week_day":
+            return f"EXTRACT(ISODOW FROM {sql})", params
+        if lookup_type == "iso_year":
+            return f"EXTRACT(ISOYEAR FROM {sql})", params
+
+        lookup_type = lookup_type.upper()
+        if not self._extract_format_re.fullmatch(lookup_type):
+            raise ValueError(f"Invalid lookup type: {lookup_type!r}")
+        return f"EXTRACT({lookup_type} FROM {sql})", params
+
+    def datetime_extract_sql(self, lookup_type, sql, params, tzname):
+        if lookup_type == "second":
+            # Truncate fractional seconds.
+            return f"EXTRACT(SECOND FROM DATE_TRUNC(%s, {sql}))", ("second", *params)
+        return self.date_extract_sql(lookup_type, sql, params)
+
+    def datetime_trunc_sql(self, lookup_type, sql, params, tzname):
+        return f"DATE_TRUNC(%s, {sql})", (lookup_type, *params)
+
+    def date_trunc_sql(self, lookup_type, sql, params, tzname=None):
+        return f"DATE_TRUNC(%s, {sql})", (lookup_type, *params)
+
+    def datetime_cast_date_sql(self, sql, params, tzname):
+        return f"({sql})::date", params
+
+    def datetime_cast_time_sql(self, sql, params, tzname):
+        return f"({sql})::time", params
+
+    def time_trunc_sql(self, lookup_type, sql, params, tzname=None):
+        return f"DATE_TRUNC(%s, {sql})::time", (lookup_type, *params)

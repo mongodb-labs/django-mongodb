@@ -62,6 +62,16 @@ DATABASES = {
 
 - `DateTimeField` doesn't support microsecond precision.
 
+- The following database functions aren't supported:
+    - `ExtractQuarter`
+    - `Now`
+    - `Sign`
+    - `TruncDate`
+    - `TruncTime`
+
+- The `tzinfo` parameter of the `Trunc` database functions doesn't work
+  properly because MongoDB converts the result back to UTC.
+
 ## Troubleshooting
 
 TODO

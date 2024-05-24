@@ -19,28 +19,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Database defaults not supported: bson.errors.InvalidDocument:
         # cannot encode object: <django.db.models.expressions.DatabaseDefault
         "basic.tests.ModelInstanceCreationTests.test_save_primary_with_db_default",
-        # Date lookups aren't implemented: https://github.com/mongodb-labs/django-mongodb/issues/9
-        # (e.g. ExtractWeekDay is not supported.)
-        "basic.tests.ModelLookupTest.test_does_not_exist",
-        "basic.tests.ModelLookupTest.test_equal_lookup",
-        "basic.tests.ModelLookupTest.test_rich_lookup",
+        # Query for chained lookups not generated correctly.
         "lookup.tests.LookupTests.test_chain_date_time_lookups",
-        "lookup.test_timefield.TimeFieldLookupTests.test_hour_lookups",
-        "lookup.test_timefield.TimeFieldLookupTests.test_minute_lookups",
-        "lookup.test_timefield.TimeFieldLookupTests.test_second_lookups",
-        "timezones.tests.LegacyDatabaseTests.test_query_datetime_lookups",
-        "timezones.tests.NewDatabaseTests.test_query_convert_timezones",
-        "timezones.tests.NewDatabaseTests.test_query_datetime_lookups",
-        "timezones.tests.NewDatabaseTests.test_query_datetime_lookups_in_other_timezone",
         # 'NulledTransform' object has no attribute 'as_mql'.
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
-        # 'TruncDate' object has no attribute 'as_mql'.
-        "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
-        "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",
-        # BaseDatabaseOperations.date_extract_sql() not implemented.
-        "annotations.tests.AliasTests.test_basic_alias_f_transform_annotation",
         # Slicing with QuerySet.count() doesn't work.
         "lookup.tests.LookupTests.test_count",
         # Lookup in order_by() not supported:
@@ -62,6 +46,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "db_functions.math.test_log.LogTests.test_decimal",
         # MongoDB gives ROUND(365, -1)=360 instead of 370 like other databases.
         "db_functions.math.test_round.RoundTests.test_integer_with_negative_precision",
+        # Truncating in another timezone doesn't work becauase MongoDB converts
+        # the result back to UTC.
+        "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_func_with_timezone",
+        "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_timezone_applied_before_truncation",
     }
 
     django_test_skips = {
@@ -158,6 +146,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_nested_outerref_lhs",
             "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
             # QuerySet.alias() doesn't work.
+            "annotations.tests.AliasTests.test_basic_alias_f_transform_annotation",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
             "lookup.tests.LookupQueryingTests.test_alias",
             # annotate() with combined expressions doesn't work:
@@ -171,6 +160,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupQueryingTests.test_filter_lookup_lhs",
             # Subquery not supported.
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_outerref",
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_subquery_with_parameters",
             "lookup.tests.LookupQueryingTests.test_filter_subquery_lhs",
             # ExpressionWrapper not supported.
             "annotations.tests.NonAggregateAnnotationTestCase.test_combined_expression_annotation_with_aggregation",
@@ -198,14 +189,17 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # Coalesce not implemented.
             "annotations.tests.AliasTests.test_alias_annotation_expression",
             "annotations.tests.NonAggregateAnnotationTestCase.test_full_expression_wrapped_annotation",
-            # BaseDatabaseOperations may require a datetime_extract_sql().
-            "annotations.tests.NonAggregateAnnotationTestCase.test_joined_transformed_annotation",
             # BaseDatabaseOperations may require a format_for_duration_arithmetic().
             "annotations.tests.NonAggregateAnnotationTestCase.test_mixed_type_annotation_date_interval",
             # FieldDoesNotExist with ordering.
             "annotations.tests.AliasTests.test_order_by_alias",
             "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_aggregate",
             "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_annotation",
+            # annotate().filter().count() gives incorrect results.
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_exact_lookup",
+            # Year lookup + lt/gt crashes: 'dict' object has no attribute 'startswith'
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_greaterthan_lookup",
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_lessthan_lookup",
         },
         "Count doesn't work in QuerySet.annotate()": {
             "annotations.tests.AliasTests.test_alias_annotate_with_aggregation",
@@ -246,6 +240,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_related_in_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_filter_with_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_reverse_m2m",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_joined_transformed_annotation",
             "annotations.tests.NonAggregateAnnotationTestCase.test_mti_annotations",
             "annotations.tests.NonAggregateAnnotationTestCase.test_values_with_pk_annotation",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_subquery_outerref_transform",
@@ -312,8 +307,26 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.math.test_sqrt.SqrtTests.test_transform",
             "db_functions.math.test_tan.TanTests.test_transform",
         },
-        "MongoDB does not support Sign.": {
+        "MongoDB does not support this database function.": {
+            "db_functions.datetime.test_now.NowTests",
             "db_functions.math.test_sign.SignTests",
+        },
+        "ExtractQuarter database function not supported.": {
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_quarter_func",
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_quarter_func_boundaries",
+        },
+        "TruncDate database function not supported.": {
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_date_func",
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_date_none",
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_lookup_name_sql_injection",
+            "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
+            "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",
+            "timezones.tests.NewDatabaseTests.test_query_convert_timezones",
+        },
+        "TruncTime database function not supported.": {
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_time_comparison",
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_time_func",
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_time_none",
         },
         "MongoDB can't annotate ($project) a function like PI().": {
             "db_functions.math.test_pi.PiTests.test",

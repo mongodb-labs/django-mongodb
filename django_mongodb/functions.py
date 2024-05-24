@@ -1,6 +1,19 @@
 from django.db import NotSupportedError
 from django.db.models.expressions import Func
-from django.db.models.functions.datetime import Extract
+from django.db.models.functions.datetime import (
+    Extract,
+    ExtractDay,
+    ExtractHour,
+    ExtractIsoWeekDay,
+    ExtractIsoYear,
+    ExtractMinute,
+    ExtractMonth,
+    ExtractSecond,
+    ExtractWeek,
+    ExtractWeekDay,
+    ExtractYear,
+    TruncBase,
+)
 from django.db.models.functions.math import Ceil, Cot, Degrees, Log, Power, Radians, Random, Round
 from django.db.models.functions.text import Upper
 
@@ -14,6 +27,18 @@ MONGO_OPERATORS = {
     Random: "rand",
     Upper: "toUpper",
 }
+EXTRACT_OPERATORS = {
+    ExtractDay.lookup_name: "dayOfMonth",
+    ExtractHour.lookup_name: "hour",
+    ExtractIsoWeekDay.lookup_name: "isoDayOfWeek",
+    ExtractIsoYear.lookup_name: "isoWeekYear",
+    ExtractMinute.lookup_name: "minute",
+    ExtractMonth.lookup_name: "month",
+    ExtractSecond.lookup_name: "second",
+    ExtractWeek.lookup_name: "isoWeek",
+    ExtractWeekDay.lookup_name: "dayOfWeek",
+    ExtractYear.lookup_name: "year",
+}
 
 
 def cot(self, compiler, connection):
@@ -23,15 +48,12 @@ def cot(self, compiler, connection):
 
 def extract(self, compiler, connection):
     lhs_mql = process_lhs(self, compiler, connection)
-    if self.lookup_name == "week":
-        operator = "$week"
-    elif self.lookup_name == "month":
-        operator = "$month"
-    elif self.lookup_name == "year":
-        operator = "$year"
-    else:
+    operator = EXTRACT_OPERATORS.get(self.lookup_name)
+    if operator is None:
         raise NotSupportedError("%s is not supported." % self.__class__.__name__)
-    return {operator: lhs_mql}
+    if timezone := self.get_tzname():
+        lhs_mql = {"date": lhs_mql, "timezone": timezone}
+    return {f"${operator}": lhs_mql}
 
 
 def func(self, compiler, connection):
@@ -53,9 +75,18 @@ def round_(self, compiler, connection):
     return {"$round": [expr.as_mql(compiler, connection) for expr in self.get_source_expressions()]}
 
 
+def trunc(self, compiler, connection):
+    lhs_mql = process_lhs(self, compiler, connection)
+    lhs_mql = {"date": lhs_mql, "unit": self.kind, "startOfWeek": "mon"}
+    if timezone := self.get_tzname():
+        lhs_mql["timezone"] = timezone
+    return {"$dateTrunc": lhs_mql}
+
+
 def register_functions():
     Cot.as_mql = cot
     Extract.as_mql = extract
     Func.as_mql = func
     Log.as_mql = log
     Round.as_mql = round_
+    TruncBase.as_mql = trunc

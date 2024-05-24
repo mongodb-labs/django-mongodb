@@ -63,7 +63,7 @@ jobs:
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.11.0
         with:
-          mongodb-version: 4.4
+          mongodb-version: 5.0
       - name: Run tests
         run: >
           python3 django_repo/tests/runtests.py --settings mongodb_settings -v 2
@@ -74,6 +74,7 @@ jobs:
           bulk_create
           dates
           datetimes
+          db_functions.datetime
           db_functions.math
           empty
           defer
