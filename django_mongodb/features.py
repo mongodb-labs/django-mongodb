@@ -134,9 +134,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
             # QuerySet.alias() doesn't work.
             "lookup.tests.LookupQueryingTests.test_alias",
-            # Value() not supported.
-            "lookup.tests.LookupQueryingTests.test_annotate_literal_greater_than_field",
-            "lookup.tests.LookupQueryingTests.test_annotate_value_greater_than_value",
             # annotate() with combined expressions doesn't work:
             # 'WhereNode' object has no attribute 'field'
             "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter",
