@@ -16,6 +16,9 @@ def process_lhs(node, compiler, connection, bare_column_ref=False):
 
 
 def process_rhs(node, compiler, connection):
+    rhs = node.rhs
+    if hasattr(rhs, "as_mql"):
+        return rhs.as_mql(compiler, connection)
     _, value = node.process_rhs(compiler, connection)
     lookup_name = node.lookup_name
     # Undo Lookup.get_db_prep_lookup() putting params in a list.

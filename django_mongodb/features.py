@@ -134,8 +134,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
             # QuerySet.alias() doesn't work.
             "lookup.tests.LookupQueryingTests.test_alias",
-            # Comparing two fields doesn't work.
-            "lookup.tests.LookupQueryingTests.test_annotate_field_greater_than_field",
             # Value() not supported.
             "lookup.tests.LookupQueryingTests.test_annotate_literal_greater_than_field",
             "lookup.tests.LookupQueryingTests.test_annotate_value_greater_than_value",
