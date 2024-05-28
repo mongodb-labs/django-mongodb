@@ -5,10 +5,14 @@ def is_direct_value(node):
     return not hasattr(node, "as_sql")
 
 
-def process_lhs(node, compiler, connection):
+def process_lhs(node, compiler, connection, bare_column_ref=False):
     if is_direct_value(node.lhs):
         return node
-    return node.lhs.as_mql(compiler, connection)
+    mql = node.lhs.as_mql(compiler, connection)
+    # Remove the unneeded $ from column references.
+    if bare_column_ref and mql.startswith("$"):
+        mql = mql[1:]
+    return mql
 
 
 def process_rhs(node, compiler, connection):

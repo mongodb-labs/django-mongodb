@@ -1,5 +1,4 @@
 from django.db import NotSupportedError
-from django.db.models.expressions import Col
 from django.db.models.functions.datetime import Extract
 
 from .query_utils import process_lhs
@@ -15,8 +14,6 @@ def extract(self, compiler, connection):
         operator = "$year"
     else:
         raise NotSupportedError("%s is not supported." % self.__class__.__name__)
-    if isinstance(self.lhs, Col):
-        lhs_mql = f"${lhs_mql}"
     return {operator: lhs_mql}
 
 
