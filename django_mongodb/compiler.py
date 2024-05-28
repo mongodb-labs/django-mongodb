@@ -1,6 +1,6 @@
 from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError, NotSupportedError
-from django.db.models import NOT_PROVIDED, Count, Expression, Value
+from django.db.models import NOT_PROVIDED, Count, Expression
 from django.db.models.aggregates import Aggregate
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.sql import compiler
@@ -55,13 +55,18 @@ class SQLCompiler(compiler.SQLCompiler):
     def has_results(self):
         return bool(self.get_count(check_exists=True))
 
-    def get_converters(self, columns):
+    def get_converters(self, expressions):
         converters = {}
-        for column in columns:
-            backend_converters = self.connection.ops.get_db_converters(column)
-            field_converters = column.field.get_db_converters(self.connection)
+        for name_expr in expressions:
+            try:
+                name, expr = name_expr
+            except TypeError:
+                # e.g., Count("*")
+                continue
+            backend_converters = self.connection.ops.get_db_converters(expr)
+            field_converters = expr.get_db_converters(self.connection)
             if backend_converters or field_converters:
-                converters[column.target.column] = backend_converters + field_converters
+                converters[name] = backend_converters + field_converters
         return converters
 
     def _make_result(self, entity, columns, converters, tuple_expected=False):
@@ -72,15 +77,14 @@ class SQLCompiler(compiler.SQLCompiler):
         names as keys.
         """
         result = []
-        for col in columns:
+        for name, col in columns:
             field = col.field
-            column = col.target.column
-            value = entity.get(column, NOT_PROVIDED)
+            value = entity.get(name, NOT_PROVIDED)
             if value is NOT_PROVIDED:
                 value = field.get_default()
             elif converters:
                 # Decode values using Django's database converters API.
-                for converter in converters.get(column, ()):
+                for converter in converters.get(name, ()):
                     value = converter(value, col, self.connection)
             result.append(value)
         if tuple_expected:
@@ -91,12 +95,6 @@ class SQLCompiler(compiler.SQLCompiler):
         """Check if the current query is supported by the database."""
         if self.query.is_empty():
             raise EmptyResultSet()
-        # Supported annotations are Exists() and Count().
-        if self.query.annotations and self.query.annotations not in (
-            {"a": Value(1)},
-            {"__count": Count("*")},
-        ):
-            raise NotSupportedError("QuerySet.annotate() is not supported on MongoDB.")
         if self.query.distinct:
             # This is a heuristic to detect QuerySet.datetimes() and dates().
             # "datetimefield" and "datefield" are the names of the annotations
@@ -144,10 +142,16 @@ class SQLCompiler(compiler.SQLCompiler):
         return query
 
     def get_columns(self):
-        """Return columns which should be loaded by the query."""
+        """
+        Return a tuple of (name, expression) with the columns and annotations
+        which should be loaded by the query.
+        """
         select_mask = self.query.get_select_mask()
-        return (
+        columns = (
             self.get_default_columns(select_mask) if self.query.default_cols else self.query.select
+        )
+        return tuple((column.target.column, column) for column in columns) + tuple(
+            self.query.annotations.items()
         )
 
     def _get_ordering(self):

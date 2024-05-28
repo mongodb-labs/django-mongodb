@@ -54,7 +54,25 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "TimeField": "date",
         "UUIDField": "string",
     }
+    # Django uses these operators to generate SQL queries before it generates
+    # MQL queries.
     operators = {
+        "exact": "= %s",
+        "iexact": "= UPPER(%s)",
+        "contains": "LIKE %s",
+        "icontains": "LIKE UPPER(%s)",
+        "regex": "~ %s",
+        "iregex": "~* %s",
+        "gt": "> %s",
+        "gte": ">= %s",
+        "lt": "< %s",
+        "lte": "<= %s",
+        "startswith": "LIKE %s",
+        "endswith": "LIKE %s",
+        "istartswith": "LIKE UPPER(%s)",
+        "iendswith": "LIKE UPPER(%s)",
+    }
+    mongo_operators = {
         "exact": lambda val: val,
         "gt": lambda val: {"$gt": val},
         "gte": lambda val: {"$gte": val},
@@ -72,6 +90,13 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "icontains": safe_regex("%s", re.IGNORECASE),
         "regex": lambda val: re.compile(val),
         "iregex": lambda val: re.compile(val, re.IGNORECASE),
+    }
+    mongo_aggregations = {
+        "exact": lambda a, b: {"$eq": [a, b]},
+        "gt": lambda a, b: {"$gt": [a, b]},
+        "gte": lambda a, b: {"$gte": [a, b]},
+        "lt": lambda a, b: {"$lt": [a, b]},
+        "lte": lambda a, b: {"$lte": [a, b]},
     }
 
     display_name = "MongoDB"

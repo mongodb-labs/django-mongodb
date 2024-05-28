@@ -127,27 +127,30 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.LegacyDatabaseTests.test_query_aggregation",
             "timezones.tests.NewDatabaseTests.test_query_aggregation",
         },
-        "QuerySet.annotate() not supported.": {
-            "lookup.test_decimalfield.DecimalFieldLookupTests",
+        "QuerySet.annotate() has some limitations.": {
+            # Exists not supported.
             "lookup.tests.LookupTests.test_exact_exists",
             "lookup.tests.LookupTests.test_nested_outerref_lhs",
+            "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
+            # QuerySet.alias() doesn't work.
             "lookup.tests.LookupQueryingTests.test_alias",
-            "lookup.tests.LookupQueryingTests.test_annotate",
+            # Comparing two fields doesn't work.
             "lookup.tests.LookupQueryingTests.test_annotate_field_greater_than_field",
-            "lookup.tests.LookupQueryingTests.test_annotate_field_greater_than_literal",
-            "lookup.tests.LookupQueryingTests.test_annotate_field_greater_than_value",
-            "lookup.tests.LookupQueryingTests.test_annotate_greater_than_or_equal",
-            "lookup.tests.LookupQueryingTests.test_annotate_greater_than_or_equal_float",
-            "lookup.tests.LookupQueryingTests.test_annotate_less_than_float",
+            # Value() not supported.
             "lookup.tests.LookupQueryingTests.test_annotate_literal_greater_than_field",
             "lookup.tests.LookupQueryingTests.test_annotate_value_greater_than_value",
+            # annotate() with combined expressions doesn't work:
+            # 'WhereNode' object has no attribute 'field'
             "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter",
             "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter_false",
             "lookup.tests.LookupQueryingTests.test_combined_lookups",
+            # Case not supported.
             "lookup.tests.LookupQueryingTests.test_conditional_expression",
-            "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
+            # Using expression in filter() doesn't work.
             "lookup.tests.LookupQueryingTests.test_filter_lookup_lhs",
+            # Subquery not supported.
             "lookup.tests.LookupQueryingTests.test_filter_subquery_lhs",
+            # ExpressionWrapper not supported.
             "lookup.tests.LookupQueryingTests.test_filter_wrapped_lookup_lhs",
         },
         "QuerySet.dates() is not supported on MongoDB.": {
@@ -184,6 +187,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "defer.tests.DeferTests.test_only_baseclass_when_subclass_has_no_added_fields",
             "defer.tests.TestDefer2.test_defer_inheritance_pk_chaining",
             "defer_regress.tests.DeferRegressionTest.test_ticket_16409",
+            "lookup.test_decimalfield.DecimalFieldLookupTests",
             "lookup.tests.LookupQueryingTests.test_multivalued_join_reuse",
             "lookup.tests.LookupTests.test_filter_by_reverse_related_field_transform",
             "lookup.tests.LookupTests.test_lookup_collision",

@@ -85,7 +85,13 @@ class MongoQuery:
     def get_cursor(self):
         if self.query.low_mark == self.query.high_mark:
             return []
-        fields = {col.target.column: 1 for col in self.columns} if self.columns else None
+        fields = {}
+        for name, expr in self.columns or []:
+            try:
+                fields[expr.target.column] = 1
+            except AttributeError:
+                # Generate the MQL for an annotation.
+                fields[name] = expr.as_mql_agg(self.compiler, self.connection)
         pipeline = []
         if self.mongo_query:
             pipeline.append({"$match": self.mongo_query})
