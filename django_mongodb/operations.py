@@ -10,6 +10,12 @@ from django.utils import timezone
 class DatabaseOperations(BaseDatabaseOperations):
     compiler_module = "django_mongodb.compiler"
 
+    def adapt_datefield_value(self, value):
+        """Store DateField as datetime."""
+        if value is None:
+            return None
+        return datetime.datetime.combine(value, datetime.datetime.min.time())
+
     def adapt_datetimefield_value(self, value):
         if not settings.USE_TZ and value is not None and timezone.is_naive(value):
             value = timezone.make_aware(value)
@@ -33,7 +39,7 @@ class DatabaseOperations(BaseDatabaseOperations):
 
     def convert_datefield_value(self, value, expression, connection):
         if value is not None:
-            value = datetime.date.fromisoformat(value)
+            value = value.date()
         return value
 
     def convert_datetimefield_value(self, value, expression, connection):
