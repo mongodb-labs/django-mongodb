@@ -83,6 +83,7 @@ class CollectionDebugWrapper:
         return wrapper
 
     # These are the operations that this backend uses.
+    aggregate = logging_wrapper("aggregate")
     count_documents = logging_wrapper("count_documents")
     insert_many = logging_wrapper("insert_many")
     delete_many = logging_wrapper("delete_many")

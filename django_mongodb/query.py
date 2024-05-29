@@ -85,15 +85,19 @@ class MongoQuery:
     def get_cursor(self):
         if self.query.low_mark == self.query.high_mark:
             return []
-        fields = [col.target.column for col in self.columns] if self.columns else None
-        cursor = self.collection.find(self.mongo_query, fields)
+        fields = {col.target.column: 1 for col in self.columns} if self.columns else None
+        pipeline = []
+        if self.mongo_query:
+            pipeline.append({"$match": self.mongo_query})
+        if fields:
+            pipeline.append({"$project": fields})
         if self.ordering:
-            cursor.sort(self.ordering)
+            pipeline.append({"$sort": dict(self.ordering)})
         if self.query.low_mark > 0:
-            cursor.skip(self.query.low_mark)
+            pipeline.append({"$skip": self.query.low_mark})
         if self.query.high_mark is not None:
-            cursor.limit(int(self.query.high_mark - self.query.low_mark))
-        return cursor
+            pipeline.append({"$limit": self.query.high_mark - self.query.low_mark})
+        return self.collection.aggregate(pipeline)
 
 
 def where_node(self, compiler, connection):
