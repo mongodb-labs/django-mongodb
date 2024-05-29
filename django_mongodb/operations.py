@@ -21,6 +21,12 @@ class DatabaseOperations(BaseDatabaseOperations):
             value = timezone.make_aware(value)
         return value
 
+    def adapt_timefield_value(self, value):
+        """Store TimeField as datetime."""
+        if value is None:
+            return None
+        return datetime.datetime.combine(datetime.datetime.min.date(), value)
+
     def get_db_converters(self, expression):
         converters = super().get_db_converters(expression)
         internal_type = expression.output_field.get_internal_type()
@@ -55,7 +61,7 @@ class DatabaseOperations(BaseDatabaseOperations):
 
     def convert_timefield_value(self, value, expression, connection):
         if value is not None:
-            value = datetime.time.fromisoformat(value)
+            value = value.time()
         return value
 
     def convert_uuidfield_value(self, value, expression, connection):
