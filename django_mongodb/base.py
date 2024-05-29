@@ -145,7 +145,6 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         self.connection = MongoClient(
             host=settings_dict["HOST"] or None,
             port=int(settings_dict["PORT"] or 27017),
-            tz_aware=True,
             **options,
         )
         db_name = settings_dict["NAME"]

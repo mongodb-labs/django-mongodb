@@ -17,8 +17,16 @@ class DatabaseOperations(BaseDatabaseOperations):
         return datetime.datetime.combine(value, datetime.datetime.min.time())
 
     def adapt_datetimefield_value(self, value):
-        if not settings.USE_TZ and value is not None and timezone.is_naive(value):
-            value = timezone.make_aware(value)
+        if value is None:
+            return None
+        if timezone.is_aware(value):
+            if settings.USE_TZ:
+                value = timezone.make_naive(value, self.connection.timezone)
+            else:
+                raise ValueError(
+                    "MongoDB backend does not support timezone-aware "
+                    "datetimes when USE_TZ is False."
+                )
         return value
 
     def adapt_decimalfield_value(self, value, max_digits=None, decimal_places=None):
@@ -31,6 +39,8 @@ class DatabaseOperations(BaseDatabaseOperations):
         """Store TimeField as datetime."""
         if value is None:
             return None
+        if timezone.is_aware(value):
+            raise ValueError("MongoDB backend does not support timezone-aware times.")
         return datetime.datetime.combine(datetime.datetime.min.date(), value)
 
     def get_db_converters(self, expression):
@@ -39,7 +49,7 @@ class DatabaseOperations(BaseDatabaseOperations):
         if internal_type == "DateField":
             converters.append(self.convert_datefield_value)
         elif internal_type == "DateTimeField":
-            if not settings.USE_TZ:
+            if settings.USE_TZ:
                 converters.append(self.convert_datetimefield_value)
         elif internal_type == "DecimalField":
             converters.append(self.convert_decimalfield_value)
@@ -56,8 +66,7 @@ class DatabaseOperations(BaseDatabaseOperations):
 
     def convert_datetimefield_value(self, value, expression, connection):
         if value is not None:
-            # Django expects naive datetimes when settings.USE_TZ is False.
-            value = timezone.make_naive(value)
+            value = timezone.make_aware(value, self.connection.timezone)
         return value
 
     def convert_decimalfield_value(self, value, expression, connection):

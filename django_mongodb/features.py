@@ -7,6 +7,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_ignore_conflicts = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/8
     supports_json_field = False
+    # MongoDB stores datetimes in UTC.
+    supports_timezones = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/7
     supports_transactions = False
     uses_savepoints = False
@@ -20,7 +22,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "basic.tests.ModelLookupTest.test_does_not_exist",
         "basic.tests.ModelLookupTest.test_equal_lookup",
         "basic.tests.ModelLookupTest.test_rich_lookup",
-        "basic.tests.ModelTest.test_year_lookup_edge_case",
         "lookup.tests.LookupTests.test_chain_date_time_lookups",
         "lookup.test_timefield.TimeFieldLookupTests.test_hour_lookups",
         "lookup.test_timefield.TimeFieldLookupTests.test_minute_lookups",
@@ -286,8 +287,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_raw_sql",
-            "timezones.tests.NewDatabaseTests.test_cursor_execute_accepts_aware_datetime",
-            "timezones.tests.NewDatabaseTests.test_cursor_execute_returns_aware_datetime",
+            "timezones.tests.NewDatabaseTests.test_cursor_execute_accepts_naive_datetime",
+            "timezones.tests.NewDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.NewDatabaseTests.test_cursor_explicit_time_zone",
             "timezones.tests.NewDatabaseTests.test_raw_sql",
         },
