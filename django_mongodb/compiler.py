@@ -22,8 +22,11 @@ class SQLCompiler(compiler.SQLCompiler):
         # QuerySet.count()
         if self.query.annotations == {"__count": Count("*")}:
             return [self.get_count()]
+        # Specify columns if there are any annotations so that annotations are
+        # computed via $project.
+        columns = self.get_columns() if self.query.annotations else None
         try:
-            query = self.build_query()
+            query = self.build_query(columns)
         except EmptyResultSet:
             return None
         return query.fetch()
