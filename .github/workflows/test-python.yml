@@ -68,6 +68,7 @@ jobs:
         run: >
           python3 django_repo/tests/runtests.py --settings mongodb_settings -v 2
           annotations.tests.NonAggregateAnnotationTestCase.test_basic_annotation
+          annotations.tests.NonAggregateAnnotationTestCase.test_basic_f_annotation
           auth_tests.test_models.UserManagerTestCase
           backends.base.test_base.DatabaseWrapperTests
           basic

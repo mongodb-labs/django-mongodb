@@ -88,10 +88,14 @@ class MongoQuery:
         fields = {}
         for name, expr in self.columns or []:
             try:
-                fields[expr.target.column] = 1
+                column = expr.target.column
             except AttributeError:
                 # Generate the MQL for an annotation.
                 fields[name] = expr.as_mql_agg(self.compiler, self.connection)
+            else:
+                # If name != column, then this is an annotatation referencing
+                # another column.
+                fields[name] = 1 if name == column else f"${column}"
         pipeline = []
         if self.mongo_query:
             pipeline.append({"$match": self.mongo_query})
