@@ -36,6 +36,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # 'TruncDate' object has no attribute 'as_mql'.
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",
+        # BaseDatabaseOperations.date_extract_sql() not implemented.
+        "annotations.tests.AliasTests.test_basic_alias_f_transform_annotation",
         # Slicing with QuerySet.count() doesn't work.
         "lookup.tests.LookupTests.test_count",
         # Lookup in order_by() not supported:
@@ -70,6 +72,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_uuid.TestQuerying.test_startswith",
         },
         "QuerySet.update() with expression not supported.": {
+            "annotations.tests.AliasTests.test_update_with_alias",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_update_with_annotation",
             "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
             "timezones.tests.NewDatabaseTests.test_update_with_timedelta",
             "update.tests.AdvancedTests.test_update_annotated_queryset",
@@ -85,6 +89,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_autofield.SmallAutoFieldTests",
         },
         "QuerySet.select_related() not supported.": {
+            "annotations.tests.AliasTests.test_joined_alias_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_joined_annotation",
             "defer.tests.DeferTests.test_defer_foreign_keys_are_deferred_and_not_traversed",
             "defer.tests.DeferTests.test_defer_with_select_related",
             "defer.tests.DeferTests.test_only_with_select_related",
@@ -122,6 +128,13 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         # https://github.com/mongodb-labs/django-mongodb/issues/12
         "QuerySet.aggregate() not supported.": {
+            "annotations.tests.AliasTests.test_filter_alias_agg_with_double_f",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_aggregate_over_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_aggregate_over_full_expression_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_aggregate_values_chaining",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_in_f_grouped_by_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_subquery_and_aggregate_values_chaining",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_filter_agg_with_double_f",
             "lookup.tests.LookupQueryingTests.test_aggregate_combined_lookup",
             "from_db_value.tests.FromDBValueTest.test_aggregation",
             "timezones.tests.LegacyDatabaseTests.test_query_aggregation",
@@ -129,10 +142,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "QuerySet.annotate() has some limitations.": {
             # Exists not supported.
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_none_query",
             "lookup.tests.LookupTests.test_exact_exists",
             "lookup.tests.LookupTests.test_nested_outerref_lhs",
             "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
             # QuerySet.alias() doesn't work.
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
             "lookup.tests.LookupQueryingTests.test_alias",
             # annotate() with combined expressions doesn't work:
             # 'WhereNode' object has no attribute 'field'
@@ -144,15 +159,56 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # Using expression in filter() doesn't work.
             "lookup.tests.LookupQueryingTests.test_filter_lookup_lhs",
             # Subquery not supported.
+            "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
             "lookup.tests.LookupQueryingTests.test_filter_subquery_lhs",
             # ExpressionWrapper not supported.
+            "annotations.tests.NonAggregateAnnotationTestCase.test_combined_expression_annotation_with_aggregation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_combined_f_expression_annotation_with_aggregation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_empty_expression_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_full_expression_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_full_expression_annotation_with_aggregation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_grouping_by_q_expression_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_mixed_type_annotation_numbers",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_q_expression_annotation_with_aggregation",
             "lookup.tests.LookupQueryingTests.test_filter_wrapped_lookup_lhs",
+            # Length not implemented.
+            "annotations.tests.NonAggregateAnnotationTestCase.test_chaining_transforms",
+            # CombinedExpression not implemented.
+            "annotations.tests.NonAggregateAnnotationTestCase.test_combined_annotation_commutative",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_decimal_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_defer_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_filter_decimal_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_values_annotation",
+            # Func not implemented.
+            "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions_can_ref_other_functions",
+            # Floor not implemented.
+            "annotations.tests.NonAggregateAnnotationTestCase.test_custom_transform_annotation",
+            # Coalesce not implemented.
+            "annotations.tests.AliasTests.test_alias_annotation_expression",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_full_expression_wrapped_annotation",
+            # BaseDatabaseOperations may require a datetime_extract_sql().
+            "annotations.tests.NonAggregateAnnotationTestCase.test_joined_transformed_annotation",
+            # BaseDatabaseOperations may require a format_for_duration_arithmetic().
+            "annotations.tests.NonAggregateAnnotationTestCase.test_mixed_type_annotation_date_interval",
+            # FieldDoesNotExist with ordering.
+            "annotations.tests.AliasTests.test_order_by_alias",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_aggregate",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_annotation",
+        },
+        "Count doesn't work in QuerySet.annotate()": {
+            "annotations.tests.AliasTests.test_alias_annotate_with_aggregation",
+            "annotations.tests.AliasTests.test_order_by_alias_aggregate",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotate_exists",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotate_with_aggregation",
         },
         "QuerySet.dates() is not supported on MongoDB.": {
+            "annotations.tests.AliasTests.test_dates_alias",
             "dates.tests.DatesTests.test_dates_trunc_datetime_fields",
             "dates.tests.DatesTests.test_related_model_traverse",
         },
         "QuerySet.datetimes() is not supported on MongoDB.": {
+            "annotations.tests.AliasTests.test_datetimes_alias",
             "datetimes.tests.DateTimesTests.test_21432",
             "datetimes.tests.DateTimesTests.test_datetimes_has_lazy_iterator",
             "datetimes.tests.DateTimesTests.test_datetimes_returns_available_dates_for_given_scope_and_given_field",
@@ -165,6 +221,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "update.tests.AdvancedTests.test_update_all",
         },
         "QuerySet.extra() is not supported.": {
+            "annotations.tests.NonAggregateAnnotationTestCase.test_column_field_ordering",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_column_field_ordering_with_deferred",
             "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes",
             "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes_and_values",
             "defer.tests.DeferTests.test_defer_extra",
@@ -172,6 +230,16 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_values_list",
         },
         "Queries with multiple tables are not supported.": {
+            "annotations.tests.AliasTests.test_alias_default_alias_expression",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_aggregate_with_m2o",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_related_in_subquery",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_filter_with_subquery",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_reverse_m2m",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_mti_annotations",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_values_with_pk_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_subquery_outerref_transform",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_chaining_annotation_filter_with_m2m",
             "defer.tests.BigChildDeferTests.test_defer_baseclass_when_subclass_has_added_field",
             "defer.tests.BigChildDeferTests.test_defer_subclass",
             "defer.tests.BigChildDeferTests.test_defer_subclass_both",
@@ -206,6 +274,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_textfield_exact_null",
         },
         "Test executes raw SQL.": {
+            "annotations.tests.NonAggregateAnnotationTestCase.test_raw_sql_with_inherited_field",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_raw_sql",
