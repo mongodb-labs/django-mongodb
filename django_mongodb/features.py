@@ -33,10 +33,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
-        # filtering on large decimalfield, see https://code.djangoproject.com/ticket/34590
-        # for some background.
-        "model_fields.test_decimalfield.DecimalFieldTests.test_lookup_decimal_larger_than_max_digits",
-        "model_fields.test_decimalfield.DecimalFieldTests.test_lookup_really_big_value",
         # 'TruncDate' object has no attribute 'as_mql'.
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
         "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",

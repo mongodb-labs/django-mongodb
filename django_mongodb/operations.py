@@ -1,7 +1,7 @@
 import datetime
-import decimal
 import uuid
 
+from bson.decimal128 import Decimal128
 from django.conf import settings
 from django.db.backends.base.operations import BaseDatabaseOperations
 from django.utils import timezone
@@ -20,6 +20,10 @@ class DatabaseOperations(BaseDatabaseOperations):
         if not settings.USE_TZ and value is not None and timezone.is_naive(value):
             value = timezone.make_aware(value)
         return value
+
+    def adapt_decimalfield_value(self, value, max_digits=None, decimal_places=None):
+        """Store DecimalField as Decimal128."""
+        return Decimal128(value)
 
     def adapt_timefield_value(self, value):
         """Store TimeField as datetime."""
@@ -56,7 +60,8 @@ class DatabaseOperations(BaseDatabaseOperations):
 
     def convert_decimalfield_value(self, value, expression, connection):
         if value is not None:
-            value = decimal.Decimal(value)
+            # from Decimal128 to decimal.Decimal()
+            value = value.to_decimal()
         return value
 
     def convert_timefield_value(self, value, expression, connection):
