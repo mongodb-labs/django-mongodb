@@ -6,6 +6,10 @@ def is_direct_value(node):
 
 
 def process_lhs(node, compiler, connection, bare_column_ref=False):
+    if not hasattr(node, "lhs"):
+        # node is a Func or Expression, possibly with multiple source expressions.
+        return [expr.as_mql(compiler, connection) for expr in node.get_source_expressions()]
+    # node is a Transform with just one source expression, aliased as "lhs".
     if is_direct_value(node.lhs):
         return node
     mql = node.lhs.as_mql(compiler, connection)

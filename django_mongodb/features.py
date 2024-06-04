@@ -54,12 +54,20 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "lookup.tests.LookupTests.test_pattern_lookups_with_substr",
         # Querying ObjectID with string doesn't work.
         "lookup.tests.LookupTests.test_lookup_int_as_str",
+        # MongoDB gives the wrong result of log(number, base) when base is a
+        # fractional Decimal: https://jira.mongodb.org/browse/SERVER-91223
+        "db_functions.math.test_log.LogTests.test_decimal",
+        # MongoDB gives ROUND(365, -1)=360 instead of 370 like other databases.
+        "db_functions.math.test_round.RoundTests.test_integer_with_negative_precision",
     }
 
     django_test_skips = {
         "Insert expressions aren't supported.": {
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_now",
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_expressions",
+            # PI()
+            "db_functions.math.test_round.RoundTests.test_decimal_with_precision",
+            "db_functions.math.test_round.RoundTests.test_float_with_precision",
         },
         "Pattern lookups on UUIDField are not supported.": {
             "model_fields.test_uuid.TestQuerying.test_contains",
@@ -291,5 +299,29 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.LegacyDatabaseTests.test_naive_datetime_with_microsecond",
             "timezones.tests.NewDatabaseTests.test_aware_datetime_in_local_timezone_with_microsecond",
             "timezones.tests.NewDatabaseTests.test_naive_datetime_with_microsecond",
+        },
+        "Transform not supported.": {
+            "db_functions.math.test_abs.AbsTests.test_transform",
+            "db_functions.math.test_acos.ACosTests.test_transform",
+            "db_functions.math.test_asin.ASinTests.test_transform",
+            "db_functions.math.test_atan.ATanTests.test_transform",
+            "db_functions.math.test_ceil.CeilTests.test_transform",
+            "db_functions.math.test_cos.CosTests.test_transform",
+            "db_functions.math.test_cot.CotTests.test_transform",
+            "db_functions.math.test_degrees.DegreesTests.test_transform",
+            "db_functions.math.test_exp.ExpTests.test_transform",
+            "db_functions.math.test_floor.FloorTests.test_transform",
+            "db_functions.math.test_ln.LnTests.test_transform",
+            "db_functions.math.test_radians.RadiansTests.test_transform",
+            "db_functions.math.test_round.RoundTests.test_transform",
+            "db_functions.math.test_sin.SinTests.test_transform",
+            "db_functions.math.test_sqrt.SqrtTests.test_transform",
+            "db_functions.math.test_tan.TanTests.test_transform",
+        },
+        "MongoDB does not support Sign.": {
+            "db_functions.math.test_sign.SignTests",
+        },
+        "MongoDB can't annotate ($project) a function like PI().": {
+            "db_functions.math.test_pi.PiTests.test",
         },
     }

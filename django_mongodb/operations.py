@@ -23,6 +23,8 @@ class DatabaseOperations(BaseDatabaseOperations):
 
     def adapt_decimalfield_value(self, value, max_digits=None, decimal_places=None):
         """Store DecimalField as Decimal128."""
+        if value is None:
+            return None
         return Decimal128(value)
 
     def adapt_timefield_value(self, value):
