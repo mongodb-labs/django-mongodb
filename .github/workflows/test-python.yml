@@ -74,6 +74,7 @@ jobs:
           bulk_create
           dates
           datetimes
+          db_functions.comparison
           db_functions.datetime
           db_functions.math
           empty

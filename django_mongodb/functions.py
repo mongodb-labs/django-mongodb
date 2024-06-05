@@ -1,5 +1,6 @@
 from django.db import NotSupportedError
 from django.db.models.expressions import Func
+from django.db.models.functions.comparison import Cast, Coalesce, Greatest, Least, NullIf
 from django.db.models.functions.datetime import (
     Extract,
     ExtractDay,
@@ -21,7 +22,10 @@ from .query_utils import process_lhs
 
 MONGO_OPERATORS = {
     Ceil: "ceil",
+    Coalesce: "ifNull",
     Degrees: "radiansToDegrees",
+    Greatest: "max",
+    Least: "min",
     Power: "pow",
     Radians: "degreesToRadians",
     Random: "rand",
@@ -39,6 +43,17 @@ EXTRACT_OPERATORS = {
     ExtractWeekDay.lookup_name: "dayOfWeek",
     ExtractYear.lookup_name: "year",
 }
+
+
+def cast(self, compiler, connection):
+    output_type = connection.data_types[self.output_field.get_internal_type()]
+    lhs_mql = process_lhs(self, compiler, connection)[0]
+    if max_length := self.output_field.max_length:
+        lhs_mql = {"$substrCP": [lhs_mql, 0, max_length]}
+    lhs_mql = {"$convert": {"input": lhs_mql, "to": output_type}}
+    if decimal_places := getattr(self.output_field, "decimal_places", None):
+        lhs_mql = {"$trunc": [lhs_mql, decimal_places]}
+    return lhs_mql
 
 
 def cot(self, compiler, connection):
@@ -69,6 +84,12 @@ def log(self, compiler, connection):
     return func(clone, compiler, connection)
 
 
+def null_if(self, compiler, connection):
+    """Return None if expr1==expr2 else expr1."""
+    expr1, expr2 = (expr.as_mql(compiler, connection) for expr in self.get_source_expressions())
+    return {"$cond": {"if": {"$eq": [expr1, expr2]}, "then": None, "else": expr1}}
+
+
 def round_(self, compiler, connection):
     # Round needs its own function because it's a special case that inherits
     # from Transform but has two arguments.
@@ -84,9 +105,11 @@ def trunc(self, compiler, connection):
 
 
 def register_functions():
+    Cast.as_mql = cast
     Cot.as_mql = cot
     Extract.as_mql = extract
     Func.as_mql = func
     Log.as_mql = log
+    NullIf.as_mql = null_if
     Round.as_mql = round_
     TruncBase.as_mql = trunc

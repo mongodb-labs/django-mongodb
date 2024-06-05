@@ -2,6 +2,8 @@ from django.db.backends.base.features import BaseDatabaseFeatures
 
 
 class DatabaseFeatures(BaseDatabaseFeatures):
+    greatest_least_ignores_nulls = True
+    has_json_object_function = False
     supports_date_lookup_using_string = False
     supports_foreign_keys = False
     supports_ignore_conflicts = False
@@ -29,6 +31,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "lookup.tests.LookupTests.test_count",
         # Lookup in order_by() not supported:
         # unsupported operand type(s) for %: 'function' and 'str'
+        "db_functions.comparison.test_coalesce.CoalesceTests.test_ordering",
         "lookup.tests.LookupQueryingTests.test_lookup_in_order_by",
         # annotate() after values() doesn't raise NotSupportedError.
         "lookup.tests.LookupTests.test_exact_query_rhs_with_selected_columns",
@@ -50,6 +53,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # the result back to UTC.
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_func_with_timezone",
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_timezone_applied_before_truncation",
+        # Coalesce() with expressions doesn't generate correct query.
+        "db_functions.comparison.test_coalesce.CoalesceTests.test_mixed_values",
     }
 
     django_test_skips = {
@@ -73,6 +78,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "QuerySet.update() with expression not supported.": {
             "annotations.tests.AliasTests.test_update_with_alias",
             "annotations.tests.NonAggregateAnnotationTestCase.test_update_with_annotation",
+            "db_functions.comparison.test_least.LeastTests.test_update",
+            "db_functions.comparison.test_greatest.GreatestTests.test_update",
             "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
             "timezones.tests.NewDatabaseTests.test_update_with_timedelta",
             "update.tests.AdvancedTests.test_update_annotated_queryset",
@@ -123,6 +130,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.test_bulk_update.BulkUpdateTests.test_database_routing_batch_atomicity",
         },
         "Test assumes integer primary key.": {
+            "db_functions.comparison.test_cast.CastTests.test_cast_to_integer_foreign_key",
             "model_fields.test_foreignkey.ForeignKeyTests.test_to_python",
         },
         # https://github.com/mongodb-labs/django-mongodb/issues/12
@@ -160,6 +168,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupQueryingTests.test_filter_lookup_lhs",
             # Subquery not supported.
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
+            "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_outerref",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_subquery_with_parameters",
             "lookup.tests.LookupQueryingTests.test_filter_subquery_lhs",
@@ -186,8 +195,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions_can_ref_other_functions",
             # Floor not implemented.
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_transform_annotation",
-            # Coalesce not implemented.
-            "annotations.tests.AliasTests.test_alias_annotation_expression",
+            # annotate() with expression that raises FullResultSet crashes.
             "annotations.tests.NonAggregateAnnotationTestCase.test_full_expression_wrapped_annotation",
             # BaseDatabaseOperations may require a format_for_duration_arithmetic().
             "annotations.tests.NonAggregateAnnotationTestCase.test_mixed_type_annotation_date_interval",
@@ -206,6 +214,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.AliasTests.test_order_by_alias_aggregate",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotate_exists",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotate_with_aggregation",
+            "db_functions.comparison.test_cast.CastTests.test_cast_from_db_datetime_to_date_group_by",
         },
         "QuerySet.dates() is not supported on MongoDB.": {
             "annotations.tests.AliasTests.test_dates_alias",
@@ -246,6 +255,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_subquery_outerref_transform",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
             "annotations.tests.NonAggregateAnnotationTestCase.test_chaining_annotation_filter_with_m2m",
+            "db_functions.comparison.test_least.LeastTests.test_related_field",
+            "db_functions.comparison.test_greatest.GreatestTests.test_related_field",
             "defer.tests.BigChildDeferTests.test_defer_baseclass_when_subclass_has_added_field",
             "defer.tests.BigChildDeferTests.test_defer_subclass",
             "defer.tests.BigChildDeferTests.test_defer_subclass_both",
@@ -330,5 +341,15 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "MongoDB can't annotate ($project) a function like PI().": {
             "db_functions.math.test_pi.PiTests.test",
+        },
+        "Can't cast from date to datetime without MongoDB interpreting the new value in UTC.": {
+            "db_functions.comparison.test_cast.CastTests.test_cast_from_db_date_to_datetime",
+            "db_functions.comparison.test_cast.CastTests.test_cast_from_db_datetime_to_time",
+        },
+        "Casting Python literals doesn't work.": {
+            "db_functions.comparison.test_cast.CastTests.test_cast_from_python",
+            "db_functions.comparison.test_cast.CastTests.test_cast_from_python_to_date",
+            "db_functions.comparison.test_cast.CastTests.test_cast_from_python_to_datetime",
+            "db_functions.comparison.test_cast.CastTests.test_cast_to_duration",
         },
     }
