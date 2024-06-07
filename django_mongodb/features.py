@@ -7,6 +7,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_ignore_conflicts = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/8
     supports_json_field = False
+    # BSON Date type doesn't support microsecond precision.
+    supports_microsecond_precision = False
     # MongoDB stores datetimes in UTC.
     supports_timezones = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/7
@@ -291,15 +293,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.NewDatabaseTests.test_cursor_explicit_time_zone",
             "timezones.tests.NewDatabaseTests.test_raw_sql",
-        },
-        "BSON Date type doesn't support microsecond precision.": {
-            "basic.tests.ModelRefreshTests.test_refresh_unsaved",
-            "basic.tests.ModelTest.test_microsecond_precision",
-            "timezones.tests.LegacyDatabaseTests.test_auto_now_and_auto_now_add",
-            "timezones.tests.LegacyDatabaseTests.test_aware_datetime_in_local_timezone_with_microsecond",
-            "timezones.tests.LegacyDatabaseTests.test_naive_datetime_with_microsecond",
-            "timezones.tests.NewDatabaseTests.test_aware_datetime_in_local_timezone_with_microsecond",
-            "timezones.tests.NewDatabaseTests.test_naive_datetime_with_microsecond",
         },
         "Transform not supported.": {
             "db_functions.math.test_abs.AbsTests.test_transform",
