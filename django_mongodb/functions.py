@@ -16,7 +16,20 @@ from django.db.models.functions.datetime import (
     TruncBase,
 )
 from django.db.models.functions.math import Ceil, Cot, Degrees, Log, Power, Radians, Random, Round
-from django.db.models.functions.text import Upper
+from django.db.models.functions.text import (
+    Concat,
+    ConcatPair,
+    Left,
+    Length,
+    Lower,
+    LTrim,
+    Replace,
+    RTrim,
+    StrIndex,
+    Substr,
+    Trim,
+    Upper,
+)
 
 from .query_utils import process_lhs
 
@@ -26,6 +39,7 @@ MONGO_OPERATORS = {
     Degrees: "radiansToDegrees",
     Greatest: "max",
     Least: "min",
+    Lower: "toLower",
     Power: "pow",
     Radians: "degreesToRadians",
     Random: "rand",
@@ -56,6 +70,16 @@ def cast(self, compiler, connection):
     return lhs_mql
 
 
+def concat(self, compiler, connection):
+    return self.get_source_expressions()[0].as_mql(compiler, connection)
+
+
+def concat_pair(self, compiler, connection):
+    # null on either side results in null for expression, wrap with coalesce.
+    coalesced = self.coalesce()
+    return super(ConcatPair, coalesced).as_mql(compiler, connection)
+
+
 def cot(self, compiler, connection):
     lhs_mql = process_lhs(self, compiler, connection)
     return {"$divide": [1, {"$tan": lhs_mql}]}
@@ -77,6 +101,16 @@ def func(self, compiler, connection):
     return {f"${operator}": lhs_mql}
 
 
+def left(self, compiler, connection):
+    return self.get_substr().as_mql(compiler, connection)
+
+
+def length(self, compiler, connection):
+    # Check for null first since $strLenCP only accepts strings.
+    lhs_mql = process_lhs(self, compiler, connection)
+    return {"$cond": {"if": {"$eq": [lhs_mql, None]}, "then": None, "else": {"$strLenCP": lhs_mql}}}
+
+
 def log(self, compiler, connection):
     # This function is usually log(base, num) but on MongoDB it's log(num, base).
     clone = self.copy()
@@ -90,10 +124,40 @@ def null_if(self, compiler, connection):
     return {"$cond": {"if": {"$eq": [expr1, expr2]}, "then": None, "else": expr1}}
 
 
+def replace(self, compiler, connection):
+    expression, text, replacement = process_lhs(self, compiler, connection)
+    return {"$replaceAll": {"input": expression, "find": text, "replacement": replacement}}
+
+
 def round_(self, compiler, connection):
     # Round needs its own function because it's a special case that inherits
     # from Transform but has two arguments.
     return {"$round": [expr.as_mql(compiler, connection) for expr in self.get_source_expressions()]}
+
+
+def str_index(self, compiler, connection):
+    lhs = process_lhs(self, compiler, connection)
+    # StrIndex should be 0-indexed (not found) but it's -1-indexed on MongoDB.
+    return {"$add": [{"$indexOfCP": lhs}, 1]}
+
+
+def substr(self, compiler, connection):
+    lhs = process_lhs(self, compiler, connection)
+    # The starting index is zero-indexed on MongoDB rather than one-indexed.
+    lhs[1] = {"$add": [lhs[1], -1]}
+    # If no limit is specified, use the length of the string since $substrCP
+    # requires one.
+    if len(lhs) == 2:
+        lhs.append({"$strLenCP": lhs[0]})
+    return {"$substrCP": lhs}
+
+
+def trim(operator):
+    def wrapped(self, compiler, connection):
+        lhs = process_lhs(self, compiler, connection)
+        return {f"${operator}": {"input": lhs}}
+
+    return wrapped
 
 
 def trunc(self, compiler, connection):
@@ -106,10 +170,20 @@ def trunc(self, compiler, connection):
 
 def register_functions():
     Cast.as_mql = cast
+    Concat.as_mql = concat
+    ConcatPair.as_mql = concat_pair
     Cot.as_mql = cot
     Extract.as_mql = extract
     Func.as_mql = func
+    Left.as_mql = left
+    Length.as_mql = length
     Log.as_mql = log
+    LTrim.as_mql = trim("ltrim")
     NullIf.as_mql = null_if
+    Replace.as_mql = replace
     Round.as_mql = round_
+    RTrim.as_mql = trim("rtrim")
+    StrIndex.as_mql = str_index
+    Substr.as_mql = substr
+    Trim.as_mql = trim("trim")
     TruncBase.as_mql = trunc

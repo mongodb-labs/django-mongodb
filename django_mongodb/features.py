@@ -30,8 +30,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Slicing with QuerySet.count() doesn't work.
         "lookup.tests.LookupTests.test_count",
         # Lookup in order_by() not supported:
-        # unsupported operand type(s) for %: 'function' and 'str'
+        # argument of type '<database function>' is not iterable
         "db_functions.comparison.test_coalesce.CoalesceTests.test_ordering",
+        "db_functions.text.test_length.LengthTests.test_ordering",
+        "db_functions.text.test_strindex.StrIndexTests.test_order_by",
         "lookup.tests.LookupQueryingTests.test_lookup_in_order_by",
         # annotate() after values() doesn't raise NotSupportedError.
         "lookup.tests.LookupTests.test_exact_query_rhs_with_selected_columns",
@@ -80,6 +82,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_update_with_annotation",
             "db_functions.comparison.test_least.LeastTests.test_update",
             "db_functions.comparison.test_greatest.GreatestTests.test_update",
+            "db_functions.text.test_left.LeftTests.test_basic",
+            "db_functions.text.test_lower.LowerTests.test_basic",
+            "db_functions.text.test_replace.ReplaceTests.test_update",
+            "db_functions.text.test_substr.SubstrTests.test_basic",
+            "db_functions.text.test_upper.UpperTests.test_basic",
             "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
             "timezones.tests.NewDatabaseTests.test_update_with_timedelta",
             "update.tests.AdvancedTests.test_update_annotated_queryset",
@@ -182,8 +189,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_mixed_type_annotation_numbers",
             "annotations.tests.NonAggregateAnnotationTestCase.test_q_expression_annotation_with_aggregation",
             "lookup.tests.LookupQueryingTests.test_filter_wrapped_lookup_lhs",
-            # Length not implemented.
-            "annotations.tests.NonAggregateAnnotationTestCase.test_chaining_transforms",
             # CombinedExpression not implemented.
             "annotations.tests.NonAggregateAnnotationTestCase.test_combined_annotation_commutative",
             "annotations.tests.NonAggregateAnnotationTestCase.test_decimal_annotation",
@@ -317,10 +322,25 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.math.test_sin.SinTests.test_transform",
             "db_functions.math.test_sqrt.SqrtTests.test_transform",
             "db_functions.math.test_tan.TanTests.test_transform",
+            "db_functions.text.test_strindex.StrIndexTests.test_filtering",
+            "db_functions.text.test_length.LengthTests.test_basic",
+            "db_functions.text.test_length.LengthTests.test_transform",
         },
         "MongoDB does not support this database function.": {
             "db_functions.datetime.test_now.NowTests",
             "db_functions.math.test_sign.SignTests",
+            "db_functions.text.test_chr.ChrTests",
+            "db_functions.text.test_md5.MD5Tests",
+            "db_functions.text.test_ord.OrdTests",
+            "db_functions.text.test_pad.PadTests",
+            "db_functions.text.test_repeat.RepeatTests",
+            "db_functions.text.test_reverse.ReverseTests",
+            "db_functions.text.test_right.RightTests",
+            "db_functions.text.test_sha1.SHA1Tests",
+            "db_functions.text.test_sha224.SHA224Tests",
+            "db_functions.text.test_sha256.SHA256Tests",
+            "db_functions.text.test_sha384.SHA384Tests",
+            "db_functions.text.test_sha512.SHA512Tests",
         },
         "ExtractQuarter database function not supported.": {
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_quarter_func",

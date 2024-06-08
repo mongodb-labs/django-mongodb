@@ -77,6 +77,7 @@ jobs:
           db_functions.comparison
           db_functions.datetime
           db_functions.math
+          db_functions.text
           empty
           defer
           defer_regress

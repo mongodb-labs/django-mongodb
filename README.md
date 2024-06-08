@@ -63,8 +63,16 @@ DATABASES = {
 - `DateTimeField` doesn't support microsecond precision.
 
 - The following database functions aren't supported:
+    - `Chr`
     - `ExtractQuarter`
+    - `MD5`
     - `Now`
+    - `Ord`
+    - `Pad`
+    - `Repeat`
+    - `Reverse`
+    - `Right`
+    - `SHA1`, `SHA224`, `SHA256`, `SHA384`, `SHA512`
     - `Sign`
     - `TruncDate`
     - `TruncTime`
