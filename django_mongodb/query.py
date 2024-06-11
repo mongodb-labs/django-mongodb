@@ -91,7 +91,8 @@ class MongoQuery:
                 column = expr.target.column
             except AttributeError:
                 # Generate the MQL for an annotation.
-                fields[name] = expr.as_mql_agg(self.compiler, self.connection)
+                method = "as_mql_agg" if hasattr(expr, "as_mql_agg") else "as_mql"
+                fields[name] = getattr(expr, method)(self.compiler, self.connection)
             else:
                 # If name != column, then this is an annotatation referencing
                 # another column.

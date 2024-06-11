@@ -54,8 +54,8 @@ def round_(self, compiler, connection):
 
 
 def register_functions():
-    Cot.as_mql_agg = cot
+    Cot.as_mql = cot
     Extract.as_mql = extract
-    Func.as_mql_agg = func
-    Log.as_mql_agg = log
-    Round.as_mql_agg = round_
+    Func.as_mql = func
+    Log.as_mql = log
+    Round.as_mql = round_
