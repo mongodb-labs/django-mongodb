@@ -74,10 +74,7 @@ jobs:
           bulk_create
           dates
           datetimes
-          db_functions.comparison
-          db_functions.datetime
-          db_functions.math
-          db_functions.text
+          db_functions
           empty
           defer
           defer_regress

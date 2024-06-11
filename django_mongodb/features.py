@@ -32,6 +32,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Lookup in order_by() not supported:
         # argument of type '<database function>' is not iterable
         "db_functions.comparison.test_coalesce.CoalesceTests.test_ordering",
+        "db_functions.tests.FunctionTests.test_nested_function_ordering",
         "db_functions.text.test_length.LengthTests.test_ordering",
         "db_functions.text.test_strindex.StrIndexTests.test_order_by",
         "lookup.tests.LookupQueryingTests.test_lookup_in_order_by",
@@ -57,6 +58,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_timezone_applied_before_truncation",
         # Coalesce() with expressions doesn't generate correct query.
         "db_functions.comparison.test_coalesce.CoalesceTests.test_mixed_values",
+        # $and must be an array
+        "db_functions.tests.FunctionTests.test_function_as_filter",
     }
 
     django_test_skips = {
@@ -322,6 +325,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.math.test_sin.SinTests.test_transform",
             "db_functions.math.test_sqrt.SqrtTests.test_transform",
             "db_functions.math.test_tan.TanTests.test_transform",
+            "db_functions.tests.FunctionTests.test_func_transform_bilateral",
+            "db_functions.tests.FunctionTests.test_func_transform_bilateral_multivalue",
             "db_functions.text.test_strindex.StrIndexTests.test_filtering",
             "db_functions.text.test_length.LengthTests.test_basic",
             "db_functions.text.test_length.LengthTests.test_transform",
