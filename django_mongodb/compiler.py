@@ -154,7 +154,7 @@ class SQLCompiler(compiler.SQLCompiler):
             self.get_default_columns(select_mask) if self.query.default_cols else self.query.select
         )
         return tuple((column.target.column, column) for column in columns) + tuple(
-            self.query.annotations.items()
+            self.query.annotation_select.items()
         )
 
     def _get_ordering(self):

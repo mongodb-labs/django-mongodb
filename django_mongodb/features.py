@@ -60,6 +60,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "db_functions.comparison.test_coalesce.CoalesceTests.test_mixed_values",
         # $and must be an array
         "db_functions.tests.FunctionTests.test_function_as_filter",
+        # pk__in=queryset doesn't work because subqueries aren't a thing in
+        # MongoDB.
+        "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
     }
 
     django_test_skips = {
@@ -163,9 +166,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_exact_exists",
             "lookup.tests.LookupTests.test_nested_outerref_lhs",
             "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
-            # QuerySet.alias() doesn't work.
-            "annotations.tests.AliasTests.test_basic_alias_f_transform_annotation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
+            # QuerySet.alias(greater=GreaterThan(F("year"), 1910)).filter(greater=True)
+            # generates incorrect an incorrect query:
+            # {'$expr': {'$eq': [{'year': {'$gt': 1910}}, True]}}}
             "lookup.tests.LookupQueryingTests.test_alias",
             # annotate() with combined expressions doesn't work:
             # 'WhereNode' object has no attribute 'field'
