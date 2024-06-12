@@ -75,9 +75,3 @@ DATABASES = {
 ## Troubleshooting
 
 TODO
-
-## Credits
-
-This project began by borrowing code from Django non-rel's
-[MongoDB Engine](https://github.com/django-nonrel/mongodb-engine),
-abandoned since 2015 and Django 1.6 (2-clause BSD license).
