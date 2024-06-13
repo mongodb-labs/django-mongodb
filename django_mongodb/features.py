@@ -206,8 +206,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions_can_ref_other_functions",
             # Floor not implemented.
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_transform_annotation",
-            # annotate() with expression that raises FullResultSet crashes.
-            "annotations.tests.NonAggregateAnnotationTestCase.test_full_expression_wrapped_annotation",
             # BaseDatabaseOperations may require a format_for_duration_arithmetic().
             "annotations.tests.NonAggregateAnnotationTestCase.test_mixed_type_annotation_date_interval",
             # FieldDoesNotExist with ordering.

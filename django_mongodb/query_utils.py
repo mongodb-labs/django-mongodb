@@ -1,5 +1,8 @@
 import re
 
+from django.core.exceptions import FullResultSet
+from django.db.models.expressions import Value
+
 
 def is_direct_value(node):
     return not hasattr(node, "as_sql")
@@ -8,7 +11,13 @@ def is_direct_value(node):
 def process_lhs(node, compiler, connection, bare_column_ref=False):
     if not hasattr(node, "lhs"):
         # node is a Func or Expression, possibly with multiple source expressions.
-        return [expr.as_mql(compiler, connection) for expr in node.get_source_expressions()]
+        result = []
+        for expr in node.get_source_expressions():
+            try:
+                result.append(expr.as_mql(compiler, connection))
+            except FullResultSet:
+                result.append(Value(True).as_mql(compiler, connection))
+        return result
     # node is a Transform with just one source expression, aliased as "lhs".
     if is_direct_value(node.lhs):
         return node
