@@ -78,6 +78,7 @@ jobs:
           empty
           expressions.tests.ExpressionOperatorTests
           expressions.tests.NegatedExpressionTests
+          expressions_case
           defer
           defer_regress
           from_db_value
