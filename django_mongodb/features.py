@@ -56,8 +56,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # the result back to UTC.
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_func_with_timezone",
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_timezone_applied_before_truncation",
-        # Coalesce() with expressions doesn't generate correct query.
-        "db_functions.comparison.test_coalesce.CoalesceTests.test_mixed_values",
         # $and must be an array
         "db_functions.tests.FunctionTests.test_function_as_filter",
         # pk__in=queryset doesn't work because subqueries aren't a thing in

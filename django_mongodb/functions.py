@@ -39,11 +39,9 @@ MONGO_OPERATORS = {
     Degrees: "radiansToDegrees",
     Greatest: "max",
     Least: "min",
-    Lower: "toLower",
     Power: "pow",
     Radians: "degreesToRadians",
     Random: "rand",
-    Upper: "toUpper",
 }
 EXTRACT_OPERATORS = {
     ExtractDay.lookup_name: "dayOfMonth",
@@ -124,6 +122,22 @@ def null_if(self, compiler, connection):
     return {"$cond": {"if": {"$eq": [expr1, expr2]}, "then": None, "else": expr1}}
 
 
+def perserve_null(operator):
+    # If the argument is null, the function should return null, not
+    # $toLower/Upper's behavior of returning an empty string.
+    def wrapped(self, compiler, connection):
+        lhs_mql = process_lhs(self, compiler, connection)
+        return {
+            "$cond": {
+                "if": {"$eq": [lhs_mql, None]},
+                "then": None,
+                "else": {f"${operator}": lhs_mql},
+            }
+        }
+
+    return wrapped
+
+
 def replace(self, compiler, connection):
     expression, text, replacement = process_lhs(self, compiler, connection)
     return {"$replaceAll": {"input": expression, "find": text, "replacement": replacement}}
@@ -178,6 +192,7 @@ def register_functions():
     Left.as_mql = left
     Length.as_mql = length
     Log.as_mql = log
+    Lower.as_mql = perserve_null("toLower")
     LTrim.as_mql = trim("ltrim")
     NullIf.as_mql = null_if
     Replace.as_mql = replace
@@ -187,3 +202,4 @@ def register_functions():
     Substr.as_mql = substr
     Trim.as_mql = trim("trim")
     TruncBase.as_mql = trunc
+    Upper.as_mql = perserve_null("toUpper")
