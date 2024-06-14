@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from bson import Decimal128
 from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db.models.expressions import (
     Case,
@@ -60,7 +63,10 @@ def when(self, compiler, connection):
 
 
 def value(self, compiler, connection):  # noqa: ARG001
-    return {"$literal": self.value}
+    value = self.value
+    if isinstance(value, Decimal):
+        value = Decimal128(value)
+    return {"$literal": value}
 
 
 def register_expressions():
