@@ -138,6 +138,17 @@ Migrations for 'admin':
 - The `tzinfo` parameter of the `Trunc` database functions doesn't work
   properly because MongoDB converts the result back to UTC.
 
+- When querying `JSONField`:
+  - There is no way to distinguish between a JSON "null" (represented by
+    `Value(None, JSONField())`) and a SQL null (queried using the `isnull`
+    lookup). Both of these queries return both of these nulls.
+  - Some queries with `Q` objects, e.g. `Q(value__foo="bar")`, don't work
+    properly, particularly with `QuerySet.exclude()`.
+  - Filtering for a `None` key, e.g. `QuerySet.filter(value__j=None)`
+    incorrectly returns objects where the key doesn't exist.
+  - You can study the skipped tests in `DatabaseFeatures.django_test_skips` for
+    more details on known issues.
+
 ## Troubleshooting
 
 TODO

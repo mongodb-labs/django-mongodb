@@ -1,6 +1,12 @@
 from django.db import NotSupportedError
 from django.db.models.fields.related_lookups import In, MultiColSource, RelatedIn
-from django.db.models.lookups import BuiltinLookup, IsNull, PatternLookup, UUIDTextMixin
+from django.db.models.lookups import (
+    BuiltinLookup,
+    FieldGetDbPrepValueIterableMixin,
+    IsNull,
+    PatternLookup,
+    UUIDTextMixin,
+)
 
 from .query_utils import process_lhs, process_rhs
 
@@ -9,6 +15,22 @@ def builtin_lookup(self, compiler, connection):
     lhs_mql = process_lhs(self, compiler, connection)
     value = process_rhs(self, compiler, connection)
     return connection.mongo_operators[self.lookup_name](lhs_mql, value)
+
+
+_field_resolve_expression_parameter = FieldGetDbPrepValueIterableMixin.resolve_expression_parameter
+
+
+def field_resolve_expression_parameter(self, compiler, connection, sql, param):
+    """For MongoDB, this method must call as_mql() instead of as_sql()."""
+    sql, sql_params = _field_resolve_expression_parameter(self, compiler, connection, sql, param)
+    if connection.vendor == "mongodb":
+        params = [param]
+        if hasattr(param, "resolve_expression"):
+            param = param.resolve_expression(compiler.query)
+        if hasattr(param, "as_mql"):
+            params = [param.as_mql(compiler, connection)]
+        return sql, params
+    return sql, sql_params
 
 
 def in_(self, compiler, connection):
@@ -48,6 +70,9 @@ def uuid_text_mixin(self, compiler, connection):  # noqa: ARG001
 
 def register_lookups():
     BuiltinLookup.as_mql = builtin_lookup
+    FieldGetDbPrepValueIterableMixin.resolve_expression_parameter = (
+        field_resolve_expression_parameter
+    )
     In.as_mql = RelatedIn.as_mql = in_
     IsNull.as_mql = is_null
     PatternLookup.prep_lookup_value_mongo = pattern_lookup_prep_lookup_value

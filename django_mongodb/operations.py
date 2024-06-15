@@ -1,9 +1,11 @@
 import datetime
+import json
 import re
 import uuid
 
 from bson.decimal128 import Decimal128
 from django.conf import settings
+from django.db import DataError
 from django.db.backends.base.operations import BaseDatabaseOperations
 from django.db.models.expressions import Combinable
 from django.utils import timezone
@@ -49,6 +51,14 @@ class DatabaseOperations(BaseDatabaseOperations):
             return None
         return Decimal128(value)
 
+    def adapt_json_value(self, value, encoder):
+        if encoder is None:
+            return value
+        try:
+            return json.loads(json.dumps(value, cls=encoder))
+        except json.decoder.JSONDecodeError as e:
+            raise DataError from e
+
     def adapt_timefield_value(self, value):
         """Store TimeField as datetime."""
         if value is None:
@@ -67,6 +77,8 @@ class DatabaseOperations(BaseDatabaseOperations):
                 converters.append(self.convert_datetimefield_value)
         elif internal_type == "DecimalField":
             converters.append(self.convert_decimalfield_value)
+        elif internal_type == "JSONField":
+            converters.append(self.convert_jsonfield_value)
         elif internal_type == "TimeField":
             converters.append(self.convert_timefield_value)
         elif internal_type == "UUIDField":
@@ -88,6 +100,13 @@ class DatabaseOperations(BaseDatabaseOperations):
             # from Decimal128 to decimal.Decimal()
             value = value.to_decimal()
         return value
+
+    def convert_jsonfield_value(self, value, expression, connection):
+        """
+        Convert dict data to a string so that JSONField.from_db_value() can
+        decode it using json.loads().
+        """
+        return json.dumps(value)
 
     def convert_timefield_value(self, value, expression, connection):
         if value is not None:

@@ -5,11 +5,11 @@ from django.utils.functional import cached_property
 class DatabaseFeatures(BaseDatabaseFeatures):
     greatest_least_ignores_nulls = True
     has_json_object_function = False
+    has_native_json_field = True
     supports_date_lookup_using_string = False
     supports_foreign_keys = False
     supports_ignore_conflicts = False
-    # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/8
-    supports_json_field = False
+    supports_json_field_contains = False
     # BSON Date type doesn't support microsecond precision.
     supports_microsecond_precision = False
     # MongoDB stores datetimes in UTC.
@@ -41,6 +41,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # tuple index out of range in process_rhs()
         "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one",
         "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one_offset",
+        # Pattern lookups that use regexMatch don't work on JSONField:
+        # Unsupported conversion from array to string in $convert
+        "model_fields.test_jsonfield.TestQuerying.test_icontains",
         # MongoDB gives the wrong result of log(number, base) when base is a
         # fractional Decimal: https://jira.mongodb.org/browse/SERVER-91223
         "db_functions.math.test_log.LogTests.test_decimal",
@@ -53,8 +56,14 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # pk__in=queryset doesn't work because subqueries aren't a thing in
         # MongoDB.
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
+        "model_fields.test_jsonfield.TestQuerying.test_usage_in_subquery",
         # Length of null considered zero rather than null.
         "db_functions.text.test_length.LengthTests.test_basic",
+        # Key transforms are incorrectly treated as joins:
+        # Ordering can't span tables on MongoDB (value_custom__a).
+        "model_fields.test_jsonfield.TestQuerying.test_order_grouping_custom_decoder",
+        "model_fields.test_jsonfield.TestQuerying.test_ordering_by_transform",
+        "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_key_transform",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -221,6 +230,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_subquery_with_parameters",
             "expressions_case.tests.CaseExpressionTests.test_in_subquery",
             "lookup.tests.LookupQueryingTests.test_filter_subquery_lhs",
+            "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_on_subquery",
+            "model_fields.test_jsonfield.TestQuerying.test_obj_subquery_lookup",
             # Invalid $project :: caused by :: Unknown expression $count,
             "annotations.tests.NonAggregateAnnotationTestCase.test_combined_expression_annotation_with_aggregation",
             "annotations.tests.NonAggregateAnnotationTestCase.test_combined_f_expression_annotation_with_aggregation",
@@ -240,6 +251,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.NegatedExpressionTests.test_filter",
             "expressions_case.tests.CaseExpressionTests.test_annotate_values_not_in_order_by",
             "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_implicit",
+            "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
             # annotate().filter().count() gives incorrect results.
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_exact_lookup",
         },
@@ -324,6 +336,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_lookup_collision",
             "lookup.tests.LookupTests.test_lookup_rhs",
             "lookup.tests.LookupTests.test_isnull_non_boolean_value",
+            "model_fields.test_jsonfield.TestQuerying.test_join_key_transform_annotation_expression",
             "model_fields.test_manytomanyfield.ManyToManyFieldDBTests.test_value_from_object_instance_with_pk",
             "model_fields.test_uuid.TestAsPrimaryKey.test_two_level_foreign_keys",
             "timezones.tests.LegacyDatabaseTests.test_query_annotation",
@@ -343,6 +356,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "Test executes raw SQL.": {
             "annotations.tests.NonAggregateAnnotationTestCase.test_raw_sql_with_inherited_field",
+            "model_fields.test_jsonfield.TestQuerying.test_key_sql_injection_escape",
+            "model_fields.test_jsonfield.TestQuerying.test_key_transform_raw_expression",
+            "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_raw_expression",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_raw_sql",
@@ -400,6 +416,24 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.comparison.test_cast.CastTests.test_cast_from_python_to_date",
             "db_functions.comparison.test_cast.CastTests.test_cast_from_python_to_datetime",
             "db_functions.comparison.test_cast.CastTests.test_cast_to_duration",
+        },
+        "Known issue querying JSONField.": {
+            # An ExpressionWrapper annotation with KeyTransform followed by
+            # .filter(expr__isnull=False) doesn't use KeyTransformIsNull as it
+            # needs to.
+            "model_fields.test_jsonfield.TestQuerying.test_expression_wrapper_key_transform",
+            # There is no way to distinguish between a JSON "null" (represented
+            # by Value(None, JSONField())) and a SQL null (queried using the
+            # isnull lookup). Both of these queries return both nulls.
+            "model_fields.test_jsonfield.TestSaveLoad.test_json_null_different_from_sql_null",
+            # Some queries with Q objects, e.g. Q(value__foo="bar"), don't work
+            # properly, particularly with QuerySet.exclude().
+            "model_fields.test_jsonfield.TestQuerying.test_lookup_exclude",
+            "model_fields.test_jsonfield.TestQuerying.test_lookup_exclude_nonexistent_key",
+            # Queries like like QuerySet.filter(value__j=None) incorrectly
+            # returns objects where the key doesn't exist.
+            "model_fields.test_jsonfield.TestQuerying.test_none_key",
+            "model_fields.test_jsonfield.TestQuerying.test_none_key_exclude",
         },
     }
 
