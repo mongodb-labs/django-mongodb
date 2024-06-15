@@ -8,7 +8,7 @@ def is_direct_value(node):
     return not hasattr(node, "as_sql")
 
 
-def process_lhs(node, compiler, connection, bare_column_ref=False):
+def process_lhs(node, compiler, connection):
     if not hasattr(node, "lhs"):
         # node is a Func or Expression, possibly with multiple source expressions.
         result = []
@@ -21,11 +21,7 @@ def process_lhs(node, compiler, connection, bare_column_ref=False):
     # node is a Transform with just one source expression, aliased as "lhs".
     if is_direct_value(node.lhs):
         return node
-    mql = node.lhs.as_mql(compiler, connection)
-    # Remove the unneeded $ from column references.
-    if bare_column_ref and mql.startswith("$"):
-        mql = mql[1:]
-    return mql
+    return node.lhs.as_mql(compiler, connection)
 
 
 def process_rhs(node, compiler, connection):
@@ -49,9 +45,7 @@ def process_rhs(node, compiler, connection):
     return connection.ops.prep_lookup_value(value, node.lhs.output_field, node.lookup_name)
 
 
-def safe_regex(regex, *re_args, **re_kwargs):
-    def wrapper(value):
-        return re.compile(regex % re.escape(value), *re_args, **re_kwargs)
-
-    wrapper.__name__ = "safe_regex (%r)" % regex
-    return wrapper
+def regex_match(field, value, regex, *re_args, **re_kwargs):
+    regex = re.compile(regex % re.escape(value), *re_args, **re_kwargs)
+    options = "i" if regex.flags & re.I else ""
+    return {"$regexMatch": {"input": field, "regex": regex.pattern, "options": options}}

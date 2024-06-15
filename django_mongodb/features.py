@@ -21,8 +21,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Database defaults not supported: bson.errors.InvalidDocument:
         # cannot encode object: <django.db.models.expressions.DatabaseDefault
         "basic.tests.ModelInstanceCreationTests.test_save_primary_with_db_default",
-        # Query for chained lookups not generated correctly.
-        "lookup.tests.LookupTests.test_chain_date_time_lookups",
         # 'NulledTransform' object has no attribute 'as_mql'.
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
@@ -56,11 +54,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # the result back to UTC.
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_func_with_timezone",
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_timezone_applied_before_truncation",
-        # $and must be an array
-        "db_functions.tests.FunctionTests.test_function_as_filter",
         # pk__in=queryset doesn't work because subqueries aren't a thing in
         # MongoDB.
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
+        # Length of null considered zero rather than null.
+        "db_functions.text.test_length.LengthTests.test_basic",
     }
 
     django_test_skips = {
@@ -164,10 +162,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_exact_exists",
             "lookup.tests.LookupTests.test_nested_outerref_lhs",
             "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
-            # QuerySet.alias(greater=GreaterThan(F("year"), 1910)).filter(greater=True)
-            # generates incorrect an incorrect query:
-            # {'$expr': {'$eq': [{'year': {'$gt': 1910}}, True]}}}
-            "lookup.tests.LookupQueryingTests.test_alias",
             # annotate() with combined expressions doesn't work:
             # 'WhereNode' object has no attribute 'field'
             "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter",
@@ -175,8 +169,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupQueryingTests.test_combined_lookups",
             # Case not supported.
             "lookup.tests.LookupQueryingTests.test_conditional_expression",
-            # Using expression in filter() doesn't work.
-            "lookup.tests.LookupQueryingTests.test_filter_lookup_lhs",
             # Subquery not supported.
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
             "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
@@ -202,8 +194,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # Func not implemented.
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions",
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions_can_ref_other_functions",
-            # Floor not implemented.
-            "annotations.tests.NonAggregateAnnotationTestCase.test_custom_transform_annotation",
             # BaseDatabaseOperations may require a format_for_duration_arithmetic().
             "annotations.tests.NonAggregateAnnotationTestCase.test_mixed_type_annotation_date_interval",
             # FieldDoesNotExist with ordering.
@@ -212,9 +202,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_annotation",
             # annotate().filter().count() gives incorrect results.
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_exact_lookup",
-            # Year lookup + lt/gt crashes: 'dict' object has no attribute 'startswith'
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_greaterthan_lookup",
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_lessthan_lookup",
         },
         "Count doesn't work in QuerySet.annotate()": {
             "annotations.tests.AliasTests.test_alias_annotate_with_aggregation",
@@ -307,28 +294,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_cursor_explicit_time_zone",
             "timezones.tests.NewDatabaseTests.test_raw_sql",
         },
-        "Transform not supported.": {
-            "db_functions.math.test_abs.AbsTests.test_transform",
-            "db_functions.math.test_acos.ACosTests.test_transform",
-            "db_functions.math.test_asin.ASinTests.test_transform",
-            "db_functions.math.test_atan.ATanTests.test_transform",
-            "db_functions.math.test_ceil.CeilTests.test_transform",
-            "db_functions.math.test_cos.CosTests.test_transform",
-            "db_functions.math.test_cot.CotTests.test_transform",
-            "db_functions.math.test_degrees.DegreesTests.test_transform",
-            "db_functions.math.test_exp.ExpTests.test_transform",
-            "db_functions.math.test_floor.FloorTests.test_transform",
-            "db_functions.math.test_ln.LnTests.test_transform",
-            "db_functions.math.test_radians.RadiansTests.test_transform",
-            "db_functions.math.test_round.RoundTests.test_transform",
-            "db_functions.math.test_sin.SinTests.test_transform",
-            "db_functions.math.test_sqrt.SqrtTests.test_transform",
-            "db_functions.math.test_tan.TanTests.test_transform",
+        "Bilateral transform not implemented.": {
             "db_functions.tests.FunctionTests.test_func_transform_bilateral",
             "db_functions.tests.FunctionTests.test_func_transform_bilateral_multivalue",
-            "db_functions.text.test_strindex.StrIndexTests.test_filtering",
-            "db_functions.text.test_length.LengthTests.test_basic",
-            "db_functions.text.test_length.LengthTests.test_transform",
         },
         "MongoDB does not support this database function.": {
             "db_functions.datetime.test_now.NowTests",

@@ -91,8 +91,7 @@ class MongoQuery:
                 column = expr.target.column
             except AttributeError:
                 # Generate the MQL for an annotation.
-                method = "as_mql_agg" if hasattr(expr, "as_mql_agg") else "as_mql"
-                fields[name] = getattr(expr, method)(self.compiler, self.connection)
+                fields[name] = expr.as_mql(self.compiler, self.connection)
             else:
                 # If name != column, then this is an annotatation referencing
                 # another column.
@@ -155,8 +154,7 @@ def where_node(self, compiler, connection):
         raise FullResultSet
 
     if self.negated and mql:
-        lhs, rhs = next(iter(mql.items()))
-        mql = {lhs: {"$not": rhs}}
+        mql = {"$eq": [mql, {"$literal": False}]}
 
     return mql
 

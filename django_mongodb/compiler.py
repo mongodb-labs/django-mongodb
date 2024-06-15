@@ -138,7 +138,7 @@ class SQLCompiler(compiler.SQLCompiler):
         self.setup_query()
         query = self.query_class(self, columns)
         try:
-            query.mongo_query = self.query.where.as_mql(self, self.connection)
+            query.mongo_query = {"$expr": self.query.where.as_mql(self, self.connection)}
         except FullResultSet:
             query.mongo_query = {}
         query.order_by(self._get_ordering())

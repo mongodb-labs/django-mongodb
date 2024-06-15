@@ -12,7 +12,7 @@ from .creation import DatabaseCreation
 from .features import DatabaseFeatures
 from .introspection import DatabaseIntrospection
 from .operations import DatabaseOperations
-from .query_utils import safe_regex
+from .query_utils import regex_match
 from .schema import DatabaseSchemaEditor
 from .utils import CollectionDebugWrapper
 
@@ -74,30 +74,23 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "iendswith": "LIKE UPPER(%s)",
     }
     mongo_operators = {
-        "exact": lambda val: val,
-        "gt": lambda val: {"$gt": val},
-        "gte": lambda val: {"$gte": val},
-        "lt": lambda val: {"$lt": val},
-        "lte": lambda val: {"$lte": val},
-        "in": lambda val: {"$in": val},
-        "range": lambda val: {"$gte": val[0], "$lte": val[1]},
-        "isnull": lambda val: None if val else {"$ne": None},
-        "iexact": safe_regex("^%s$", re.IGNORECASE),
-        "startswith": safe_regex("^%s"),
-        "istartswith": safe_regex("^%s", re.IGNORECASE),
-        "endswith": safe_regex("%s$"),
-        "iendswith": safe_regex("%s$", re.IGNORECASE),
-        "contains": safe_regex("%s"),
-        "icontains": safe_regex("%s", re.IGNORECASE),
-        "regex": lambda val: re.compile(val),
-        "iregex": lambda val: re.compile(val, re.IGNORECASE),
-    }
-    mongo_aggregations = {
         "exact": lambda a, b: {"$eq": [a, b]},
         "gt": lambda a, b: {"$gt": [a, b]},
         "gte": lambda a, b: {"$gte": [a, b]},
         "lt": lambda a, b: {"$lt": [a, b]},
         "lte": lambda a, b: {"$lte": [a, b]},
+        "in": lambda a, b: {"$in": [a, b]},
+        "isnull": lambda a, b: {("$eq" if b else "$ne"): [a, None]},
+        "range": lambda a, b: {"$and": [{"$gte": [a, b[0]]}, {"$lte": [a, b[1]]}]},
+        "iexact": lambda a, b: regex_match(a, b, "^%s$", re.IGNORECASE),
+        "startswith": lambda a, b: regex_match(a, b, "^%s"),
+        "istartswith": lambda a, b: regex_match(a, b, "^%s", re.IGNORECASE),
+        "endswith": lambda a, b: regex_match(a, b, "%s$"),
+        "iendswith": lambda a, b: regex_match(a, b, "%s$", re.IGNORECASE),
+        "contains": lambda a, b: regex_match(a, b, "%s"),
+        "icontains": lambda a, b: regex_match(a, b, "%s", re.IGNORECASE),
+        "regex": lambda a, b: regex_match(a, "", f"{b}%s"),
+        "iregex": lambda a, b: regex_match(a, "", f"{b}%s", re.IGNORECASE),
     }
 
     display_name = "MongoDB"
