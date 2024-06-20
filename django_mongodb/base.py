@@ -167,3 +167,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
     def cursor(self):
         return Cursor()
+
+    def get_database_version(self):
+        """Return a tuple of the database's version."""
+        return tuple(self.connection.server_info()["versionArray"])

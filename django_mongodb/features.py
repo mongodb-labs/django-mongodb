@@ -1,4 +1,5 @@
 from django.db.backends.base.features import BaseDatabaseFeatures
+from django.utils.functional import cached_property
 
 
 class DatabaseFeatures(BaseDatabaseFeatures):
@@ -17,7 +18,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_transactions = False
     uses_savepoints = False
 
-    django_test_expected_failures = {
+    _django_test_expected_failures = {
         # Database defaults not supported: bson.errors.InvalidDocument:
         # cannot encode object: <django.db.models.expressions.DatabaseDefault
         "basic.tests.ModelInstanceCreationTests.test_save_primary_with_db_default",
@@ -60,6 +61,23 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Length of null considered zero rather than null.
         "db_functions.text.test_length.LengthTests.test_basic",
     }
+    # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
+    _django_test_expected_failures_bitwise = {
+        "expressions.tests.ExpressionOperatorTests.test_lefthand_bitwise_and",
+        "expressions.tests.ExpressionOperatorTests.test_lefthand_bitwise_or",
+        "expressions.tests.ExpressionOperatorTests.test_lefthand_bitwise_xor",
+        "expressions.tests.ExpressionOperatorTests.test_lefthand_bitwise_xor_null",
+        "expressions.tests.ExpressionOperatorTests.test_lefthand_bitwise_xor_right_null",
+        "expressions.tests.ExpressionOperatorTests.test_lefthand_transformed_field_bitwise_or",
+    }
+
+    @cached_property
+    def django_test_expected_failures(self):
+        expected_failures = super().django_test_expected_failures
+        expected_failures.update(self._django_test_expected_failures)
+        if not self.is_mongodb_6_3:
+            expected_failures.update(self._django_test_expected_failures_bitwise)
+        return expected_failures
 
     django_test_skips = {
         "Insert expressions aren't supported.": {
@@ -336,3 +354,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.comparison.test_cast.CastTests.test_cast_to_duration",
         },
     }
+
+    @cached_property
+    def is_mongodb_6_3(self):
+        return self.connection.get_database_version() >= (6, 3)
