@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 
 from bson import Decimal128
@@ -66,6 +67,9 @@ def value(self, compiler, connection):  # noqa: ARG001
     value = self.value
     if isinstance(value, Decimal):
         value = Decimal128(value)
+    elif isinstance(value, datetime.date):
+        # Turn dates into datetimes since BSON doesn't support dates.
+        value = datetime.datetime.combine(value, datetime.datetime.min.time())
     return {"$literal": value}
 
 

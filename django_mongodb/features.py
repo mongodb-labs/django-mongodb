@@ -61,9 +61,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
         # Length of null considered zero rather than null.
         "db_functions.text.test_length.LengthTests.test_basic",
-        # Case(..., then=datetime.date()) crashes: bson.errors.InvalidDocument:
-        # cannot encode object: datetime.date(2024, 5, 14), of type: <class 'datetime.date'>
-        "expressions_case.tests.CaseDocumentationExamples.test_filter_example",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
