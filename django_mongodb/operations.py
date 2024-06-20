@@ -4,12 +4,24 @@ import uuid
 from bson.decimal128 import Decimal128
 from django.conf import settings
 from django.db.backends.base.operations import BaseDatabaseOperations
+from django.db.models.expressions import Combinable
 from django.utils import timezone
 from django.utils.regex_helper import _lazy_re_compile
 
 
 class DatabaseOperations(BaseDatabaseOperations):
     compiler_module = "django_mongodb.compiler"
+    combine_operators = {
+        Combinable.ADD: "add",
+        Combinable.SUB: "subtract",
+        Combinable.MUL: "multiply",
+        Combinable.DIV: "divide",
+        Combinable.POW: "pow",
+        Combinable.MOD: "mod",
+        Combinable.BITAND: "bitAnd",
+        Combinable.BITOR: "bitOr",
+        Combinable.BITXOR: "bitXor",
+    }
 
     def adapt_datefield_value(self, value):
         """Store DateField as datetime."""
@@ -85,6 +97,15 @@ class DatabaseOperations(BaseDatabaseOperations):
         if value is not None:
             value = uuid.UUID(value)
         return value
+
+    def combine_expression(self, connector, sub_expressions):
+        lhs, rhs = sub_expressions
+        if connector == Combinable.BITLEFTSHIFT:
+            return {"$multiply": [lhs, {"$pow": [2, rhs]}]}
+        if connector == Combinable.BITRIGHTSHIFT:
+            return {"$floor": {"$divide": [lhs, {"$pow": [2, rhs]}]}}
+        operator = self.combine_operators[connector]
+        return {f"${operator}": sub_expressions}
 
     def prep_for_like_query(self, x):
         # Override value escaping for LIKE queries.
