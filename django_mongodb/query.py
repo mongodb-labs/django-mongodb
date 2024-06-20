@@ -2,6 +2,7 @@ from functools import wraps
 
 from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError
+from django.db.models import Value
 from django.db.models.sql.where import AND, XOR, WhereNode
 from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import DuplicateKeyError, PyMongoError
@@ -91,7 +92,12 @@ class MongoQuery:
                 column = expr.target.column
             except AttributeError:
                 # Generate the MQL for an annotation.
-                fields[name] = expr.as_mql(self.compiler, self.connection)
+                try:
+                    fields[name] = expr.as_mql(self.compiler, self.connection)
+                except EmptyResultSet:
+                    fields[name] = Value(False).as_mql(self.compiler, self.connection)
+                except FullResultSet:
+                    fields[name] = Value(True).as_mql(self.compiler, self.connection)
             else:
                 # If name != column, then this is an annotatation referencing
                 # another column.
