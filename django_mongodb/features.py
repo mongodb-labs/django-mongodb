@@ -12,6 +12,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_json_field_contains = False
     # BSON Date type doesn't support microsecond precision.
     supports_microsecond_precision = False
+    supports_temporal_subtraction = True
     # MongoDB stores datetimes in UTC.
     supports_timezones = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/7
@@ -32,6 +33,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "db_functions.tests.FunctionTests.test_nested_function_ordering",
         "db_functions.text.test_length.LengthTests.test_ordering",
         "db_functions.text.test_strindex.StrIndexTests.test_order_by",
+        "expressions.tests.BasicExpressionsTests.test_order_by_exists",
+        "expressions.tests.BasicExpressionsTests.test_order_by_multiline_sql",
         "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_explicit",
         "lookup.tests.LookupQueryingTests.test_lookup_in_order_by",
         "ordering.tests.OrderingTests.test_default_ordering",
@@ -86,11 +89,33 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_reverse_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_chaining_annotation_filter_with_m2m",
         "lookup.tests.LookupTests.test_lookup_collision",
+        "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression",
+        "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression_flat",
         "expressions_case.tests.CaseExpressionTests.test_join_promotion",
         "expressions_case.tests.CaseExpressionTests.test_join_promotion_multiple_annotations",
         "ordering.tests.OrderingTests.test_order_by_grandparent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_parent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
+        # 'Col' object has no attribute 'utcoffset'
+        "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
+        "expressions.tests.IterableLookupInnerExpressionsTests.test_in_lookup_allows_F_expressions_and_expressions_for_datetimes",
+        # DatabaseOperations.convert_decimalfield_value() crash:
+        # 'int' object has no attribute 'to_decimal'.
+        "expressions.tests.ExpressionsNumericTests.test_filter_decimal_expression",
+        "expressions.tests.ValueTests.test_output_field_decimalfield",
+        # pymongo.errors.OperationFailure:  $multiply only supports numeric
+        # types, not date. (should be wrapped in DatabaseError).
+        "expressions.tests.FTimeDeltaTests.test_invalid_operator",
+        # InvalidDocument: cannot encode object of type: <class 'datetime.time'>
+        "expressions.tests.FTimeDeltaTests.test_time_subtraction",
+        # crash in DatabaseOperations.convert_durationfield_value():
+        # unsupported type for timedelta milliseconds component: Decimal128
+        "expressions.tests.FTimeDeltaTests.test_durationfield_multiply_divide",
+        # 'Ref' object has no attribute 'as_mql'.
+        "expressions.tests.BasicExpressionsTests.test_aggregate_subquery_annotation",
+        # AttributeError: pattern_ops
+        "expressions.tests.BasicExpressionsTests.test_annotation_with_nested_outerref",
+        "expressions.tests.BasicExpressionsTests.test_nested_outerref_with_function",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -114,6 +139,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Insert expressions aren't supported.": {
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_now",
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_expressions",
+            "expressions.tests.BasicExpressionsTests.test_new_object_create",
+            "expressions.tests.BasicExpressionsTests.test_new_object_save",
+            "expressions.tests.BasicExpressionsTests.test_object_create_with_aggregate",
+            "expressions.tests.BasicExpressionsTests.test_object_create_with_f_expression_in_subquery",
             # PI()
             "db_functions.math.test_round.RoundTests.test_decimal_with_precision",
             "db_functions.math.test_round.RoundTests.test_float_with_precision",
@@ -138,6 +167,21 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.text.test_replace.ReplaceTests.test_update",
             "db_functions.text.test_substr.SubstrTests.test_basic",
             "db_functions.text.test_upper.UpperTests.test_basic",
+            "expressions.tests.BasicExpressionsTests.test_arithmetic",
+            "expressions.tests.BasicExpressionsTests.test_filter_with_join",
+            "expressions.tests.BasicExpressionsTests.test_object_update",
+            "expressions.tests.BasicExpressionsTests.test_object_update_unsaved_objects",
+            "expressions.tests.BasicExpressionsTests.test_order_of_operations",
+            "expressions.tests.BasicExpressionsTests.test_parenthesis_priority",
+            "expressions.tests.BasicExpressionsTests.test_update",
+            "expressions.tests.BasicExpressionsTests.test_update_with_fk",
+            "expressions.tests.BasicExpressionsTests.test_update_with_none",
+            "expressions.tests.ExpressionsNumericTests.test_decimal_expression",
+            "expressions.tests.ExpressionsNumericTests.test_increment_value",
+            "expressions.tests.FTimeDeltaTests.test_delta_update",
+            "expressions.tests.FTimeDeltaTests.test_negative_timedelta_update",
+            "expressions.tests.ValueTests.test_update_TimeField_using_Value",
+            "expressions.tests.ValueTests.test_update_UUIDField_using_Value",
             "expressions_case.tests.CaseDocumentationExamples.test_conditional_update_example",
             "expressions_case.tests.CaseExpressionTests.test_update",
             "expressions_case.tests.CaseExpressionTests.test_update_big_integer",
@@ -215,6 +259,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_subquery_and_aggregate_values_chaining",
             "annotations.tests.NonAggregateAnnotationTestCase.test_filter_agg_with_double_f",
             "annotations.tests.NonAggregateAnnotationTestCase.test_values_with_pk_annotation",
+            "expressions.test_queryset_values.ValuesExpressionsTests.test_chained_values_with_expression",
+            "expressions.test_queryset_values.ValuesExpressionsTests.test_values_expression_group_by",
+            "expressions.tests.BasicExpressionsTests.test_annotate_values_aggregate",
             "expressions_case.tests.CaseExpressionTests.test_aggregate",
             "expressions_case.tests.CaseExpressionTests.test_aggregate_with_expression_as_condition",
             "expressions_case.tests.CaseExpressionTests.test_aggregate_with_expression_as_value",
@@ -251,6 +298,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "defer_regress.tests.DeferRegressionTest.test_basic",
             "defer_regress.tests.DeferRegressionTest.test_defer_annotate_select_related",
             "defer_regress.tests.DeferRegressionTest.test_ticket_16409",
+            "expressions.tests.FieldTransformTests.test_month_aggregation",
             "expressions_case.tests.CaseDocumentationExamples.test_conditional_aggregation_example",
             # Func not implemented.
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions",
@@ -269,6 +317,17 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "Exists is not supported on MongoDB.": {
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_none_query",
+            "expressions.tests.BasicExpressionsTests.test_annotation_with_deeply_nested_outerref",
+            "expressions.tests.BasicExpressionsTests.test_boolean_expression_combined",
+            "expressions.tests.BasicExpressionsTests.test_boolean_expression_combined_with_empty_Q",
+            "expressions.tests.BasicExpressionsTests.test_boolean_expression_in_Q",
+            "expressions.tests.BasicExpressionsTests.test_case_in_filter_if_boolean_output_field",
+            "expressions.tests.BasicExpressionsTests.test_exists_in_filter",
+            "expressions.tests.BasicExpressionsTests.test_subquery",
+            "expressions.tests.ExistsTests.test_filter_by_empty_exists",
+            "expressions.tests.ExistsTests.test_negated_empty_exists",
+            "expressions.tests.ExistsTests.test_optimizations",
+            "expressions.tests.ExistsTests.test_select_negated_empty_exists",
             "lookup.tests.LookupTests.test_exact_exists",
             "lookup.tests.LookupTests.test_nested_outerref_lhs",
             "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
@@ -279,6 +338,21 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_outerref",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_subquery_with_parameters",
+            "expressions.tests.BasicExpressionsTests.test_annotation_with_outerref",
+            "expressions.tests.BasicExpressionsTests.test_annotations_within_subquery",
+            "expressions.tests.BasicExpressionsTests.test_in_subquery",
+            "expressions.tests.BasicExpressionsTests.test_nested_subquery",
+            "expressions.tests.BasicExpressionsTests.test_nested_subquery_join_outer_ref",
+            "expressions.tests.BasicExpressionsTests.test_nested_subquery_outer_ref_2",
+            "expressions.tests.BasicExpressionsTests.test_nested_subquery_outer_ref_with_autofield",
+            "expressions.tests.BasicExpressionsTests.test_outerref_mixed_case_table_name",
+            "expressions.tests.BasicExpressionsTests.test_outerref_with_operator",
+            "expressions.tests.BasicExpressionsTests.test_subquery_filter_by_aggregate",
+            "expressions.tests.BasicExpressionsTests.test_subquery_filter_by_lazy",
+            "expressions.tests.BasicExpressionsTests.test_subquery_group_by_outerref_in_filter",
+            "expressions.tests.BasicExpressionsTests.test_subquery_in_filter",
+            "expressions.tests.BasicExpressionsTests.test_subquery_references_joined_table_twice",
+            "expressions.tests.BasicExpressionsTests.test_uuid_pk_subquery",
             "lookup.tests.LookupQueryingTests.test_filter_subquery_lhs",
             "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_on_subquery",
             "model_fields.test_jsonfield.TestQuerying.test_obj_subquery_lookup",
@@ -288,6 +362,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_related_in_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_expression_annotation",
             "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
+            "expressions.tests.FTimeDeltaTests.test_date_subquery_subtraction",
+            "expressions.tests.FTimeDeltaTests.test_datetime_subquery_subtraction",
+            "expressions.tests.FTimeDeltaTests.test_time_subquery_subtraction",
             "expressions_case.tests.CaseExpressionTests.test_in_subquery",
             "lookup.tests.LookupTests.test_exact_query_rhs_with_selected_columns",
             "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one",
@@ -342,6 +419,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "Test executes raw SQL.": {
             "annotations.tests.NonAggregateAnnotationTestCase.test_raw_sql_with_inherited_field",
+            "expressions.tests.BasicExpressionsTests.test_annotate_values_filter",
+            "expressions.tests.BasicExpressionsTests.test_filtering_on_rawsql_that_is_boolean",
             "model_fields.test_jsonfield.TestQuerying.test_key_sql_injection_escape",
             "model_fields.test_jsonfield.TestQuerying.test_key_transform_raw_expression",
             "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_raw_expression",
@@ -381,6 +460,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_date_func",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_date_none",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_lookup_name_sql_injection",
+            "expressions.tests.FieldTransformTests.test_multiple_transforms_in_values",
             "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
             "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",
             "timezones.tests.NewDatabaseTests.test_query_convert_timezones",
