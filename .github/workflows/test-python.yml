@@ -76,6 +76,7 @@ jobs:
           datetimes
           db_functions
           empty
+          expressions.tests.NegatedExpressionTests
           defer
           defer_regress
           from_db_value

@@ -197,6 +197,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.AliasTests.test_order_by_alias",
             "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_aggregate",
             "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_annotation",
+            "expressions.tests.NegatedExpressionTests.test_filter",
             # annotate().filter().count() gives incorrect results.
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_exact_lookup",
         },
