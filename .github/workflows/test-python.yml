@@ -77,6 +77,7 @@ jobs:
           db_functions
           empty
           expressions.tests.ExpressionOperatorTests
+          expressions.tests.FieldTransformTests.test_transform_in_values
           expressions.tests.NegatedExpressionTests
           expressions_case
           defer

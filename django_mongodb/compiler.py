@@ -153,9 +153,19 @@ class SQLCompiler(compiler.SQLCompiler):
         columns = (
             self.get_default_columns(select_mask) if self.query.default_cols else self.query.select
         )
-        return tuple((column.target.column, column) for column in columns) + tuple(
-            self.query.annotation_select.items()
-        )
+        annotation_idx = 1
+        result = []
+        for column in columns:
+            if hasattr(column, "target"):
+                # column is a Col.
+                target = column.target.column
+            else:
+                # column is a Transform in values()/values_list() that needs a
+                # name for $proj.
+                target = f"__annotation{annotation_idx}"
+                annotation_idx += 1
+            result.append((target, column))
+        return tuple(result) + tuple(self.query.annotation_select.items())
 
     def _get_ordering(self):
         """
