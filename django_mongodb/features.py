@@ -43,8 +43,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one_offset",
         # Regex lookup doesn't work on non-string fields.
         "lookup.tests.LookupTests.test_regex_non_string",
-        # Substr not implemented.
-        "lookup.tests.LookupTests.test_pattern_lookups_with_substr",
         # Querying ObjectID with string doesn't work.
         "lookup.tests.LookupTests.test_lookup_int_as_str",
         # MongoDB gives the wrong result of log(number, base) when base is a

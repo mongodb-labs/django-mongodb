@@ -1,5 +1,3 @@
-import re
-
 from django.core.exceptions import FullResultSet
 from django.db.models.expressions import Value
 
@@ -27,25 +25,19 @@ def process_lhs(node, compiler, connection):
 def process_rhs(node, compiler, connection):
     rhs = node.rhs
     if hasattr(rhs, "as_mql"):
-        return rhs.as_mql(compiler, connection)
-    _, value = node.process_rhs(compiler, connection)
-    lookup_name = node.lookup_name
-    # Undo Lookup.get_db_prep_lookup() putting params in a list.
-    if lookup_name not in ("in", "range"):
-        value = value[0]
-    # Remove percent signs added by PatternLookup.process_rhs() for LIKE
-    # queries.
-    if lookup_name in ("startswith", "istartswith"):
-        value = value[:-1]
-    elif lookup_name in ("endswith", "iendswith"):
-        value = value[1:]
-    elif lookup_name in ("contains", "icontains"):
-        value = value[1:-1]
-
+        value = rhs.as_mql(compiler, connection)
+    else:
+        _, value = node.process_rhs(compiler, connection)
+        lookup_name = node.lookup_name
+        # Undo Lookup.get_db_prep_lookup() putting params in a list.
+        if lookup_name not in ("in", "range"):
+            value = value[0]
+    if hasattr(node, "prep_lookup_value_mongo"):
+        value = node.prep_lookup_value_mongo(value)
     return connection.ops.prep_lookup_value(value, node.lhs.output_field, node.lookup_name)
 
 
-def regex_match(field, value, regex, *re_args, **re_kwargs):
-    regex = re.compile(regex % re.escape(value), *re_args, **re_kwargs)
-    options = "i" if regex.flags & re.I else ""
-    return {"$regexMatch": {"input": field, "regex": regex.pattern, "options": options}}
+def regex_match(field, regex_vals, insensitive=False):
+    regex = {"$concat": regex_vals} if isinstance(regex_vals, tuple) else regex_vals
+    options = "i" if insensitive else ""
+    return {"$regexMatch": {"input": field, "regex": regex, "options": options}}

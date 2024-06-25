@@ -76,7 +76,11 @@ jobs:
           datetimes
           db_functions
           empty
+          expressions.tests.BasicExpressionsTests.test_ticket_11722_iexact_lookup
+          expressions.tests.BasicExpressionsTests.test_ticket_16731_startswith_lookup
           expressions.tests.ExpressionOperatorTests
+          expressions.tests.ExpressionsTests.test_insensitive_patterns_escape
+          expressions.tests.ExpressionsTests.test_patterns_escape
           expressions.tests.FieldTransformTests.test_transform_in_values
           expressions.tests.NegatedExpressionTests
           expressions_case

@@ -1,5 +1,3 @@
-import re
-
 from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.signals import connection_created
@@ -82,15 +80,15 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "in": lambda a, b: {"$in": [a, b]},
         "isnull": lambda a, b: {("$eq" if b else "$ne"): [a, None]},
         "range": lambda a, b: {"$and": [{"$gte": [a, b[0]]}, {"$lte": [a, b[1]]}]},
-        "iexact": lambda a, b: regex_match(a, b, "^%s$", re.IGNORECASE),
-        "startswith": lambda a, b: regex_match(a, b, "^%s"),
-        "istartswith": lambda a, b: regex_match(a, b, "^%s", re.IGNORECASE),
-        "endswith": lambda a, b: regex_match(a, b, "%s$"),
-        "iendswith": lambda a, b: regex_match(a, b, "%s$", re.IGNORECASE),
-        "contains": lambda a, b: regex_match(a, b, "%s"),
-        "icontains": lambda a, b: regex_match(a, b, "%s", re.IGNORECASE),
-        "regex": lambda a, b: regex_match(a, "", f"{b}%s"),
-        "iregex": lambda a, b: regex_match(a, "", f"{b}%s", re.IGNORECASE),
+        "iexact": lambda a, b: regex_match(a, ("^", b, {"$literal": "$"}), insensitive=True),
+        "startswith": lambda a, b: regex_match(a, ("^", b)),
+        "istartswith": lambda a, b: regex_match(a, ("^", b), insensitive=True),
+        "endswith": lambda a, b: regex_match(a, (b, {"$literal": "$"})),
+        "iendswith": lambda a, b: regex_match(a, (b, {"$literal": "$"}), insensitive=True),
+        "contains": lambda a, b: regex_match(a, b),
+        "icontains": lambda a, b: regex_match(a, b, insensitive=True),
+        "regex": lambda a, b: regex_match(a, b),
+        "iregex": lambda a, b: regex_match(a, b, insensitive=True),
     }
 
     display_name = "MongoDB"
