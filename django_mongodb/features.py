@@ -255,8 +255,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # Func not implemented.
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions",
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions_can_ref_other_functions",
-            # BaseDatabaseOperations may require a format_for_duration_arithmetic().
-            "annotations.tests.NonAggregateAnnotationTestCase.test_mixed_type_annotation_date_interval",
             # FieldDoesNotExist with ordering.
             "annotations.tests.AliasTests.test_order_by_alias",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
