@@ -101,6 +101,11 @@ class DatabaseOperations(BaseDatabaseOperations):
             value = value.to_decimal()
         return value
 
+    def convert_durationfield_value(self, value, expression, connection):
+        if value is not None:
+            value = datetime.timedelta(milliseconds=value)
+        return value
+
     def convert_jsonfield_value(self, value, expression, connection):
         """
         Convert dict data to a string so that JSONField.from_db_value() can

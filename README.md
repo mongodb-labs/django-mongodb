@@ -118,7 +118,8 @@ Migrations for 'admin':
 
 - Queries with joins aren't supported.
 
-- `DateTimeField` doesn't support microsecond precision.
+- `DateTimeField` doesn't support microsecond precision, and correspondingly,
+  `DurationField` stores milliseconds rather than microseconds.
 
 - The following database functions aren't supported:
     - `Chr`

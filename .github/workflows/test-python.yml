@@ -82,6 +82,7 @@ jobs:
           expressions.tests.ExpressionsTests.test_insensitive_patterns_escape
           expressions.tests.ExpressionsTests.test_patterns_escape
           expressions.tests.FieldTransformTests.test_transform_in_values
+          expressions.tests.FTimeDeltaTests.test_date_minus_duration
           expressions.tests.NegatedExpressionTests
           expressions_case
           defer
