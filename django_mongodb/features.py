@@ -76,10 +76,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "model_fields.test_jsonfield.TestQuerying.test_order_grouping_custom_decoder",
         "model_fields.test_jsonfield.TestQuerying.test_ordering_by_transform",
         "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_key_transform",
-        # DatabaseOperations.convert_decimalfield_value() crash:
-        # 'int' object has no attribute 'to_decimal'.
-        "expressions.tests.ExpressionsNumericTests.test_filter_decimal_expression",
-        "expressions.tests.ValueTests.test_output_field_decimalfield",
         # pymongo.errors.OperationFailure:  $multiply only supports numeric
         # types, not date. (should be wrapped in DatabaseError).
         "expressions.tests.FTimeDeltaTests.test_invalid_operator",
