@@ -2,6 +2,7 @@ import datetime
 import json
 import re
 import uuid
+from decimal import Decimal
 
 from bson.decimal128 import Decimal128
 from django.conf import settings
@@ -98,7 +99,12 @@ class DatabaseOperations(BaseDatabaseOperations):
     def convert_decimalfield_value(self, value, expression, connection):
         if value is not None:
             # from Decimal128 to decimal.Decimal()
-            value = value.to_decimal()
+            try:
+                value = value.to_decimal()
+            except AttributeError:
+                # `value` could be an integer in the case of an annotation
+                # like ExpressionWrapper(Value(1), output_field=DecimalField().
+                return Decimal(value)
         return value
 
     def convert_durationfield_value(self, value, expression, connection):

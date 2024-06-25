@@ -99,10 +99,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # 'Col' object has no attribute 'utcoffset'
         "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
         "expressions.tests.IterableLookupInnerExpressionsTests.test_in_lookup_allows_F_expressions_and_expressions_for_datetimes",
-        # DatabaseOperations.convert_decimalfield_value() crash:
-        # 'int' object has no attribute 'to_decimal'.
-        "expressions.tests.ExpressionsNumericTests.test_filter_decimal_expression",
-        "expressions.tests.ValueTests.test_output_field_decimalfield",
         # pymongo.errors.OperationFailure:  $multiply only supports numeric
         # types, not date. (should be wrapped in DatabaseError).
         "expressions.tests.FTimeDeltaTests.test_invalid_operator",
