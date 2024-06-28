@@ -40,8 +40,13 @@ class MongoQuery:
         self.columns = columns
         self._negated = False
         self.ordering = []
+        self.collection_name = self.compiler.collection_name
         self.collection = self.compiler.get_collection()
         self.mongo_query = getattr(compiler.query, "raw_query", {})
+        # maybe I have to create a new object or named tuple.
+        # it will save lookups, some filters (in case of inner) and project to rename field
+        # don't know if the rename is needed
+        self.mongo_lookups = None
 
     def __repr__(self):
         return f"<MongoQuery: {self.mongo_query!r} ORDER {self.ordering!r}>"
@@ -102,11 +107,22 @@ class MongoQuery:
                 # If name != column, then this is an annotatation referencing
                 # another column.
                 fields[name] = 1 if name == column else f"${column}"
+
+        # add the subquery tables. if fields is defined
+        related_fields = {}
+        if fields:
+            for alias in self.query.alias_map:
+                if self.query.alias_refcount[alias] > 0 and self.collection_name != alias:
+                    related_fields[alias] = 1
+
         pipeline = []
+        if self.mongo_lookups:
+            lookups = self.mongo_lookups
+            pipeline.extend(lookups)
         if self.mongo_query:
             pipeline.append({"$match": self.mongo_query})
         if fields:
-            pipeline.append({"$project": fields})
+            pipeline.append({"$project": {**fields, **related_fields}})
         if self.ordering:
             pipeline.append({"$sort": dict(self.ordering)})
         if self.query.low_mark > 0:

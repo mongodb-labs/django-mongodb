@@ -44,16 +44,33 @@ class SQLCompiler(compiler.SQLCompiler):
         """
         columns = self.get_columns()
 
+        related_columns = []
         if results is None:
             # QuerySet.values() or values_list()
             try:
                 results = self.build_query(columns).fetch()
             except EmptyResultSet:
                 results = []
+        else:
+            index = len(columns)
+            while index < self.col_count:
+                foreign_columns = []
+                foreign_relation = self.select[index][0].alias
+                while index < self.col_count and foreign_relation == self.select[index][0].alias:
+                    foreign_columns.append(self.select[index][0])
+                    index += 1
+                related_columns.append(
+                    (
+                        foreign_relation,
+                        [(column.target.column, column) for column in foreign_columns],
+                    )
+                )
 
         converters = self.get_converters(columns)
         for entity in results:
-            yield self._make_result(entity, columns, converters, tuple_expected=tuple_expected)
+            yield self._make_result(
+                entity, columns, related_columns, converters, tuple_expected=tuple_expected
+            )
 
     def has_results(self):
         return bool(self.get_count(check_exists=True))
@@ -72,13 +89,22 @@ class SQLCompiler(compiler.SQLCompiler):
                 converters[name] = backend_converters + field_converters
         return converters
 
-    def _make_result(self, entity, columns, converters, tuple_expected=False):
+    def _make_result(self, entity, columns, related_columns, converters, tuple_expected=False):
         """
         Decode values for the given fields from the database entity.
 
         The entity is assumed to be a dict using field database column
         names as keys.
         """
+        result = self._project_result(entity, columns, converters, tuple_expected)
+        # Related columns
+        for relation, columns in related_columns:
+            result += self._project_result(entity[relation], columns, converters, tuple_expected)
+        if tuple_expected:
+            result = tuple(result)
+        return result
+
+    def _project_result(self, entity, columns, converters, tuple_expected=False):
         result = []
         for name, col in columns:
             field = col.field
@@ -90,8 +116,6 @@ class SQLCompiler(compiler.SQLCompiler):
                 for converter in converters.get(name, ()):
                     value = converter(value, col, self.connection)
             result.append(value)
-        if tuple_expected:
-            result = tuple(result)
         return result
 
     def check_query(self):
@@ -111,9 +135,11 @@ class SQLCompiler(compiler.SQLCompiler):
         if self.query.extra:
             raise NotSupportedError("QuerySet.extra() is not supported on MongoDB.")
         if self.query.select_related:
-            raise NotSupportedError("QuerySet.select_related() is not supported on MongoDB.")
+            pass
+            # raise NotSupportedError("QuerySet.select_related() is not supported on MongoDB.")
         if len([a for a in self.query.alias_map if self.query.alias_refcount[a]]) > 1:
-            raise NotSupportedError("Queries with multiple tables are not supported on MongoDB.")
+            pass
+            # raise NotSupportedError("Queries with multiple tables are not supported on MongoDB.")
         if any(
             isinstance(a, Aggregate) and not isinstance(a, Count)
             for a in self.query.annotations.values()
@@ -135,8 +161,8 @@ class SQLCompiler(compiler.SQLCompiler):
     def build_query(self, columns=None):
         """Check if the query is supported and prepare a MongoQuery."""
         self.check_query()
-        self.setup_query()
         query = self.query_class(self, columns)
+        query.mongo_lookups = self.get_lookup_clauses()
         try:
             query.mongo_query = {"$expr": self.query.where.as_mql(self, self.connection)}
         except FullResultSet:
@@ -202,8 +228,36 @@ class SQLCompiler(compiler.SQLCompiler):
             field_ordering.append((opts.get_field(name), ascending))
         return field_ordering
 
+    @property
+    def collection_name(self):
+        return self.query.get_meta().db_table
+
     def get_collection(self):
-        return self.connection.get_collection(self.query.get_meta().db_table)
+        return self.connection.get_collection(self.collection_name)
+
+    def get_lookup_clauses(self):
+        result = []
+        for alias in tuple(self.query.alias_map):
+            if not self.query.alias_refcount[alias] or self.collection_name == alias:
+                continue
+
+            from_clause = self.query.alias_map[alias]
+            clause_mql = from_clause.as_mql(self, self.connection)
+            result += clause_mql
+
+        """
+        for t in self.query.extra_tables:
+            alias, _ = self.query.table_alias(t)
+            # Only add the alias if it's not already present (the table_alias()
+            # call increments the refcount, so an alias refcount of one means
+            # this is the only reference).
+            if (
+                alias not in self.query.alias_map
+                or self.query.alias_refcount[alias] == 1
+            ):
+                result.append(", %s" % self.quote_name_unless_alias(alias))
+        """
+        return result
 
 
 class SQLInsertCompiler(SQLCompiler):

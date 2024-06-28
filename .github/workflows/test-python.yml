@@ -91,6 +91,7 @@ jobs:
           model_fields
           or_lookups
           queries.tests.Ticket12807Tests.test_ticket_12807
+          select_related
           sessions_tests
           timezones
           update

@@ -288,6 +288,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "defer.tests.DeferTests.test_defer_extra",
             "lookup.tests.LookupTests.test_values",
             "lookup.tests.LookupTests.test_values_list",
+            "select_related.tests.SelectRelatedTests.test_select_related_with_extra",
         },
         "Queries with multiple tables are not supported.": {
             "annotations.tests.AliasTests.test_alias_default_alias_expression",

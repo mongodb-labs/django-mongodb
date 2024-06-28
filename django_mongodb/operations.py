@@ -7,7 +7,7 @@ from bson.decimal128 import Decimal128
 from django.conf import settings
 from django.db import DataError
 from django.db.backends.base.operations import BaseDatabaseOperations
-from django.db.models.expressions import Combinable
+from django.db.models.expressions import Col, Combinable
 from django.utils import timezone
 from django.utils.regex_helper import _lazy_re_compile
 
@@ -153,6 +153,12 @@ class DatabaseOperations(BaseDatabaseOperations):
             options = collection.options()
             if not options.get("capped", False):
                 collection.drop()
+
+    def prepare_join_on_clause(self, lhs_table, lhs_field, rhs_table, rhs_field):
+        lhs_expr = Col(lhs_table, lhs_field)
+        rhs_expr = Col(rhs_table, rhs_field)
+
+        return lhs_expr, rhs_expr
 
     def prep_lookup_value(self, value, field, lookup):
         """
