@@ -155,13 +155,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_autofield.BigAutoFieldTests",
             "model_fields.test_autofield.SmallAutoFieldTests",
         },
-        "QuerySet.select_related() not supported.": {
-            "defer_regress.tests.DeferRegressionTest.test_basic",
-            "defer_regress.tests.DeferRegressionTest.test_common_model_different_mask",
-            "defer_regress.tests.DeferRegressionTest.test_defer_annotate_select_related",
-            "defer_regress.tests.DeferRegressionTest.test_reverse_one_to_one_relations",
-            "defer_regress.tests.DeferRegressionTest.test_ticket_23270",
-        },
         "MongoDB does not enforce UNIQUE constraints.": {
             "auth_tests.test_basic.BasicTestCase.test_unicode_username",
             "auth_tests.test_migrations.ProxyModelWithSameAppLabelTests.test_migrate_with_existing_target_permission",
@@ -213,6 +206,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter_false",
             "lookup.tests.LookupQueryingTests.test_combined_lookups",
             # Subquery not supported.
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_related_in_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
             "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_outerref",
@@ -228,6 +222,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_grouping_by_q_expression_annotation",
             "annotations.tests.NonAggregateAnnotationTestCase.test_q_expression_annotation_with_aggregation",
             "expressions_case.tests.CaseDocumentationExamples.test_conditional_aggregation_example",
+            "defer_regress.tests.DeferRegressionTest.test_basic",
+            "defer_regress.tests.DeferRegressionTest.test_defer_annotate_select_related",
             # Func not implemented.
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions",
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions_can_ref_other_functions",
@@ -282,7 +278,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Queries with multiple tables are not supported.": {
             "annotations.tests.AliasTests.test_alias_default_alias_expression",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_aggregate_with_m2o",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_related_in_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_filter_with_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_reverse_m2m",
             "annotations.tests.NonAggregateAnnotationTestCase.test_mti_annotations",
