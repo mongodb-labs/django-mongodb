@@ -109,7 +109,12 @@ class DatabaseOperations(BaseDatabaseOperations):
 
     def convert_durationfield_value(self, value, expression, connection):
         if value is not None:
-            value = datetime.timedelta(milliseconds=value)
+            try:
+                value = datetime.timedelta(milliseconds=value)
+            except TypeError:
+                # `value` could be Decimal128 if doing a computation with
+                # DurationField and Decimal128.
+                value = datetime.timedelta(milliseconds=int(str(value)))
         return value
 
     def convert_jsonfield_value(self, value, expression, connection):
