@@ -51,17 +51,17 @@ def join(self, compiler, connection):
     if self.join_type != INNER:
         lookups_pipeline.append(
             {
-                "$project": {
+                "$set": {
                     self.table_alias: {
                         "$cond": {
                             "if": {
                                 "$or": [
-                                    {"$eq": [{"$type": "$arrayField"}, "missing"]},
-                                    {"$eq": [{"$size": "$arrayField"}, 0]},
+                                    {"$eq": [{"$type": f"${self.table_alias}"}, "missing"]},
+                                    {"$eq": [{"$size": f"${self.table_alias}"}, 0]},
                                 ]
                             },
-                            "then": [None],
-                            "else": "$arrayField",
+                            "then": [{}],
+                            "else": f"${self.table_alias}",
                         }
                     }
                 }
