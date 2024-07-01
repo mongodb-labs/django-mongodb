@@ -83,6 +83,9 @@ def value(self, compiler, connection):  # noqa: ARG001
     elif isinstance(value, datetime.date):
         # Turn dates into datetimes since BSON doesn't support dates.
         value = datetime.datetime.combine(value, datetime.datetime.min.time())
+    elif isinstance(value, datetime.time):
+        # Turn times into datetimes since BSON doesn't support times.
+        value = datetime.datetime.combine(datetime.datetime.min.date(), value)
     elif isinstance(value, datetime.timedelta):
         # DurationField stores milliseconds rather than microseconds.
         value /= datetime.timedelta(milliseconds=1)

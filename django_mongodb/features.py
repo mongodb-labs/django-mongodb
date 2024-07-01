@@ -102,8 +102,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # pymongo.errors.OperationFailure:  $multiply only supports numeric
         # types, not date. (should be wrapped in DatabaseError).
         "expressions.tests.FTimeDeltaTests.test_invalid_operator",
-        # InvalidDocument: cannot encode object of type: <class 'datetime.time'>
-        "expressions.tests.FTimeDeltaTests.test_time_subtraction",
         # crash in DatabaseOperations.convert_durationfield_value():
         # unsupported type for timedelta milliseconds component: Decimal128
         "expressions.tests.FTimeDeltaTests.test_durationfield_multiply_divide",
