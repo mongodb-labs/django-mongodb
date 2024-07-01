@@ -156,6 +156,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_autofield.SmallAutoFieldTests",
         },
         "QuerySet.select_related() not supported.": {
+            "defer_regress.tests.DeferRegressionTest.test_basic",
             "defer_regress.tests.DeferRegressionTest.test_common_model_different_mask",
             "defer_regress.tests.DeferRegressionTest.test_defer_annotate_select_related",
             "defer_regress.tests.DeferRegressionTest.test_reverse_one_to_one_relations",
