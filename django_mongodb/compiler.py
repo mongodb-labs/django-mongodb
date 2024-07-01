@@ -134,12 +134,6 @@ class SQLCompiler(compiler.SQLCompiler):
             raise NotSupportedError("QuerySet.distinct() is not supported on MongoDB.")
         if self.query.extra:
             raise NotSupportedError("QuerySet.extra() is not supported on MongoDB.")
-        if self.query.select_related:
-            pass
-            # raise NotSupportedError("QuerySet.select_related() is not supported on MongoDB.")
-        if len([a for a in self.query.alias_map if self.query.alias_refcount[a]]) > 1:
-            pass
-            # raise NotSupportedError("Queries with multiple tables are not supported on MongoDB.")
         if any(
             isinstance(a, Aggregate) and not isinstance(a, Count)
             for a in self.query.annotations.values()
