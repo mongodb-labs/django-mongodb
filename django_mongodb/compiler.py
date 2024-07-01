@@ -44,33 +44,16 @@ class SQLCompiler(compiler.SQLCompiler):
         """
         columns = self.get_columns()
 
-        related_columns = []
         if results is None:
             # QuerySet.values() or values_list()
             try:
                 results = self.build_query(columns).fetch()
             except EmptyResultSet:
                 results = []
-        else:
-            index = len(columns)
-            while index < self.col_count:
-                foreign_columns = []
-                foreign_relation = self.select[index][0].alias
-                while index < self.col_count and foreign_relation == self.select[index][0].alias:
-                    foreign_columns.append(self.select[index][0])
-                    index += 1
-                related_columns.append(
-                    (
-                        foreign_relation,
-                        [(column.target.column, column) for column in foreign_columns],
-                    )
-                )
 
         converters = self.get_converters(columns)
         for entity in results:
-            yield self._make_result(
-                entity, columns, related_columns, converters, tuple_expected=tuple_expected
-            )
+            yield self._make_result(entity, columns, converters, tuple_expected=tuple_expected)
 
     def has_results(self):
         return bool(self.get_count(check_exists=True))
@@ -89,7 +72,7 @@ class SQLCompiler(compiler.SQLCompiler):
                 converters[name] = backend_converters + field_converters
         return converters
 
-    def _make_result(self, entity, columns, related_columns, converters, tuple_expected=False):
+    def _make_result(self, entity, columns, converters, tuple_expected=False):
         """
         Decode values for the given fields from the database entity.
 
@@ -97,9 +80,6 @@ class SQLCompiler(compiler.SQLCompiler):
         names as keys.
         """
         result = self._apply_converters(entity, columns, converters)
-        # Related columns.
-        for relation, columns in related_columns:
-            result += self._apply_converters(entity[relation], columns, converters)
         if tuple_expected:
             result = tuple(result)
         return result
@@ -108,7 +88,12 @@ class SQLCompiler(compiler.SQLCompiler):
         result = []
         for name, col in columns:
             field = col.field
-            value = entity.get(name, NOT_PROVIDED)
+            obj = (
+                entity.get(col.alias, {})
+                if hasattr(col, "alias") and col.alias != self.collection_name
+                else entity
+            )
+            value = obj.get(name, NOT_PROVIDED)
             if value is NOT_PROVIDED:
                 value = field.get_default()
             elif converters:
@@ -173,9 +158,17 @@ class SQLCompiler(compiler.SQLCompiler):
         columns = (
             self.get_default_columns(select_mask) if self.query.default_cols else self.query.select
         )
+
+        related_columns = []
+        if self.query.select_related:
+            self.get_related_selections(related_columns, select_mask)
+            if related_columns:
+                related_columns, _ = zip(*related_columns, strict=True)
+
         annotation_idx = 1
-        result = []
-        for column in columns:
+
+        def project_field(column):
+            nonlocal annotation_idx
             if hasattr(column, "target"):
                 # column is a Col.
                 target = column.target.column
@@ -184,8 +177,13 @@ class SQLCompiler(compiler.SQLCompiler):
                 # name for $proj.
                 target = f"__annotation{annotation_idx}"
                 annotation_idx += 1
-            result.append((target, column))
-        return tuple(result) + tuple(self.query.annotation_select.items())
+            return target, column
+
+        return (
+            tuple(map(project_field, columns))
+            + tuple(self.query.annotation_select.items())
+            + tuple(map(project_field, related_columns))
+        )
 
     def _get_ordering(self):
         """
