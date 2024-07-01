@@ -96,15 +96,15 @@ class SQLCompiler(compiler.SQLCompiler):
         The entity is assumed to be a dict using field database column
         names as keys.
         """
-        result = self._project_result(entity, columns, converters, tuple_expected)
-        # Related columns
+        result = self._apply_converters(entity, columns, converters)
+        # Related columns.
         for relation, columns in related_columns:
-            result += self._project_result(entity[relation], columns, converters, tuple_expected)
+            result += self._apply_converters(entity[relation], columns, converters)
         if tuple_expected:
             result = tuple(result)
         return result
 
-    def _project_result(self, entity, columns, converters, tuple_expected=False):
+    def _apply_converters(self, entity, columns, converters):
         result = []
         for name, col in columns:
             field = col.field
@@ -245,18 +245,6 @@ class SQLCompiler(compiler.SQLCompiler):
             clause_mql = from_clause.as_mql(self, self.connection)
             result += clause_mql
 
-        """
-        for t in self.query.extra_tables:
-            alias, _ = self.query.table_alias(t)
-            # Only add the alias if it's not already present (the table_alias()
-            # call increments the refcount, so an alias refcount of one means
-            # this is the only reference).
-            if (
-                alias not in self.query.alias_map
-                or self.query.alias_refcount[alias] == 1
-            ):
-                result.append(", %s" % self.quote_name_unless_alias(alias))
-        """
         return result
 
 

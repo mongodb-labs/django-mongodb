@@ -23,7 +23,6 @@ def join(self, compiler, connection):
         lhs_fields.append(lhs_mql)
         rhs_fields.append(rhs_mql)
 
-    # temp_table_name = f"{self.table_alias}__array"
     parent_template = "parent__field__"
     lookups_pipeline = [
         {

@@ -108,12 +108,11 @@ class MongoQuery:
                 # another column.
                 fields[name] = 1 if name == column else f"${column}"
 
-        # add the subquery tables. if fields is defined
-        related_fields = {}
+        # Add the subquery results if fields is defined.
         if fields:
             for alias in self.query.alias_map:
-                if self.query.alias_refcount[alias] > 0 and self.collection_name != alias:
-                    related_fields[alias] = 1
+                if self.query.alias_refcount[alias] and self.collection_name != alias:
+                    fields[alias] = 1
 
         pipeline = []
         if self.mongo_lookups:
@@ -122,7 +121,7 @@ class MongoQuery:
         if self.mongo_query:
             pipeline.append({"$match": self.mongo_query})
         if fields:
-            pipeline.append({"$project": {**fields, **related_fields}})
+            pipeline.append({"$project": fields})
         if self.ordering:
             pipeline.append({"$sort": dict(self.ordering)})
         if self.query.low_mark > 0:
