@@ -36,6 +36,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "db_functions.text.test_strindex.StrIndexTests.test_order_by",
         "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_explicit",
         "lookup.tests.LookupQueryingTests.test_lookup_in_order_by",
+        "ordering.tests.OrderingTests.test_default_ordering_by_f_expression",
+        "ordering.tests.OrderingTests.test_default_ordering_does_not_affect_group_by",
+        "ordering.tests.OrderingTests.test_order_by_expression_ref",
+        "ordering.tests.OrderingTests.test_order_by_f_expression",
+        "ordering.tests.OrderingTests.test_order_by_f_expression_duplicates",
+        "ordering.tests.OrderingTests.test_reverse_ordering_pure",
         # annotate() after values() doesn't raise NotSupportedError.
         "lookup.tests.LookupTests.test_exact_query_rhs_with_selected_columns",
         # tuple index out of range in process_rhs()
@@ -172,6 +178,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "defer_regress.tests.DeferRegressionTest.test_proxy_model_defer_with_select_related",
             "defer_regress.tests.DeferRegressionTest.test_reverse_one_to_one_relations",
             "defer_regress.tests.DeferRegressionTest.test_ticket_23270",
+            "ordering.tests.OrderingTests.test_ordering_select_related_collision",
         },
         "MongoDB does not enforce UNIQUE constraints.": {
             "auth_tests.test_basic.BasicTestCase.test_unicode_username",
@@ -252,6 +259,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions_case.tests.CaseExpressionTests.test_annotate_values_not_in_order_by",
             "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_implicit",
             "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
+            "ordering.tests.OrderingTests.test_order_by_constant_value",
             # annotate().filter().count() gives incorrect results.
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_exact_lookup",
         },
@@ -288,6 +296,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "defer.tests.DeferTests.test_defer_extra",
             "lookup.tests.LookupTests.test_values",
             "lookup.tests.LookupTests.test_values_list",
+            "ordering.tests.OrderingTests.test_extra_ordering",
+            "ordering.tests.OrderingTests.test_extra_ordering_quoting",
+            "ordering.tests.OrderingTests.test_extra_ordering_with_table_name",
         },
         "Queries with multiple tables are not supported.": {
             "annotations.tests.AliasTests.test_alias_default_alias_expression",
@@ -339,6 +350,19 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_jsonfield.TestQuerying.test_join_key_transform_annotation_expression",
             "model_fields.test_manytomanyfield.ManyToManyFieldDBTests.test_value_from_object_instance_with_pk",
             "model_fields.test_uuid.TestAsPrimaryKey.test_two_level_foreign_keys",
+            "ordering.tests.OrderingTests.test_default_ordering",
+            "ordering.tests.OrderingTests.test_order_by_expr_query_reuse",
+            "ordering.tests.OrderingTests.test_order_by_fk_attname",
+            "ordering.tests.OrderingTests.test_order_by_grandparent_fk_with_expression_in_default_ordering",
+            "ordering.tests.OrderingTests.test_order_by_nulls_first",
+            "ordering.tests.OrderingTests.test_order_by_nulls_last",
+            "ordering.tests.OrderingTests.test_order_by_parent_fk_with_expression_in_default_ordering",
+            "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
+            "ordering.tests.OrderingTests.test_order_by_self_referential_fk",
+            "ordering.tests.OrderingTests.test_orders_nulls_first_on_filtered_subquery",
+            "ordering.tests.OrderingTests.test_related_ordering_duplicate_table_reference",
+            "ordering.tests.OrderingTests.test_reverse_meta_ordering_pure",
+            "ordering.tests.OrderingTests.test_reversed_ordering",
             "timezones.tests.LegacyDatabaseTests.test_query_annotation",
             "timezones.tests.NewDatabaseTests.test_query_annotation",
             "update.tests.AdvancedTests.test_update_annotated_multi_table_queryset",
@@ -434,6 +458,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # returns objects where the key doesn't exist.
             "model_fields.test_jsonfield.TestQuerying.test_none_key",
             "model_fields.test_jsonfield.TestQuerying.test_none_key_exclude",
+        },
+        "Randomized ordering isn't supported by MongoDB.": {
+            "ordering.tests.OrderingTests.test_random_ordering",
         },
     }
 

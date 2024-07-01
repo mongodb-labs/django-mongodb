@@ -89,6 +89,7 @@ jobs:
           from_db_value
           lookup
           model_fields
+          ordering
           or_lookups
           queries.tests.Ticket12807Tests.test_ticket_12807
           sessions_tests
