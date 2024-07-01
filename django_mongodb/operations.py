@@ -2,6 +2,7 @@ import datetime
 import json
 import re
 import uuid
+from decimal import Decimal
 
 from bson.decimal128 import Decimal128
 from django.conf import settings
@@ -98,12 +99,22 @@ class DatabaseOperations(BaseDatabaseOperations):
     def convert_decimalfield_value(self, value, expression, connection):
         if value is not None:
             # from Decimal128 to decimal.Decimal()
-            value = value.to_decimal()
+            try:
+                value = value.to_decimal()
+            except AttributeError:
+                # `value` could be an integer in the case of an annotation
+                # like ExpressionWrapper(Value(1), output_field=DecimalField().
+                return Decimal(value)
         return value
 
     def convert_durationfield_value(self, value, expression, connection):
         if value is not None:
-            value = datetime.timedelta(milliseconds=value)
+            try:
+                value = datetime.timedelta(milliseconds=value)
+            except TypeError:
+                # `value` could be Decimal128 if doing a computation with
+                # DurationField and Decimal128.
+                value = datetime.timedelta(milliseconds=int(str(value)))
         return value
 
     def convert_jsonfield_value(self, value, expression, connection):
@@ -217,6 +228,9 @@ class DatabaseOperations(BaseDatabaseOperations):
 
     def datetime_cast_time_sql(self, sql, params, tzname):
         return f"({sql})::time", params
+
+    def format_for_duration_arithmetic(self, sql):
+        return "INTERVAL %s MILLISECOND" % sql
 
     def time_trunc_sql(self, lookup_type, sql, params, tzname=None):
         return f"DATE_TRUNC(%s, {sql})::time", (lookup_type, *params)
