@@ -46,11 +46,28 @@ def is_null(self, compiler, connection):
     return connection.mongo_operators["isnull"](lhs_mql, self.rhs)
 
 
+# from https://www.pcre.org/current/doc/html/pcre2pattern.html#SEC4
+REGEX_MATCH_ESCAPE_CHARS = (
+    ("\\", r"\\"),  # general escape character
+    ("^", r"\^"),  # start of string
+    ({"$literal": "$"}, r"\$"),  # end of string
+    (".", r"\."),  # match any character
+    ("[", r"\["),  # start character class definition
+    ("|", r"\|"),  # start of alternative branch
+    ("(", r"\("),  # start group or control verb
+    (")", r"\)"),  # end group or control verb
+    ("*", r"\*"),  #  0 or more quantifier
+    ("+", r"\+"),  #  1 or more quantifier
+    ("?", r"\?"),  # 0 or 1 quantifier
+    ("{", r"\}"),  # start min/max quantifier
+)
+
+
 def pattern_lookup_prep_lookup_value(self, value):
     if hasattr(self.rhs, "as_mql"):
-        # If value is a column reference, escape regex special characters.
+        # If value is a column reference, escape $regexMatch special chars.
         # Analogous to PatternLookup.get_rhs_op() / pattern_esc.
-        for find, replacement in (("\\", r"\\"), ("%", r"\%"), ("_", r"\_")):
+        for find, replacement in REGEX_MATCH_ESCAPE_CHARS:
             value = {"$replaceAll": {"input": value, "find": find, "replacement": replacement}}
     else:
         # If value is a literal, remove percent signs added by
