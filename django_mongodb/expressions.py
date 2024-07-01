@@ -40,7 +40,8 @@ def case(self, compiler, connection):
 
 
 def col(self, compiler, connection):  # noqa: ARG001
-    return f"${self.target.column}"
+    prefix = f"{self.alias}." if self.alias != compiler.collection_name else ""
+    return f"${prefix}{self.target.column}"
 
 
 def combined_expression(self, compiler, connection):

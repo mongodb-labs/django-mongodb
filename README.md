@@ -114,7 +114,6 @@ Migrations for 'admin':
   - `datetimes()`
   - `distinct()`
   - `extra()`
-  - `select_related()`
 
 - Queries with joins aren't supported.
 
