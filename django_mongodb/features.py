@@ -242,8 +242,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_implicit",
             "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
             "ordering.tests.OrderingTests.test_order_by_constant_value",
-            # annotate().filter().count() gives incorrect results.
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_exact_lookup",
         },
         "Exists is not supported on MongoDB.": {
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_none_query",
