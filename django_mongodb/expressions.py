@@ -3,15 +3,18 @@ from decimal import Decimal
 
 from bson import Decimal128
 from django.core.exceptions import EmptyResultSet, FullResultSet
+from django.db import NotSupportedError
 from django.db.models.expressions import (
     Case,
     Col,
     CombinedExpression,
     ExpressionWrapper,
     NegatedExpression,
+    Subquery,
     Value,
     When,
 )
+from django.db.models.sql import Query
 
 
 def case(self, compiler, connection):
@@ -59,6 +62,14 @@ def negated_expression(self, compiler, connection):
     return {"$not": expression_wrapper(self, compiler, connection)}
 
 
+def query(self, compiler, connection):  # noqa: ARG001
+    raise NotSupportedError("Using a QuerySet in annotate() is not supported on MongoDB.")
+
+
+def subquery(self, compiler, connection):  # noqa: ARG001
+    raise NotSupportedError(f"{self.__class__.__name__} is not supported on MongoDB.")
+
+
 def when(self, compiler, connection):
     return self.condition.as_mql(compiler, connection)
 
@@ -82,5 +93,7 @@ def register_expressions():
     CombinedExpression.as_mql = combined_expression
     ExpressionWrapper.as_mql = expression_wrapper
     NegatedExpression.as_mql = negated_expression
+    Query.as_mql = query
+    Subquery.as_mql = subquery
     When.as_mql = when
     Value.as_mql = value

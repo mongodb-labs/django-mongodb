@@ -59,10 +59,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # the result back to UTC.
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_func_with_timezone",
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_timezone_applied_before_truncation",
-        # pk__in=queryset doesn't work because subqueries aren't a thing in
-        # MongoDB.
-        "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
-        "model_fields.test_jsonfield.TestQuerying.test_usage_in_subquery",
         # Length of null considered zero rather than null.
         "db_functions.text.test_length.LengthTests.test_basic",
         # Key transforms are incorrectly treated as joins:
@@ -220,25 +216,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_query_aggregation",
         },
         "QuerySet.annotate() has some limitations.": {
-            # Exists not supported.
-            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_none_query",
-            "lookup.tests.LookupTests.test_exact_exists",
-            "lookup.tests.LookupTests.test_nested_outerref_lhs",
-            "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
             # annotate() with combined expressions doesn't work:
             # 'WhereNode' object has no attribute 'field'
             "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter",
             "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter_false",
             "lookup.tests.LookupQueryingTests.test_combined_lookups",
-            # Subquery not supported.
-            "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
-            "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_outerref",
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_subquery_with_parameters",
-            "expressions_case.tests.CaseExpressionTests.test_in_subquery",
-            "lookup.tests.LookupQueryingTests.test_filter_subquery_lhs",
-            "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_on_subquery",
-            "model_fields.test_jsonfield.TestQuerying.test_obj_subquery_lookup",
             # Invalid $project :: caused by :: Unknown expression $count,
             "annotations.tests.NonAggregateAnnotationTestCase.test_combined_expression_annotation_with_aggregation",
             "annotations.tests.NonAggregateAnnotationTestCase.test_combined_f_expression_annotation_with_aggregation",
@@ -262,6 +244,28 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "ordering.tests.OrderingTests.test_order_by_constant_value",
             # annotate().filter().count() gives incorrect results.
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_year_exact_lookup",
+        },
+        "Exists is not supported on MongoDB.": {
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_none_query",
+            "lookup.tests.LookupTests.test_exact_exists",
+            "lookup.tests.LookupTests.test_nested_outerref_lhs",
+            "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
+        },
+        "Subquery is not supported on MongoDB.": {
+            "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_outerref",
+            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_subquery_with_parameters",
+            "lookup.tests.LookupQueryingTests.test_filter_subquery_lhs",
+            "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_on_subquery",
+            "model_fields.test_jsonfield.TestQuerying.test_obj_subquery_lookup",
+        },
+        "Using a QuerySet in annotate() is not supported on MongoDB.": {
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_empty_expression_annotation",
+            "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
+            "expressions_case.tests.CaseExpressionTests.test_in_subquery",
+            "lookup.tests.LookupTests.test_in_different_database",
+            "model_fields.test_jsonfield.TestQuerying.test_usage_in_subquery",
         },
         "Count doesn't work in QuerySet.annotate()": {
             "annotations.tests.AliasTests.test_alias_annotate_with_aggregation",

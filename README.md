@@ -116,6 +116,9 @@ Migrations for 'admin':
   - `extra()`
   - `select_related()`
 
+- `Subquery`, `Exists`, and using a `QuerySet` in `QuerySet.annotate()` aren't
+  supported.
+
 - Queries with joins aren't supported.
 
 - `DateTimeField` doesn't support microsecond precision, and correspondingly,
