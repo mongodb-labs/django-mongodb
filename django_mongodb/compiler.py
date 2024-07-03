@@ -1,4 +1,4 @@
-from django.core.exceptions import EmptyResultSet, FullResultSet
+from django.core.exceptions import EmptyResultSet, FieldDoesNotExist, FullResultSet
 from django.db import DatabaseError, IntegrityError, NotSupportedError
 from django.db.models import NOT_PROVIDED, Count, Expression
 from django.db.models.aggregates import Aggregate
@@ -212,7 +212,7 @@ class SQLCompiler(compiler.SQLCompiler):
         if not ordering:
             return self.query.standard_ordering
 
-        field_ordering = []
+        column_ordering = []
         for order in ordering:
             if LOOKUP_SEP in order:
                 raise NotSupportedError("Ordering can't span tables on MongoDB (%s)." % order)
@@ -227,8 +227,13 @@ class SQLCompiler(compiler.SQLCompiler):
             if name == "pk":
                 name = opts.pk.name
 
-            field_ordering.append((opts.get_field(name), ascending))
-        return field_ordering
+            try:
+                column = opts.get_field(name).column
+            except FieldDoesNotExist:
+                # `name` is an annotation in $project.
+                column = name
+            column_ordering.append((column, ascending))
+        return column_ordering
 
     @cached_property
     def collection_name(self):

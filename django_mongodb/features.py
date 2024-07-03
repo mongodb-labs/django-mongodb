@@ -40,6 +40,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "ordering.tests.OrderingTests.test_default_ordering",
         "ordering.tests.OrderingTests.test_default_ordering_by_f_expression",
         "ordering.tests.OrderingTests.test_default_ordering_does_not_affect_group_by",
+        "ordering.tests.OrderingTests.test_order_by_constant_value",
         "ordering.tests.OrderingTests.test_order_by_expr_query_reuse",
         "ordering.tests.OrderingTests.test_order_by_expression_ref",
         "ordering.tests.OrderingTests.test_order_by_f_expression",
@@ -87,7 +88,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Wrong results in queries with multiple tables.
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_aggregate_with_m2o",
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_reverse_m2m",
+        "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_chaining_annotation_filter_with_m2m",
+        "annotations.tests.NonAggregateAnnotationTestCase.test_mti_annotations",
         "lookup.tests.LookupTests.test_lookup_collision",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression_flat",
@@ -102,6 +105,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # pymongo.errors.OperationFailure:  $multiply only supports numeric
         # types, not date. (should be wrapped in DatabaseError).
         "expressions.tests.FTimeDeltaTests.test_invalid_operator",
+        # alias().order_by() doesn't work.
+        "annotations.tests.AliasTests.test_order_by_alias",
+        # annotate() + values_list() + order_by() loses annotated value.
+        "expressions_case.tests.CaseExpressionTests.test_annotate_values_not_in_order_by",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -280,6 +287,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_combined_f_expression_annotation_with_aggregation",
             "annotations.tests.NonAggregateAnnotationTestCase.test_full_expression_annotation_with_aggregation",
             "annotations.tests.NonAggregateAnnotationTestCase.test_grouping_by_q_expression_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_aggregate",
             "annotations.tests.NonAggregateAnnotationTestCase.test_q_expression_annotation_with_aggregation",
             "defer_regress.tests.DeferRegressionTest.test_basic",
             "defer_regress.tests.DeferRegressionTest.test_defer_annotate_select_related",
@@ -287,20 +295,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.BasicExpressionsTests.test_aggregate_subquery_annotation",
             "expressions.tests.FieldTransformTests.test_month_aggregation",
             "expressions_case.tests.CaseDocumentationExamples.test_conditional_aggregation_example",
+            "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
             # Func not implemented.
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions",
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions_can_ref_other_functions",
-            # FieldDoesNotExist with ordering.
-            "annotations.tests.AliasTests.test_order_by_alias",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_mti_annotations",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_aggregate",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_annotation",
-            "expressions.tests.NegatedExpressionTests.test_filter",
-            "expressions_case.tests.CaseExpressionTests.test_annotate_values_not_in_order_by",
-            "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_implicit",
-            "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
-            "ordering.tests.OrderingTests.test_order_by_constant_value",
         },
         "Exists is not supported on MongoDB.": {
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_none_query",

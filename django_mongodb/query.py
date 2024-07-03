@@ -72,7 +72,7 @@ class MongoQuery:
         Reorder query results or execution order. Called by compiler during
         query building.
 
-        `ordering` is a list with (field, ascending) tuples or a boolean --
+        `ordering` is a list with (column, ascending) tuples or a boolean --
         use natural ordering, if any, when the argument is True and its reverse
         otherwise.
         """
@@ -81,9 +81,9 @@ class MongoQuery:
             if not ordering:
                 self.ordering.append(("$natural", DESCENDING))
         else:
-            for field, ascending in ordering:
+            for column, ascending in ordering:
                 direction = ASCENDING if ascending else DESCENDING
-                self.ordering.append((field.column, direction))
+                self.ordering.append((column, direction))
 
     @wrap_database_errors
     def delete(self):
