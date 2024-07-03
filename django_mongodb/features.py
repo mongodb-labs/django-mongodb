@@ -42,11 +42,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "ordering.tests.OrderingTests.test_order_by_f_expression",
         "ordering.tests.OrderingTests.test_order_by_f_expression_duplicates",
         "ordering.tests.OrderingTests.test_reverse_ordering_pure",
-        # annotate() after values() doesn't raise NotSupportedError.
-        "lookup.tests.LookupTests.test_exact_query_rhs_with_selected_columns",
-        # tuple index out of range in process_rhs()
-        "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one",
-        "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one_offset",
         # Pattern lookups that use regexMatch don't work on JSONField:
         # Unsupported conversion from array to string in $convert
         "model_fields.test_jsonfield.TestQuerying.test_icontains",
@@ -262,6 +257,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_expression_annotation",
             "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
             "expressions_case.tests.CaseExpressionTests.test_in_subquery",
+            "lookup.tests.LookupTests.test_exact_query_rhs_with_selected_columns",
+            "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one",
+            "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one_offset",
             "lookup.tests.LookupTests.test_in_different_database",
             "model_fields.test_jsonfield.TestQuerying.test_usage_in_subquery",
         },
