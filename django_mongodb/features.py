@@ -104,9 +104,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "expressions.tests.FTimeDeltaTests.test_invalid_operator",
         # 'Ref' object has no attribute 'as_mql'.
         "expressions.tests.BasicExpressionsTests.test_aggregate_subquery_annotation",
-        # AttributeError: pattern_ops
-        "expressions.tests.BasicExpressionsTests.test_annotation_with_nested_outerref",
-        "expressions.tests.BasicExpressionsTests.test_nested_outerref_with_function",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -329,9 +326,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_outerref",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_subquery_with_parameters",
+            "expressions.tests.BasicExpressionsTests.test_annotation_with_nested_outerref",
             "expressions.tests.BasicExpressionsTests.test_annotation_with_outerref",
             "expressions.tests.BasicExpressionsTests.test_annotations_within_subquery",
             "expressions.tests.BasicExpressionsTests.test_in_subquery",
+            "expressions.tests.BasicExpressionsTests.test_nested_outerref_with_function",
             "expressions.tests.BasicExpressionsTests.test_nested_subquery",
             "expressions.tests.BasicExpressionsTests.test_nested_subquery_join_outer_ref",
             "expressions.tests.BasicExpressionsTests.test_nested_subquery_outer_ref_2",

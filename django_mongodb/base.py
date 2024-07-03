@@ -72,6 +72,16 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "istartswith": "LIKE UPPER(%s)",
         "iendswith": "LIKE UPPER(%s)",
     }
+    # As with `operators`, these patterns are used to generate SQL before MQL.
+    pattern_esc = "%%"
+    pattern_ops = {
+        "contains": "LIKE '%%' || {} || '%%'",
+        "icontains": "LIKE '%%' || UPPER({}) || '%%'",
+        "startswith": "LIKE {} || '%%'",
+        "istartswith": "LIKE UPPER({}) || '%%'",
+        "endswith": "LIKE '%%' || {}",
+        "iendswith": "LIKE '%%' || UPPER({})",
+    }
     mongo_operators = {
         "exact": lambda a, b: {"$eq": [a, b]},
         "gt": lambda a, b: {"$gt": [a, b]},
