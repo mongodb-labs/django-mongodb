@@ -102,8 +102,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # pymongo.errors.OperationFailure:  $multiply only supports numeric
         # types, not date. (should be wrapped in DatabaseError).
         "expressions.tests.FTimeDeltaTests.test_invalid_operator",
-        # 'Ref' object has no attribute 'as_mql'.
-        "expressions.tests.BasicExpressionsTests.test_aggregate_subquery_annotation",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -286,6 +284,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "defer_regress.tests.DeferRegressionTest.test_basic",
             "defer_regress.tests.DeferRegressionTest.test_defer_annotate_select_related",
             "defer_regress.tests.DeferRegressionTest.test_ticket_16409",
+            "expressions.tests.BasicExpressionsTests.test_aggregate_subquery_annotation",
             "expressions.tests.FieldTransformTests.test_month_aggregation",
             "expressions_case.tests.CaseDocumentationExamples.test_conditional_aggregation_example",
             # Func not implemented.

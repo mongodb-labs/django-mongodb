@@ -10,6 +10,7 @@ from django.db.models.expressions import (
     CombinedExpression,
     ExpressionWrapper,
     NegatedExpression,
+    Ref,
     Subquery,
     Value,
     When,
@@ -68,6 +69,10 @@ def query(self, compiler, connection):  # noqa: ARG001
     raise NotSupportedError("Using a QuerySet in annotate() is not supported on MongoDB.")
 
 
+def ref(self, compiler, connection):  # noqa: ARG001
+    return self.refs
+
+
 def subquery(self, compiler, connection):  # noqa: ARG001
     raise NotSupportedError(f"{self.__class__.__name__} is not supported on MongoDB.")
 
@@ -99,6 +104,7 @@ def register_expressions():
     ExpressionWrapper.as_mql = expression_wrapper
     NegatedExpression.as_mql = negated_expression
     Query.as_mql = query
+    Ref.as_mql = ref
     Subquery.as_mql = subquery
     When.as_mql = when
     Value.as_mql = value
