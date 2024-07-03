@@ -126,7 +126,17 @@ class SQLCompiler(compiler.SQLCompiler):
 
         If `check_exists` is True, only check if any object matches.
         """
-        kwargs = {"limit": 1} if check_exists else {}
+        kwargs = {}
+        # If this query is sliced, the limits will be set on the subquery.
+        inner_query = getattr(self.query, "inner_query", None)
+        low_mark = inner_query.low_mark if inner_query else 0
+        high_mark = inner_query.high_mark if inner_query else None
+        if low_mark > 0:
+            kwargs["skip"] = low_mark
+        if check_exists:
+            kwargs["limit"] = 1
+        elif high_mark is not None:
+            kwargs["limit"] = high_mark - low_mark
         try:
             return self.build_query().count(**kwargs)
         except EmptyResultSet:

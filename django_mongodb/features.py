@@ -26,8 +26,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
-        # Slicing with QuerySet.count() doesn't work.
-        "lookup.tests.LookupTests.test_count",
         # Lookup in order_by() not supported:
         # argument of type '<database function>' is not iterable
         "db_functions.comparison.test_coalesce.CoalesceTests.test_ordering",

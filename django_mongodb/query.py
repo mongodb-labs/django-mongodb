@@ -51,12 +51,16 @@ class MongoQuery:
         yield from self.get_cursor()
 
     @wrap_database_errors
-    def count(self, limit=None):
+    def count(self, limit=None, skip=None):
         """
         Return the number of objects that would be returned, if this query was
-        executed, up to `limit`.
+        executed, up to `limit`, skipping `skip`.
         """
-        kwargs = {"limit": limit} if limit is not None else {}
+        kwargs = {}
+        if limit is not None:
+            kwargs["limit"] = limit
+        if skip is not None:
+            kwargs["skip"] = skip
         return self.collection.count_documents(self.mongo_query, **kwargs)
 
     def order_by(self, ordering):
