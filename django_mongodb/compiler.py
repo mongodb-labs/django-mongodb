@@ -91,7 +91,7 @@ class SQLCompiler(compiler.SQLCompiler):
                 rhs = sub_expr.as_mql(self, self.connection, resolve_inner_expression=True)
                 group[alias] = {"$addToSet": rhs}
                 replacing_expr = sub_expr.copy()
-                replacing_expr.set_source_expressions([inner_column])
+                replacing_expr.set_source_expressions([inner_column, None])
             else:
                 group[alias] = sub_expr.as_mql(self, self.connection)
                 replacing_expr = inner_column
