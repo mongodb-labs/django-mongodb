@@ -1,9 +1,8 @@
 import itertools
 
 from django.db import connection, models
-from django.test import TransactionTestCase, ignore_warnings
+from django.test import TransactionTestCase
 from django.test.utils import isolate_apps
-from django.utils.deprecation import RemovedInDjango51Warning
 
 from django_mongodb_backend.fields import EmbeddedModelField
 from django_mongodb_backend.models import EmbeddedModel
@@ -130,54 +129,6 @@ class SchemaTests(TestMixin, TransactionTestCase):
             # Clean up that table
             editor.delete_model(Book)
         self.assertTableNotExists(Author)
-
-    @ignore_warnings(category=RemovedInDjango51Warning)
-    @isolate_apps("schema_")
-    def test_index_together(self):
-        """Meta.index_together on an embedded model."""
-
-        class Address(EmbeddedModel):
-            index_together_one = models.CharField(max_length=10)
-            index_together_two = models.CharField(max_length=10)
-
-            class Meta:
-                app_label = "schema_"
-                index_together = [("index_together_one", "index_together_two")]
-
-        class Author(models.Model):
-            address = EmbeddedModelField(Address)
-            index_together_three = models.CharField(max_length=10)
-            index_together_four = models.CharField(max_length=10)
-
-            class Meta:
-                app_label = "schema_"
-                index_together = [("index_together_three", "index_together_four")]
-
-        class Book(models.Model):
-            author = EmbeddedModelField(Author)
-
-            class Meta:
-                app_label = "schema_"
-
-        with connection.schema_editor() as editor:
-            editor.create_model(Book)
-            self.assertTableExists(Book)
-            # Embedded uniques are created.
-            self.assertEqual(
-                self.get_constraints_for_columns(
-                    Book, ["author.address.index_together_one", "author.address.index_together_two"]
-                ),
-                ["schema__add_index_t_efa93e_idx"],
-            )
-            self.assertEqual(
-                self.get_constraints_for_columns(
-                    Book,
-                    ["author.index_together_three", "author.index_together_four"],
-                ),
-                ["schema__aut_index_t_df32aa_idx"],
-            )
-            editor.delete_model(Book)
-        self.assertTableNotExists(Book)
 
     @isolate_apps("schema_")
     def test_unique_together(self):
@@ -375,70 +326,6 @@ class SchemaTests(TestMixin, TransactionTestCase):
             )
             editor.delete_model(Book)
         self.assertTableNotExists(Author)
-
-    @ignore_warnings(category=RemovedInDjango51Warning)
-    @isolate_apps("schema_")
-    def test_add_remove_field_index_together(self):
-        """AddField/RemoveField + EmbeddedModelField + Meta.index_together."""
-
-        class Address(models.Model):
-            index_together_one = models.CharField(max_length=10)
-            index_together_two = models.CharField(max_length=10)
-
-            class Meta:
-                app_label = "schema_"
-                index_together = [("index_together_one", "index_together_two")]
-
-        class Author(models.Model):
-            address = EmbeddedModelField(Address)
-            index_together_three = models.CharField(max_length=10)
-            index_together_four = models.CharField(max_length=10)
-
-            class Meta:
-                app_label = "schema_"
-                index_together = [("index_together_three", "index_together_four")]
-
-        class Book(models.Model):
-            class Meta:
-                app_label = "schema_"
-
-        new_field = EmbeddedModelField(Author)
-        new_field.set_attributes_from_name("author")
-        with connection.schema_editor() as editor:
-            # Create the table amd add the field.
-            editor.create_model(Book)
-            editor.add_field(Book, new_field)
-            # Embedded index_togethers are created.
-            self.assertEqual(
-                self.get_constraints_for_columns(
-                    Book, ["author.address.index_together_one", "author.address.index_together_two"]
-                ),
-                ["schema__add_index_t_efa93e_idx"],
-            )
-            self.assertEqual(
-                self.get_constraints_for_columns(
-                    Book,
-                    ["author.index_together_three", "author.index_together_four"],
-                ),
-                ["schema__aut_index_t_df32aa_idx"],
-            )
-            editor.remove_field(Book, new_field)
-            # Embedded indexes are removed.
-            self.assertEqual(
-                self.get_constraints_for_columns(
-                    Book, ["author.address.index_together_one", "author.address.index_together_two"]
-                ),
-                [],
-            )
-            self.assertEqual(
-                self.get_constraints_for_columns(
-                    Book,
-                    ["author.index_together_three", "author.index_together_four"],
-                ),
-                [],
-            )
-            editor.delete_model(Book)
-        self.assertTableNotExists(Book)
 
     @isolate_apps("schema_")
     def test_add_remove_field_unique_together(self):

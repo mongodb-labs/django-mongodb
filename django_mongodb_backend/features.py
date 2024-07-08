@@ -40,6 +40,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     uses_savepoints = False
 
     _django_test_expected_failures = {
+        # $concat only supports strings, not int
+        "db_functions.text.test_concat.ConcatTests.test_concat_non_str",
+        # QuerySet.order_by() with annotation transform doesn't work:
+        # "Expression $mod takes exactly 2 arguments. 1 were passed in"
+        # https://github.com/django/django/commit/b0ad41198b3e333f57351e3fce5a1fb47f23f376
+        "aggregation.tests.AggregateTestCase.test_order_by_aggregate_transform",
         # 'NulledTransform' object has no attribute 'as_mql'.
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
@@ -70,6 +76,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Connection creation doesn't follow the usual Django API.
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
+        "test_utils.tests.DisallowedDatabaseQueriesTests.test_disallowed_thread_database_connection",
         # Object of type ObjectId is not JSON serializable.
         "auth_tests.test_views.LoginTest.test_login_session_without_hash_session_key",
         # GenericRelation.value_to_string() assumes integer pk.
@@ -164,6 +171,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "fixtures.tests.FixtureLoadingTests.test_loading_and_dumping",
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_proxied",
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_reverse_proxied",
+            "many_to_many.tests.ManyToManyQueryTests.test_prefetch_related_no_queries_optimization_disabled",
             "many_to_many.tests.ManyToManyTests.test_add_after_prefetch",
             "many_to_many.tests.ManyToManyTests.test_add_then_remove_after_prefetch",
             "many_to_many.tests.ManyToManyTests.test_clear_after_prefetch",
@@ -375,7 +383,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "delete.tests.DeletionTests.test_only_referenced_fields_selected",
             "expressions.tests.ExistsTests.test_optimizations",
             "lookup.tests.LookupTests.test_in_ignore_none",
+            "lookup.tests.LookupTests.test_lookup_direct_value_rhs_unwrapped",
             "lookup.tests.LookupTests.test_textfield_exact_null",
+            "many_to_many.tests.ManyToManyQueryTests.test_count_join_optimization_disabled",
+            "many_to_many.tests.ManyToManyQueryTests.test_exists_join_optimization_disabled",
+            "many_to_many.tests.ManyToManyTests.test_custom_default_manager_exists_count",
             "migrations.test_commands.MigrateTests.test_migrate_syncdb_app_label",
             "migrations.test_commands.MigrateTests.test_migrate_syncdb_deferred_sql_executed_with_schemaeditor",
             "queries.tests.ExistsSql.test_exists",
@@ -423,6 +435,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "raw_query.tests.RawQueryTests",
             "schema.test_logging.SchemaLoggerTests.test_extra_args",
             "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
+            "test_utils.tests.AllowedDatabaseQueriesTests.test_allowed_database_copy_queries",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_raw_sql",

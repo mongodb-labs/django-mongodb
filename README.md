@@ -7,9 +7,9 @@ explore and build. The best way to share this is via our [MongoDB Community Foru
 ## Install
 
 Use the version of `django-mongodb-backend` that corresponds to your version of
-Django. For example, to get the latest compatible release for Django 5.0.x:
+Django. For example, to get the latest compatible release for Django 5.1.x:
 ```bash
-$ pip install --pre django-mongodb-backend==5.0.*
+$ pip install --pre django-mongodb-backend==5.1.*
 ```
 (Until the package is out of beta, you must use pip's `--pre` option.)
 
@@ -21,11 +21,11 @@ $ pip install --pre django-mongodb-backend==5.0.*
 From your shell, run the following command to create a new Django project
 called `example` using our custom template. Make sure the zipfile referenced
 at the end of the template link corresponds to your
-version of Django. The snippet below specifies `5.0.x.zip` at the end of
-the template url to get the template for any Django version matching 5.0:
+version of Django. The snippet below specifies `5.1.x.zip` at the end of
+the template url to get the template for any Django version matching 5.1:
 
 ```bash
-$ django-admin startproject example --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/5.0.x.zip
+$ django-admin startproject example --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/5.1.x.zip
 ```
 
 

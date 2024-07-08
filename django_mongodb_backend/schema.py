@@ -51,8 +51,8 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
 
     def _create_model_indexes(self, model, column_prefix="", parent_model=None):
         """
-        Create all indexes (field indexes & uniques, Meta.index_together,
-        Meta.unique_together, Meta.constraints, Meta.indexes) for the model.
+        Create all indexes (field indexes & uniques, Meta.unique_together,
+        Meta.constraints, Meta.indexes) for the model.
 
         If this is a recursive call due to an embedded model, `column_prefix`
         tracks the path that must be prepended to the index's column, and
@@ -71,11 +71,6 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 self._add_field_index(parent_model or model, field, column_prefix=column_prefix)
             elif self._field_should_have_unique(field):
                 self._add_field_unique(parent_model or model, field, column_prefix=column_prefix)
-        # Meta.index_together (RemovedInDjango51Warning)
-        for field_names in model._meta.index_together:
-            self._add_composed_index(
-                model, field_names, column_prefix=column_prefix, parent_model=parent_model
-            )
         # Meta.unique_together
         if model._meta.unique_together:
             self.alter_unique_together(
@@ -208,15 +203,6 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 self._remove_field_index(parent_model or model, field, column_prefix=column_prefix)
             elif self._field_should_have_unique(field):
                 self._remove_field_unique(parent_model or model, field, column_prefix=column_prefix)
-        # Meta.index_together (RemovedInDjango51Warning)
-        for field_names in model._meta.index_together:
-            self._remove_composed_index(
-                model,
-                field_names,
-                {"index": True, "unique": False},
-                column_prefix=column_prefix,
-                parent_model=parent_model,
-            )
         # Meta.unique_together
         if model._meta.unique_together:
             self.alter_unique_together(

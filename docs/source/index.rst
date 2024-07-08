@@ -1,4 +1,4 @@
-django-mongodb-backend 5.0.x documentation
+django-mongodb-backend 5.1.x documentation
 ==========================================
 
 .. toctree::
