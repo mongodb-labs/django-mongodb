@@ -31,8 +31,8 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
 
     def _create_model_indexes(self, model):
         """
-        Create all indexes (field indexes & uniques, Meta.index_together,
-        Meta.unique_together, Meta.constraints, Meta.indexes) for the model.
+        Create all indexes (field indexes & uniques, Meta.unique_together,
+        Meta.constraints, Meta.indexes) for the model.
         """
         if not model._meta.managed or model._meta.proxy or model._meta.swapped:
             return
@@ -42,9 +42,6 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 self._add_field_index(model, field)
             elif self._field_should_have_unique(field):
                 self._add_field_unique(model, field)
-        # Meta.index_together (RemovedInDjango51Warning)
-        for field_names in model._meta.index_together:
-            self._add_composed_index(model, field_names)
         # Meta.unique_together
         if model._meta.unique_together:
             self.alter_unique_together(model, [], model._meta.unique_together)
