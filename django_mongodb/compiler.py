@@ -150,7 +150,6 @@ class SQLCompiler(compiler.SQLCompiler):
     def build_query(self, columns=None):
         """Check if the query is supported and prepare a MongoQuery."""
         self.check_query()
-        self.setup_query()
         query = self.query_class(self, columns)
         query.lookup_pipeline = self.get_lookup_pipeline()
         try:
