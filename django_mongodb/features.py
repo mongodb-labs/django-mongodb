@@ -94,14 +94,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "lookup.tests.LookupTests.test_lookup_collision",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression_flat",
+        "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
         "expressions_case.tests.CaseExpressionTests.test_join_promotion",
         "expressions_case.tests.CaseExpressionTests.test_join_promotion_multiple_annotations",
         "ordering.tests.OrderingTests.test_order_by_grandparent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_parent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
-        # 'Col' object has no attribute 'utcoffset'
-        "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
-        "expressions.tests.IterableLookupInnerExpressionsTests.test_in_lookup_allows_F_expressions_and_expressions_for_datetimes",
         # pymongo.errors.OperationFailure:  $multiply only supports numeric
         # types, not date. (should be wrapped in DatabaseError).
         "expressions.tests.FTimeDeltaTests.test_invalid_operator",
