@@ -5,6 +5,7 @@ from django.db.models.aggregates import Aggregate
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.sql import compiler
 from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE, MULTI
+from django.utils.functional import cached_property
 
 from .base import Cursor
 from .query import MongoQuery, wrap_database_errors
@@ -82,7 +83,15 @@ class SQLCompiler(compiler.SQLCompiler):
         result = []
         for name, col in columns:
             field = col.field
-            value = entity.get(name, NOT_PROVIDED)
+            column_alias = getattr(col, "alias", None)
+            obj = (
+                # Use the related object...
+                entity.get(column_alias, {})
+                # ...if this column refers to an object for select_related().
+                if column_alias is not None and column_alias != self.collection_name
+                else entity
+            )
+            value = obj.get(name, NOT_PROVIDED)
             if value is NOT_PROVIDED:
                 value = field.get_default()
             elif converters:
@@ -110,10 +119,6 @@ class SQLCompiler(compiler.SQLCompiler):
             raise NotSupportedError("QuerySet.distinct() is not supported on MongoDB.")
         if self.query.extra:
             raise NotSupportedError("QuerySet.extra() is not supported on MongoDB.")
-        if self.query.select_related:
-            raise NotSupportedError("QuerySet.select_related() is not supported on MongoDB.")
-        if len([a for a in self.query.alias_map if self.query.alias_refcount[a]]) > 1:
-            raise NotSupportedError("Queries with multiple tables are not supported on MongoDB.")
         if any(
             isinstance(a, Aggregate) and not isinstance(a, Count)
             for a in self.query.annotations.values()
@@ -147,6 +152,7 @@ class SQLCompiler(compiler.SQLCompiler):
         self.check_query()
         self.setup_query()
         query = self.query_class(self, columns)
+        query.lookup_pipeline = self.get_lookup_pipeline()
         try:
             query.mongo_query = {"$expr": self.query.where.as_mql(self, self.connection)}
         except FullResultSet:
@@ -163,9 +169,17 @@ class SQLCompiler(compiler.SQLCompiler):
         columns = (
             self.get_default_columns(select_mask) if self.query.default_cols else self.query.select
         )
+        # Populate QuerySet.select_related() data.
+        related_columns = []
+        if self.query.select_related:
+            self.get_related_selections(related_columns, select_mask)
+            if related_columns:
+                related_columns, _ = zip(*related_columns, strict=True)
+
         annotation_idx = 1
-        result = []
-        for column in columns:
+
+        def project_field(column):
+            nonlocal annotation_idx
             if hasattr(column, "target"):
                 # column is a Col.
                 target = column.target.column
@@ -174,8 +188,13 @@ class SQLCompiler(compiler.SQLCompiler):
                 # name for $proj.
                 target = f"__annotation{annotation_idx}"
                 annotation_idx += 1
-            result.append((target, column))
-        return tuple(result) + tuple(self.query.annotation_select.items())
+            return target, column
+
+        return (
+            tuple(map(project_field, columns))
+            + tuple(self.query.annotation_select.items())
+            + tuple(map(project_field, related_columns))
+        )
 
     def _get_ordering(self):
         """
@@ -212,8 +231,20 @@ class SQLCompiler(compiler.SQLCompiler):
             field_ordering.append((opts.get_field(name), ascending))
         return field_ordering
 
+    @cached_property
+    def collection_name(self):
+        return self.query.get_meta().db_table
+
     def get_collection(self):
-        return self.connection.get_collection(self.query.get_meta().db_table)
+        return self.connection.get_collection(self.collection_name)
+
+    def get_lookup_pipeline(self):
+        result = []
+        for alias in tuple(self.query.alias_map):
+            if not self.query.alias_refcount[alias] or self.collection_name == alias:
+                continue
+            result += self.query.alias_map[alias].as_mql(self, self.connection)
+        return result
 
 
 class SQLInsertCompiler(SQLCompiler):

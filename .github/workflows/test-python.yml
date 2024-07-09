@@ -89,10 +89,19 @@ jobs:
           defer_regress
           from_db_value
           lookup
+          m2m_and_m2o
+          m2m_intermediary
+          m2m_multiple
+          m2m_recursive
+          m2m_regress
+          m2m_signals
+          m2m_through
+          m2o_recursive
           model_fields
           ordering
           or_lookups
           queries.tests.Ticket12807Tests.test_ticket_12807
+          select_related
           sessions_tests
           timezones
           update

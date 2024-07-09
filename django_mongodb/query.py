@@ -3,6 +3,8 @@ from functools import wraps
 from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError
 from django.db.models import Value
+from django.db.models.sql.constants import INNER
+from django.db.models.sql.datastructures import Join
 from django.db.models.sql.where import AND, XOR, WhereNode
 from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import DuplicateKeyError, PyMongoError
@@ -41,7 +43,9 @@ class MongoQuery:
         self._negated = False
         self.ordering = []
         self.collection = self.compiler.get_collection()
+        self.collection_name = self.compiler.collection_name
         self.mongo_query = getattr(compiler.query, "raw_query", {})
+        self.lookup_pipeline = None
 
     def __repr__(self):
         return f"<MongoQuery: {self.mongo_query!r} ORDER {self.ordering!r}>"
@@ -106,7 +110,15 @@ class MongoQuery:
                 # If name != column, then this is an annotatation referencing
                 # another column.
                 fields[name] = 1 if name == column else f"${column}"
+        if fields:
+            # Add related fields.
+            for alias in self.query.alias_map:
+                if self.query.alias_refcount[alias] and self.collection_name != alias:
+                    fields[alias] = 1
+        # Construct the query pipeline.
         pipeline = []
+        if self.lookup_pipeline:
+            pipeline.extend(self.lookup_pipeline)
         if self.mongo_query:
             pipeline.append({"$match": self.mongo_query})
         if fields:
@@ -118,6 +130,83 @@ class MongoQuery:
         if self.query.high_mark is not None:
             pipeline.append({"$limit": self.query.high_mark - self.query.low_mark})
         return self.collection.aggregate(pipeline)
+
+
+def join(self, compiler, connection):
+    lookup_pipeline = []
+    lhs_fields = []
+    rhs_fields = []
+    # Add a join condition for each pair of joining fields.
+    for lhs, rhs in self.join_fields:
+        lhs, rhs = connection.ops.prepare_join_on_clause(
+            self.parent_alias, lhs, self.table_name, rhs
+        )
+        lhs_fields.append(lhs.as_mql(compiler, connection))
+        # In the lookup stage, the reference to this column doesn't include
+        # the collection name.
+        rhs_fields.append(rhs.as_mql(compiler, connection).replace(f"{self.table_name}.", "", 1))
+
+    parent_template = "parent__field__"
+    lookup_pipeline = [
+        {
+            "$lookup": {
+                # The right-hand table to join.
+                "from": self.table_name,
+                # The pipeline variables to be matched in the pipeline's
+                # expression.
+                "let": {
+                    f"{parent_template}{i}": parent_field
+                    for i, parent_field in enumerate(lhs_fields)
+                },
+                "pipeline": [
+                    {
+                        # Match the conditions:
+                        #   self.table_name.field1 = parent_table.field1
+                        # AND
+                        #   self.table_name.field2 = parent_table.field2
+                        # AND
+                        #   ...
+                        "$match": {
+                            "$expr": {
+                                "$and": [
+                                    {"$eq": [f"$${parent_template}{i}", field]}
+                                    for i, field in enumerate(rhs_fields)
+                                ]
+                            }
+                        }
+                    }
+                ],
+                # Rename the output as table_alias.
+                "as": self.table_alias,
+            }
+        },
+    ]
+    # To avoid missing data when using $unwind, an empty collection is added if
+    # the join isn't an inner join. For inner joins, rows with empty arrays are
+    # removed, as $unwind unrolls or unnests the array and removes the row if
+    # it's empty. This is the expected behavior for inner joins. For left outer
+    # joins (LOUTER), however, an empty collection is returned.
+    if self.join_type != INNER:
+        lookup_pipeline.append(
+            {
+                "$set": {
+                    self.table_alias: {
+                        "$cond": {
+                            "if": {
+                                "$or": [
+                                    {"$eq": [{"$type": f"${self.table_alias}"}, "missing"]},
+                                    {"$eq": [{"$size": f"${self.table_alias}"}, 0]},
+                                ]
+                            },
+                            "then": [{}],
+                            "else": f"${self.table_alias}",
+                        }
+                    }
+                }
+            }
+        )
+    lookup_pipeline.append({"$unwind": f"${self.table_alias}"})
+    return lookup_pipeline
 
 
 def where_node(self, compiler, connection):
@@ -170,4 +259,5 @@ def where_node(self, compiler, connection):
 
 
 def register_nodes():
+    Join.as_mql = join
     WhereNode.as_mql = where_node
