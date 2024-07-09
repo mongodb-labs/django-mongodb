@@ -36,6 +36,9 @@ class DatabaseOperations(BaseDatabaseOperations):
     def adapt_datetimefield_value(self, value):
         if value is None:
             return None
+        # Expression values are adapted by the database.
+        if hasattr(value, "resolve_expression"):
+            return value
         if timezone.is_aware(value):
             if settings.USE_TZ:
                 value = timezone.make_naive(value, self.connection.timezone)
@@ -64,6 +67,9 @@ class DatabaseOperations(BaseDatabaseOperations):
         """Store TimeField as datetime."""
         if value is None:
             return None
+        # Expression values are adapted by the database.
+        if hasattr(value, "resolve_expression"):
+            return value
         if timezone.is_aware(value):
             raise ValueError("MongoDB backend does not support timezone-aware times.")
         return datetime.datetime.combine(datetime.datetime.min.date(), value)
