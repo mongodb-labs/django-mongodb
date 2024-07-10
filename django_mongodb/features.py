@@ -100,9 +100,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "ordering.tests.OrderingTests.test_order_by_grandparent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_parent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
-        # pymongo.errors.OperationFailure:  $multiply only supports numeric
-        # types, not date. (should be wrapped in DatabaseError).
-        "expressions.tests.FTimeDeltaTests.test_invalid_operator",
         # alias().order_by() doesn't work.
         "annotations.tests.AliasTests.test_order_by_alias",
         # annotate() + values_list() + order_by() loses annotated value.

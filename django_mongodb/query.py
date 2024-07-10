@@ -91,6 +91,7 @@ class MongoQuery:
         options = self.connection.operation_flags.get("delete", {})
         return self.collection.delete_many(self.mongo_query, **options).deleted_count
 
+    @wrap_database_errors
     def get_cursor(self):
         if self.query.low_mark == self.query.high_mark:
             return []
