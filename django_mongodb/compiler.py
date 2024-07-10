@@ -101,6 +101,8 @@ class SQLCompiler(compiler.SQLCompiler):
                 raise NotSupportedError("QuerySet.dates() is not supported on MongoDB.")
             raise NotSupportedError("QuerySet.distinct() is not supported on MongoDB.")
         if self.query.extra:
+            if any(key.startswith("_prefetch_related_") for key in self.query.extra):
+                raise NotSupportedError("QuerySet.prefetch_related() is not supported on MongoDB.")
             raise NotSupportedError("QuerySet.extra() is not supported on MongoDB.")
         if any(
             isinstance(a, Aggregate) and not isinstance(a, Count)

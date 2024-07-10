@@ -114,6 +114,7 @@ Migrations for 'admin':
   - `datetimes()`
   - `distinct()`
   - `extra()`
+  - `prefetch_related()`
 
 - `Subquery`, `Exists`, and using a `QuerySet` in `QuerySet.annotate()` aren't
   supported.
