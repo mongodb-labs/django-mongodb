@@ -91,6 +91,7 @@ jobs:
           m2m_through
           m2o_recursive
           model_fields
+          one_to_one
           ordering
           or_lookups
           queries.tests.Ticket12807Tests.test_ticket_12807

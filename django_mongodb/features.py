@@ -104,6 +104,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "annotations.tests.AliasTests.test_order_by_alias",
         # annotate() + values_list() + order_by() loses annotated value.
         "expressions_case.tests.CaseExpressionTests.test_annotate_values_not_in_order_by",
+        # Querying the reverse side of a foreign key for None returns no
+        # results: https://github.com/mongodb-labs/django-mongodb/issues/76
+        "one_to_one.tests.OneToOneTests.test_filter_one_to_one_relations",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -353,6 +356,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one_offset",
             "lookup.tests.LookupTests.test_in_different_database",
             "model_fields.test_jsonfield.TestQuerying.test_usage_in_subquery",
+            "one_to_one.tests.OneToOneTests.test_get_prefetch_queryset_warning",
+            "one_to_one.tests.OneToOneTests.test_rel_pk_subquery",
         },
         "Count doesn't work in QuerySet.annotate()": {
             "annotations.tests.AliasTests.test_alias_annotate_with_aggregation",
@@ -360,6 +365,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotate_exists",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotate_with_aggregation",
             "db_functions.comparison.test_cast.CastTests.test_cast_from_db_datetime_to_date_group_by",
+        },
+        "Cannot use QuerySet.delete() when querying across multiple collections on MongoDB.": {
+            "one_to_one.tests.OneToOneTests.test_o2o_primary_key_delete",
         },
         "QuerySet.dates() is not supported on MongoDB.": {
             "annotations.tests.AliasTests.test_dates_alias",
