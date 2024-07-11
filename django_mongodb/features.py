@@ -91,7 +91,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_chaining_annotation_filter_with_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_mti_annotations",
-        "lookup.tests.LookupTests.test_lookup_collision",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression_flat",
         "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
@@ -380,6 +379,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_query_datetimes_in_other_timezone",
         },
         "QuerySet.distinct() is not supported.": {
+            "lookup.tests.LookupTests.test_lookup_collision_distinct",
             "update.tests.AdvancedTests.test_update_all",
         },
         "QuerySet.extra() is not supported.": {

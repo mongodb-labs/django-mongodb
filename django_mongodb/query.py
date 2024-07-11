@@ -63,12 +63,8 @@ class MongoQuery:
         Return the number of objects that would be returned, if this query was
         executed, up to `limit`, skipping `skip`.
         """
-        kwargs = {}
-        if limit is not None:
-            kwargs["limit"] = limit
-        if skip is not None:
-            kwargs["skip"] = skip
-        return self.collection.count_documents(self.mongo_query, **kwargs)
+        result = list(self.get_cursor(count=True, limit=limit, skip=skip))
+        return result[0]["__count"] if result else 0
 
     def order_by(self, ordering):
         """
@@ -95,7 +91,16 @@ class MongoQuery:
         return self.collection.delete_many(self.mongo_query, **options).deleted_count
 
     @wrap_database_errors
-    def get_cursor(self):
+    def get_cursor(self, count=False, limit=None, skip=None):
+        """
+        Return a pymongo CommandCursor that can be iterated on to give the
+        results of the query.
+
+        If `count` is True, return a single document with the number of
+        documents that match the query.
+
+        Use `limit` or `skip` to override those options of the query.
+        """
         if self.query.low_mark == self.query.high_mark:
             return []
         fields = {}
@@ -129,10 +134,16 @@ class MongoQuery:
             pipeline.append({"$project": fields})
         if self.ordering:
             pipeline.append({"$sort": dict(self.ordering)})
-        if self.query.low_mark > 0:
+        if skip is not None:
+            pipeline.append({"$skip": skip})
+        elif self.query.low_mark > 0:
             pipeline.append({"$skip": self.query.low_mark})
-        if self.query.high_mark is not None:
+        if limit is not None:
+            pipeline.append({"$limit": limit})
+        elif self.query.high_mark is not None:
             pipeline.append({"$limit": self.query.high_mark - self.query.low_mark})
+        if count:
+            pipeline.append({"$group": {"_id": None, "__count": {"$sum": 1}}})
         return self.collection.aggregate(pipeline)
 
 
