@@ -267,11 +267,18 @@ class SQLInsertCompiler(SQLCompiler):
         return inserted_ids if returning_fields else []
 
 
-class SQLDeleteCompiler(SQLCompiler):
+class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
     def execute_sql(self, result_type=MULTI):
         cursor = Cursor()
         cursor.rowcount = self.build_query([self.query.get_meta().pk]).delete()
         return cursor
+
+    def check_query(self):
+        super().check_query()
+        if not self.single_alias:
+            raise NotSupportedError(
+                "Cannot use QuerySet.delete() when querying across multiple collections on MongoDB."
+            )
 
 
 class SQLUpdateCompiler(SQLCompiler):

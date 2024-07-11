@@ -112,6 +112,7 @@ Migrations for 'admin':
   - `aggregate()`
   - `dates()`
   - `datetimes()`
+  - `delete()`, if the query uses multiple collections.
   - `distinct()`
   - `extra()`
   - `prefetch_related()`
