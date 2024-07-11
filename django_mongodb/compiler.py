@@ -90,7 +90,13 @@ class SQLCompiler(compiler.SQLCompiler):
         """Check if the current query is supported by the database."""
         if self.query.is_empty():
             raise EmptyResultSet()
-        if self.query.distinct:
+        if self.query.distinct or getattr(
+            # In the case of Query.distinct().count(), the distinct attribute
+            # will be set on the inner_query.
+            getattr(self.query, "inner_query", None),
+            "distinct",
+            None,
+        ):
             # This is a heuristic to detect QuerySet.datetimes() and dates().
             # "datetimefield" and "datefield" are the names of the annotations
             # the methods use. A user could annotate with the same names which
