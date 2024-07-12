@@ -83,7 +83,7 @@ class SQLCompiler(compiler.SQLCompiler):
                 if column_alias is not None and column_alias != self.collection_name
                 else entity
             )
-            result.append(obj.get(name, col.field.get_default()))
+            result.append(obj.get(name))
         return result
 
     def check_query(self):

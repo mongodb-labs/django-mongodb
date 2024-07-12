@@ -275,11 +275,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_query_annotation",
         },
         "QuerySet.annotate() has some limitations.": {
-            # annotate() with combined expressions doesn't work:
-            # 'WhereNode' object has no attribute 'field'
-            "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter",
-            "lookup.tests.LookupQueryingTests.test_combined_annotated_lookups_in_filter_false",
-            "lookup.tests.LookupQueryingTests.test_combined_lookups",
             # Invalid $project :: caused by :: Unknown expression $count,
             "annotations.tests.NonAggregateAnnotationTestCase.test_combined_expression_annotation_with_aggregation",
             "annotations.tests.NonAggregateAnnotationTestCase.test_combined_f_expression_annotation_with_aggregation",
