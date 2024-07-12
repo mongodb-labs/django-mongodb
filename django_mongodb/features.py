@@ -101,6 +101,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
         # alias().order_by() doesn't work.
         "annotations.tests.AliasTests.test_order_by_alias",
+        "annotations.tests.AliasTests.test_order_by_alias_aggregate",
         # annotate() + values_list() + order_by() loses annotated value.
         "expressions_case.tests.CaseExpressionTests.test_annotate_values_not_in_order_by",
         # Querying the reverse side of a foreign key for None returns no
@@ -273,25 +274,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_query_aggregation",
             "timezones.tests.NewDatabaseTests.test_query_annotation",
         },
-        "QuerySet.annotate() has some limitations.": {
-            # Invalid $project :: caused by :: Unknown expression $count,
-            "annotations.tests.NonAggregateAnnotationTestCase.test_combined_expression_annotation_with_aggregation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_combined_f_expression_annotation_with_aggregation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_full_expression_annotation_with_aggregation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_grouping_by_q_expression_annotation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_aggregate",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_q_expression_annotation_with_aggregation",
-            "defer_regress.tests.DeferRegressionTest.test_basic",
-            "defer_regress.tests.DeferRegressionTest.test_defer_annotate_select_related",
-            "defer_regress.tests.DeferRegressionTest.test_ticket_16409",
-            "expressions.tests.BasicExpressionsTests.test_aggregate_subquery_annotation",
-            "expressions.tests.FieldTransformTests.test_month_aggregation",
-            "expressions_case.tests.CaseDocumentationExamples.test_conditional_aggregation_example",
-            "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
-            # Func not implemented.
-            "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions_can_ref_other_functions",
-        },
         "Exists is not supported on MongoDB.": {
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_none_query",
             "expressions.tests.BasicExpressionsTests.test_annotation_with_deeply_nested_outerref",
@@ -353,12 +335,26 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "one_to_one.tests.OneToOneTests.test_get_prefetch_queryset_warning",
             "one_to_one.tests.OneToOneTests.test_rel_pk_subquery",
         },
-        "Count doesn't work in QuerySet.annotate()": {
+        # Invalid $project :: caused by :: Unknown expression $count
+        # https://github.com/mongodb-labs/django-mongodb/issues/79
+        "Count() in QuerySet.annotate() crashes.": {
             "annotations.tests.AliasTests.test_alias_annotate_with_aggregation",
-            "annotations.tests.AliasTests.test_order_by_alias_aggregate",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotate_exists",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotate_with_aggregation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_combined_expression_annotation_with_aggregation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_combined_f_expression_annotation_with_aggregation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_full_expression_annotation_with_aggregation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_grouping_by_q_expression_annotation",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_aggregate",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_q_expression_annotation_with_aggregation",
             "db_functions.comparison.test_cast.CastTests.test_cast_from_db_datetime_to_date_group_by",
+            "defer_regress.tests.DeferRegressionTest.test_basic",
+            "defer_regress.tests.DeferRegressionTest.test_defer_annotate_select_related",
+            "defer_regress.tests.DeferRegressionTest.test_ticket_16409",
+            "expressions.tests.BasicExpressionsTests.test_aggregate_subquery_annotation",
+            "expressions.tests.FieldTransformTests.test_month_aggregation",
+            "expressions_case.tests.CaseDocumentationExamples.test_conditional_aggregation_example",
+            "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
         },
         "Cannot use QuerySet.delete() when querying across multiple collections on MongoDB.": {
             "one_to_one.tests.OneToOneTests.test_o2o_primary_key_delete",
@@ -416,6 +412,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.NewDatabaseTests.test_cursor_explicit_time_zone",
             "timezones.tests.NewDatabaseTests.test_raw_sql",
+        },
+        "Custom functions with SQL don't work on MongoDB.": {
+            "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions_can_ref_other_functions",
         },
         "Bilateral transform not implemented.": {
             "db_functions.tests.FunctionTests.test_func_transform_bilateral",
