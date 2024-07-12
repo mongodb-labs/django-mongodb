@@ -99,6 +99,7 @@ jobs:
           sessions_tests
           timezones
           update
+          xor_lookups
 
   docs:
     name: Docs Checks
