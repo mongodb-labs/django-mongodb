@@ -75,6 +75,8 @@ jobs:
           dates
           datetimes
           db_functions
+          delete
+          delete_regress
           empty
           expressions
           expressions_case

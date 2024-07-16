@@ -276,6 +276,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "Exists is not supported on MongoDB.": {
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_none_query",
+            "delete_regress.tests.DeleteTests.test_self_reference_with_through_m2m_at_second_level",
             "expressions.tests.BasicExpressionsTests.test_annotation_with_deeply_nested_outerref",
             "expressions.tests.BasicExpressionsTests.test_boolean_expression_combined",
             "expressions.tests.BasicExpressionsTests.test_boolean_expression_combined_with_empty_Q",
@@ -357,6 +358,14 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
         },
         "Cannot use QuerySet.delete() when querying across multiple collections on MongoDB.": {
+            "delete.tests.FastDeleteTests.test_fast_delete_aggregation",
+            "delete.tests.FastDeleteTests.test_fast_delete_empty_no_update_can_self_select",
+            "delete.tests.FastDeleteTests.test_fast_delete_full_match",
+            "delete.tests.FastDeleteTests.test_fast_delete_joined_qs",
+            "delete_regress.tests.DeleteTests.test_meta_ordered_delete",
+            "delete_regress.tests.Ticket19102Tests.test_ticket_19102_annotate",
+            "delete_regress.tests.Ticket19102Tests.test_ticket_19102_defer",
+            "delete_regress.tests.Ticket19102Tests.test_ticket_19102_select_related",
             "one_to_one.tests.OneToOneTests.test_o2o_primary_key_delete",
         },
         "QuerySet.dates() is not supported on MongoDB.": {
@@ -384,6 +393,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes",
             "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes_and_values",
             "defer.tests.DeferTests.test_defer_extra",
+            "delete_regress.tests.Ticket19102Tests.test_ticket_19102_extra",
             "lookup.tests.LookupTests.test_values",
             "lookup.tests.LookupTests.test_values_list",
             "ordering.tests.OrderingTests.test_extra_ordering",
@@ -395,11 +405,13 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "update.tests.AdvancedTests.test_update_annotated_multi_table_queryset",
         },
         "Test inspects query for SQL": {
+            "delete.tests.DeletionTests.test_only_referenced_fields_selected",
             "lookup.tests.LookupTests.test_in_ignore_none",
             "lookup.tests.LookupTests.test_textfield_exact_null",
         },
         "Test executes raw SQL.": {
             "annotations.tests.NonAggregateAnnotationTestCase.test_raw_sql_with_inherited_field",
+            "delete_regress.tests.DeleteLockingTest.test_concurrent_delete",
             "expressions.tests.BasicExpressionsTests.test_annotate_values_filter",
             "expressions.tests.BasicExpressionsTests.test_filtering_on_rawsql_that_is_boolean",
             "model_fields.test_jsonfield.TestQuerying.test_key_sql_injection_escape",
