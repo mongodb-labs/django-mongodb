@@ -98,7 +98,7 @@ jobs:
           one_to_one
           ordering
           or_lookups
-          queries.tests.Ticket12807Tests.test_ticket_12807
+          queries
           select_related
           select_related_onetoone
           select_related_regress

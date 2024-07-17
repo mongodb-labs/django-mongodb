@@ -110,6 +110,7 @@ Migrations for 'admin':
 
 - The following `QuerySet` methods aren't supported:
   - `aggregate()`
+  - `bulk_update()`
   - `dates()`
   - `datetimes()`
   - `delete()`, if the query uses multiple collections.

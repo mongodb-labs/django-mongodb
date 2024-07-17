@@ -3,6 +3,7 @@ from django.utils.functional import cached_property
 
 
 class DatabaseFeatures(BaseDatabaseFeatures):
+    allow_sliced_subqueries_with_in = False
     greatest_least_ignores_nulls = True
     has_json_object_function = False
     has_native_json_field = True
@@ -12,6 +13,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_json_field_contains = False
     # BSON Date type doesn't support microsecond precision.
     supports_microsecond_precision = False
+    supports_select_difference = False
+    supports_select_intersection = False
+    # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/72
+    supports_select_union = False
     supports_temporal_subtraction = True
     # MongoDB stores datetimes in UTC.
     supports_timezones = False
@@ -60,6 +65,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation_desc",
         # 'ManyToOneRel' object has no attribute 'column'
         "m2m_through.tests.M2mThroughTests.test_order_by_relational_field_through_model",
+        "queries.tests.Queries4Tests.test_order_by_reverse_fk",
         # pymongo: ValueError: update cannot be empty
         "update.tests.SimpleTest.test_empty_update_with_inheritance",
         "update.tests.SimpleTest.test_nonempty_update_with_inheritance",
@@ -99,6 +105,25 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "ordering.tests.OrderingTests.test_order_by_grandparent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_parent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
+        "queries.tests.NullJoinPromotionOrTest.test_isnull_filter_promotion",
+        "queries.tests.NullJoinPromotionOrTest.test_ticket_21366",
+        "queries.tests.NullJoinPromotionOrTest.test_ticket_21748",
+        "queries.tests.Queries1Tests.test_order_by_tables",
+        "queries.tests.Queries1Tests.test_ticket1050",
+        "queries.tests.Queries1Tests.test_ticket2400",
+        "queries.tests.Queries1Tests.test_ticket4358",
+        "queries.tests.Queries1Tests.test_ticket_10790_1",
+        "queries.tests.Queries1Tests.test_ticket_10790_4",
+        "queries.tests.Queries1Tests.test_ticket_10790_6",
+        "queries.tests.Queries1Tests.test_ticket_10790_7",
+        "queries.tests.Queries4Tests.test_filter_reverse_non_integer_pk",
+        "queries.tests.Queries4Tests.test_ticket15316_exclude_false",
+        "queries.tests.Queries4Tests.test_ticket15316_filter_true",
+        "queries.tests.Queries4Tests.test_ticket15316_one2one_exclude_false",
+        "queries.tests.Queries4Tests.test_ticket15316_one2one_filter_true",
+        "queries.tests.Queries4Tests.test_ticket7095",
+        "queries.tests.TestTicket24605.test_ticket_24605",
+        "queries.tests.TestInvalidValuesRelation.test_invalid_values",
         # alias().order_by() doesn't work.
         "annotations.tests.AliasTests.test_order_by_alias",
         "annotations.tests.AliasTests.test_order_by_alias_aggregate",
@@ -107,6 +132,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Querying the reverse side of a foreign key for None returns no
         # results: https://github.com/mongodb-labs/django-mongodb/issues/76
         "one_to_one.tests.OneToOneTests.test_filter_one_to_one_relations",
+        # pymongo.errors.OperationFailure: the limit must be positive
+        "queries.tests.WeirdQuerysetSlicingTests.test_tickets_7698_10202",
+        # QuerySet.explain() not implemented:
+        # https://github.com/mongodb-labs/django-mongodb/issues/28
+        "queries.test_explain.ExplainUnsupportedTests.test_message",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -208,6 +238,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions_case.tests.CaseExpressionTests.test_update_with_expression_as_value",
             "expressions_case.tests.CaseExpressionTests.test_update_without_default",
             "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
+            "queries.test_bulk_update.BulkUpdateNoteTests",
+            "queries.test_bulk_update.BulkUpdateTests",
             "timezones.tests.NewDatabaseTests.test_update_with_timedelta",
             "update.tests.AdvancedTests.test_update_annotated_queryset",
             "update.tests.AdvancedTests.test_update_negated_f",
@@ -296,6 +328,31 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_exact_exists",
             "lookup.tests.LookupTests.test_nested_outerref_lhs",
             "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
+            "queries.tests.ExcludeTest17600.test_exclude_plain",
+            "queries.tests.ExcludeTest17600.test_exclude_with_q_is_equal_to_plain_exclude_variation",
+            "queries.tests.ExcludeTest17600.test_exclude_with_q_object_no_distinct",
+            "queries.tests.ExcludeTests.test_exclude_multivalued_exists",
+            "queries.tests.ExcludeTests.test_exclude_reverse_fk_field_ref",
+            "queries.tests.ExcludeTests.test_exclude_with_circular_fk_relation",
+            "queries.tests.ExcludeTests.test_subquery_exclude_outerref",
+            "queries.tests.ExcludeTests.test_to_field",
+            "queries.tests.ForeignKeyToBaseExcludeTests.test_ticket_21787",
+            "queries.tests.JoinReuseTest.test_inverted_q_across_relations",
+            "queries.tests.ManyToManyExcludeTest.test_exclude_many_to_many",
+            "queries.tests.ManyToManyExcludeTest.test_ticket_12823",
+            "queries.tests.Queries1Tests.test_double_exclude",
+            "queries.tests.Queries1Tests.test_exclude",
+            "queries.tests.Queries1Tests.test_exclude_in",
+            "queries.tests.Queries1Tests.test_excluded_intermediary_m2m_table_joined",
+            "queries.tests.Queries1Tests.test_nested_exclude",
+            "queries.tests.Queries4Tests.test_join_reuse_order",
+            "queries.tests.Queries4Tests.test_ticket24525",
+            "queries.tests.Queries6Tests.test_tickets_8921_9188",
+            "queries.tests.Queries6Tests.test_xor_subquery",
+            "queries.tests.QuerySetBitwiseOperationTests.test_subquery_aliases",
+            "queries.tests.Ticket20101Tests.test_ticket_20101",
+            "queries.tests.Ticket20788Tests.test_ticket_20788",
+            "queries.tests.Ticket22429Tests.test_ticket_22429",
         },
         "Subquery is not supported on MongoDB.": {
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_filter_with_subquery",
@@ -340,6 +397,26 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_jsonfield.TestQuerying.test_usage_in_subquery",
             "one_to_one.tests.OneToOneTests.test_get_prefetch_queryset_warning",
             "one_to_one.tests.OneToOneTests.test_rel_pk_subquery",
+            "queries.tests.CloneTests.test_evaluated_queryset_as_argument",
+            "queries.tests.DoubleInSubqueryTests.test_double_subquery_in",
+            "queries.tests.EmptyQuerySetTests.test_values_subquery",
+            "queries.tests.ExcludeTests.test_exclude_subquery",
+            "queries.tests.NullInExcludeTest.test_null_in_exclude_qs",
+            "queries.tests.Queries1Tests.test_ticket9985",
+            "queries.tests.Queries1Tests.test_ticket9997",
+            "queries.tests.Queries1Tests.test_ticket10742",
+            "queries.tests.Queries4Tests.test_ticket10181",
+            "queries.tests.Queries5Tests.test_queryset_reuse",
+            "queries.tests.QuerySetBitwiseOperationTests.test_conflicting_aliases_during_combine",
+            "queries.tests.RelabelCloneTest.test_ticket_19964",
+            "queries.tests.RelatedLookupTypeTests.test_correct_lookup",
+            "queries.tests.RelatedLookupTypeTests.test_values_queryset_lookup",
+            "queries.tests.Ticket23605Tests.test_ticket_23605",
+            "queries.tests.ToFieldTests.test_in_subquery",
+            "queries.tests.ToFieldTests.test_nested_in_subquery",
+            "queries.tests.ValuesSubqueryTests.test_values_in_subquery",
+            "queries.tests.WeirdQuerysetSlicingTests.test_empty_sliced_subquery",
+            "queries.tests.WeirdQuerysetSlicingTests.test_empty_sliced_subquery_exclude",
         },
         # Invalid $project :: caused by :: Unknown expression $count
         # https://github.com/mongodb-labs/django-mongodb/issues/79
@@ -361,6 +438,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.FieldTransformTests.test_month_aggregation",
             "expressions_case.tests.CaseDocumentationExamples.test_conditional_aggregation_example",
             "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
+            "queries.tests.Queries1Tests.test_ticket_20250",
+            "queries.tests.ValuesQuerysetTests.test_named_values_list_expression_with_default_alias",
         },
         "Cannot use QuerySet.delete() when querying across multiple collections on MongoDB.": {
             "delete.tests.FastDeleteTests.test_fast_delete_aggregation",
@@ -384,12 +463,29 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "datetimes.tests.DateTimesTests.test_datetimes_has_lazy_iterator",
             "datetimes.tests.DateTimesTests.test_datetimes_returns_available_dates_for_given_scope_and_given_field",
             "datetimes.tests.DateTimesTests.test_related_model_traverse",
+            "queries.tests.Queries1Tests.test_ticket7155",
+            "queries.tests.Queries1Tests.test_tickets_7087_12242",
             "timezones.tests.LegacyDatabaseTests.test_query_datetimes",
             "timezones.tests.NewDatabaseTests.test_query_datetimes",
             "timezones.tests.NewDatabaseTests.test_query_datetimes_in_other_timezone",
         },
         "QuerySet.distinct() is not supported.": {
             "lookup.tests.LookupTests.test_lookup_collision_distinct",
+            "queries.tests.ExcludeTest17600.test_exclude_plain_distinct",
+            "queries.tests.ExcludeTest17600.test_exclude_with_q_is_equal_to_plain_exclude",
+            "queries.tests.ExcludeTest17600.test_exclude_with_q_object_distinct",
+            "queries.tests.ExcludeTests.test_exclude_m2m_through",
+            "queries.tests.ExistsSql.test_distinct_exists",
+            "queries.tests.ExistsSql.test_sliced_distinct_exists",
+            "queries.tests.ExistsSql.test_ticket_18414",
+            "queries.tests.Queries1Tests.test_ticket4464",
+            "queries.tests.Queries1Tests.test_ticket7096",
+            "queries.tests.Queries1Tests.test_ticket7791",
+            "queries.tests.Queries1Tests.test_tickets_1878_2939",
+            "queries.tests.Queries1Tests.test_tickets_5321_7070",
+            "queries.tests.Queries1Tests.test_tickets_5324_6704",
+            "queries.tests.Queries1Tests.test_tickets_6180_6203",
+            "queries.tests.Queries6Tests.test_distinct_ordered_sliced_subquery_aggregation",
             "update.tests.AdvancedTests.test_update_all",
         },
         "QuerySet.extra() is not supported.": {
@@ -404,6 +500,18 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "ordering.tests.OrderingTests.test_extra_ordering",
             "ordering.tests.OrderingTests.test_extra_ordering_quoting",
             "ordering.tests.OrderingTests.test_extra_ordering_with_table_name",
+            "queries.tests.EscapingTests.test_ticket_7302",
+            "queries.tests.Queries5Tests.test_extra_select_literal_percent_s",
+            "queries.tests.Queries5Tests.test_ticket7256",
+            "queries.tests.ValuesQuerysetTests.test_extra_multiple_select_params_values_order_by",
+            "queries.tests.ValuesQuerysetTests.test_extra_select_params_values_order_in_extra",
+            "queries.tests.ValuesQuerysetTests.test_extra_values",
+            "queries.tests.ValuesQuerysetTests.test_extra_values_list",
+            "queries.tests.ValuesQuerysetTests.test_extra_values_order_multiple",
+            "queries.tests.ValuesQuerysetTests.test_extra_values_order_twice",
+            "queries.tests.ValuesQuerysetTests.test_flat_extra_values_list",
+            "queries.tests.ValuesQuerysetTests.test_named_values_list_with_fields",
+            "queries.tests.ValuesQuerysetTests.test_named_values_list_without_fields",
             "select_related.tests.SelectRelatedTests.test_select_related_with_extra",
         },
         "QuerySet.update() crash: Unrecognized expression '$count'": {
@@ -413,6 +521,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "delete.tests.DeletionTests.test_only_referenced_fields_selected",
             "lookup.tests.LookupTests.test_in_ignore_none",
             "lookup.tests.LookupTests.test_textfield_exact_null",
+            "queries.tests.ExistsSql.test_exists",
+            "queries.tests.Queries6Tests.test_col_alias_quoted",
         },
         "Test executes raw SQL.": {
             "annotations.tests.NonAggregateAnnotationTestCase.test_raw_sql_with_inherited_field",
@@ -422,6 +532,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_jsonfield.TestQuerying.test_key_sql_injection_escape",
             "model_fields.test_jsonfield.TestQuerying.test_key_transform_raw_expression",
             "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_raw_expression",
+            "queries.tests.Queries1Tests.test_order_by_rawsql",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_raw_sql",
@@ -505,6 +616,25 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "Randomized ordering isn't supported by MongoDB.": {
             "ordering.tests.OrderingTests.test_random_ordering",
+        },
+        # https://github.com/mongodb-labs/django-mongodb/issues/34
+        "Ordering can't span tables on MongoDB": {
+            "queries.tests.ConditionalTests.test_infinite_loop",
+            "queries.tests.NullableRelOrderingTests.test_join_already_in_query",
+            "queries.tests.Queries1Tests.test_order_by_related_field_transform",
+            "queries.tests.Queries1Tests.test_ticket7181",
+            "queries.tests.Queries1Tests.test_tickets_2076_7256",
+            "queries.tests.Queries1Tests.test_tickets_2874_3002",
+            "queries.tests.Queries5Tests.test_ordering",
+            "queries.tests.Queries5Tests.test_ticket9848",
+            "queries.tests.Ticket14056Tests.test_ticket_14056",
+        },
+        "Queries without a collection aren't supported on MongoDB.": {
+            "queries.test_q.QCheckTests",
+            "queries.test_query.TestQueryNoModel",
+        },
+        "Test not applicable for MongoDB's SQLCompiler.": {
+            "queries.test_iterator.QuerySetIteratorTests",
         },
     }
 
