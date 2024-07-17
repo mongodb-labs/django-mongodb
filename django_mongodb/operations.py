@@ -26,6 +26,7 @@ class DatabaseOperations(BaseDatabaseOperations):
         Combinable.BITOR: "bitOr",
         Combinable.BITXOR: "bitXor",
     }
+    explain_options = {"comment", "verbosity"}
 
     def adapt_datefield_value(self, value):
         """Store DateField as datetime."""
@@ -197,6 +198,19 @@ class DatabaseOperations(BaseDatabaseOperations):
         if field_kind == "DecimalField":
             value = self.adapt_decimalfield_value(value, field.max_digits, field.decimal_places)
         return value
+
+    def explain_query_prefix(self, format=None, **options):
+        # Validate options.
+        validated_options = {}
+        if options:
+            for valid_option in self.explain_options:
+                value = options.pop(valid_option, None)
+                if value is not None:
+                    validated_options[valid_option] = value
+        # super() raises an error if any options are left after the valid ones
+        # are popped above.
+        super().explain_query_prefix(format, **options)
+        return validated_options
 
     """Django uses these methods to generate SQL queries before it generates MQL queries."""
 

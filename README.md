@@ -112,6 +112,16 @@ And whenever you run `python manage.py startapp`, you must remove the line:
 
 from the new application's `apps.py` file.
 
+## Notes on Django QuerySets
+
+* `QuerySet.explain()` supports the [`comment` and `verbosity` options](
+  https://www.mongodb.com/docs/manual/reference/command/explain/#command-fields).
+
+   Example: `QuerySet.explain(comment="...", verbosity="...")`
+
+   Valid values for `verbosity` are `"queryPlanner"` (default),
+   `"executionStats"`, and `"allPlansExecution"`.
+
 ## Known issues and limitations
 
 - The following `QuerySet` methods aren't supported:

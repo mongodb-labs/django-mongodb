@@ -1,4 +1,5 @@
 import itertools
+import pprint
 from collections import defaultdict
 
 from bson import SON
@@ -490,6 +491,37 @@ class SQLCompiler(compiler.SQLCompiler):
 
     def get_where(self):
         return self.where
+
+    def explain_query(self):
+        # Validate format (none supported) and options.
+        options = self.connection.ops.explain_query_prefix(
+            self.query.explain_info.format,
+            **self.query.explain_info.options,
+        )
+        # Build the query pipeline.
+        self.pre_sql_setup()
+        columns = self.get_columns()
+        query = self.build_query(
+            # Avoid $project (columns=None) if unneeded.
+            columns if self.query.annotations or not self.query.default_cols else None
+        )
+        pipeline = query.get_pipeline()
+        # Explain the pipeline.
+        kwargs = {}
+        for option in self.connection.ops.explain_options:
+            if value := options.get(option):
+                kwargs[option] = value
+        explain = self.connection.database.command(
+            "explain",
+            {"aggregate": self.collection_name, "pipeline": pipeline, "cursor": {}},
+            **kwargs,
+        )
+        # Generate the output: a list of lines that Django joins with newlines.
+        result = []
+        for key, value in explain.items():
+            formatted_value = pprint.pformat(value, indent=4)
+            result.append(f"{key}: {formatted_value}")
+        return result
 
 
 class SQLInsertCompiler(SQLCompiler):

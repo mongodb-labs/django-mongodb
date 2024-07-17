@@ -8,6 +8,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     has_json_object_function = False
     has_native_json_field = True
     supports_date_lookup_using_string = False
+    supports_explaining_query_execution = True
     supports_foreign_keys = False
     supports_ignore_conflicts = False
     supports_json_field_contains = False
@@ -53,9 +54,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
         # Unexpected alias_refcount in alias_map.
         "queries.tests.Queries1Tests.test_order_by_tables",
-        # QuerySet.explain() not implemented:
-        # https://github.com/mongodb-labs/django-mongodb/issues/28
-        "queries.test_explain.ExplainUnsupportedTests.test_message",
         # The $sum aggregation returns 0 instead of None for null.
         "aggregation.test_filter_argument.FilteredAggregateTests.test_plain_annotate",
         "aggregation.tests.AggregateTestCase.test_aggregation_default_passed_another_aggregate",
