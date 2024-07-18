@@ -1,10 +1,10 @@
-from django.core.exceptions import EmptyResultSet, FieldDoesNotExist, FullResultSet
+from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError, NotSupportedError
 from django.db.models import Count, Expression
 from django.db.models.aggregates import Aggregate
-from django.db.models.constants import LOOKUP_SEP
+from django.db.models.expressions import OrderBy
 from django.db.models.sql import compiler
-from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE, MULTI
+from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE, MULTI, ORDER_DIR
 from django.utils.functional import cached_property
 
 from .base import Cursor
@@ -199,31 +199,37 @@ class SQLCompiler(compiler.SQLCompiler):
             if self.query.default_ordering
             else self.query.order_by
         )
-
         if not ordering:
             return self.query.standard_ordering
-
+        default_order, _ = ORDER_DIR["ASC" if self.query.standard_ordering else "DESC"]
         column_ordering = []
+        columns_seen = set()
         for order in ordering:
-            if LOOKUP_SEP in order:
-                raise NotSupportedError("Ordering can't span tables on MongoDB (%s)." % order)
             if order == "?":
                 raise NotSupportedError("Randomized ordering isn't supported by MongoDB.")
-
-            ascending = not order.startswith("-")
-            if not self.query.standard_ordering:
-                ascending = not ascending
-
-            name = order.lstrip("+-")
-            if name == "pk":
-                name = opts.pk.name
-
-            try:
-                column = opts.get_field(name).column
-            except FieldDoesNotExist:
-                # `name` is an annotation in $project.
-                column = name
-            column_ordering.append((column, ascending))
+            if hasattr(order, "resolve_expression"):
+                # order is an expression like OrderBy, F, or database function.
+                orderby = order if isinstance(order, OrderBy) else order.asc()
+                orderby = orderby.resolve_expression(self.query, allow_joins=True, reuse=None)
+                ascending = not orderby.descending
+                # If the query is reversed, ascending and descending are inverted.
+                if not self.query.standard_ordering:
+                    ascending = not ascending
+            else:
+                # order is a string like "field" or "field__other_field".
+                orderby, _ = self.find_ordering_name(
+                    order, self.query.get_meta(), default_order=default_order
+                )[0]
+                ascending = not orderby.descending
+            column = orderby.expression.as_mql(self, self.connection)
+            if isinstance(column, dict):
+                raise NotSupportedError("order_by() expression not supported.")
+            # $sort references must not include the dollar sign.
+            column = column.removeprefix("$")
+            # Don't add the same column twice.
+            if column not in columns_seen:
+                columns_seen.add(column)
+                column_ordering.append((column, ascending))
         return column_ordering
 
     @cached_property

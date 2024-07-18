@@ -9,8 +9,10 @@ from django.db.models.expressions import (
     Col,
     CombinedExpression,
     ExpressionWrapper,
+    F,
     NegatedExpression,
     Ref,
+    ResolvedOuterRef,
     Subquery,
     Value,
     When,
@@ -61,6 +63,10 @@ def expression_wrapper(self, compiler, connection):
     return self.expression.as_mql(compiler, connection)
 
 
+def f(self, compiler, connection):  # noqa: ARG001
+    return f"${self.name}"
+
+
 def negated_expression(self, compiler, connection):
     return {"$not": expression_wrapper(self, compiler, connection)}
 
@@ -102,9 +108,11 @@ def register_expressions():
     Col.as_mql = col
     CombinedExpression.as_mql = combined_expression
     ExpressionWrapper.as_mql = expression_wrapper
+    F.as_mql = f
     NegatedExpression.as_mql = negated_expression
     Query.as_mql = query
     Ref.as_mql = ref
+    ResolvedOuterRef.as_mql = ResolvedOuterRef.as_sql
     Subquery.as_mql = subquery
     When.as_mql = when
     Value.as_mql = value

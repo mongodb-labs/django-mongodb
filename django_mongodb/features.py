@@ -32,40 +32,25 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
-        # Lookup in order_by() not supported:
-        # argument of type '<database function>' is not iterable
+        # Order by constant not supported:
+        # AttributeError: 'Field' object has no attribute 'model'
+        "ordering.tests.OrderingTests.test_order_by_constant_value",
+        "expressions.tests.NegatedExpressionTests.test_filter",
+        "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_implicit",
+        # NotSupportedError: order_by() expression not supported.
         "db_functions.comparison.test_coalesce.CoalesceTests.test_ordering",
         "db_functions.tests.FunctionTests.test_nested_function_ordering",
         "db_functions.text.test_length.LengthTests.test_ordering",
         "db_functions.text.test_strindex.StrIndexTests.test_order_by",
-        "expressions.tests.BasicExpressionsTests.test_order_by_exists",
-        "expressions.tests.BasicExpressionsTests.test_order_by_multiline_sql",
         "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_explicit",
         "lookup.tests.LookupQueryingTests.test_lookup_in_order_by",
-        "ordering.tests.OrderingTests.test_default_ordering",
-        "ordering.tests.OrderingTests.test_default_ordering_by_f_expression",
-        "ordering.tests.OrderingTests.test_default_ordering_does_not_affect_group_by",
-        "ordering.tests.OrderingTests.test_order_by_constant_value",
         "ordering.tests.OrderingTests.test_order_by_expr_query_reuse",
         "ordering.tests.OrderingTests.test_order_by_expression_ref",
-        "ordering.tests.OrderingTests.test_order_by_f_expression",
-        "ordering.tests.OrderingTests.test_order_by_f_expression_duplicates",
-        "ordering.tests.OrderingTests.test_order_by_fk_attname",
-        "ordering.tests.OrderingTests.test_order_by_nulls_first",
-        "ordering.tests.OrderingTests.test_order_by_nulls_last",
         "ordering.tests.OrderingTests.test_ordering_select_related_collision",
-        "ordering.tests.OrderingTests.test_order_by_self_referential_fk",
-        "ordering.tests.OrderingTests.test_orders_nulls_first_on_filtered_subquery",
-        "ordering.tests.OrderingTests.test_related_ordering_duplicate_table_reference",
-        "ordering.tests.OrderingTests.test_reverse_ordering_pure",
-        "ordering.tests.OrderingTests.test_reverse_meta_ordering_pure",
-        "ordering.tests.OrderingTests.test_reversed_ordering",
+        "queries.tests.Queries1Tests.test_order_by_related_field_transform",
         "update.tests.AdvancedTests.test_update_ordered_by_inline_m2m_annotation",
         "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation",
         "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation_desc",
-        # 'ManyToOneRel' object has no attribute 'column'
-        "m2m_through.tests.M2mThroughTests.test_order_by_relational_field_through_model",
-        "queries.tests.Queries4Tests.test_order_by_reverse_fk",
         # pymongo: ValueError: update cannot be empty
         "update.tests.SimpleTest.test_empty_update_with_inheritance",
         "update.tests.SimpleTest.test_nonempty_update_with_inheritance",
@@ -137,6 +122,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # QuerySet.explain() not implemented:
         # https://github.com/mongodb-labs/django-mongodb/issues/28
         "queries.test_explain.ExplainUnsupportedTests.test_message",
+        # filter() on related model + update() doesn't work.
+        "queries.tests.Queries5Tests.test_ticket9848",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -320,6 +307,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.BasicExpressionsTests.test_boolean_expression_in_Q",
             "expressions.tests.BasicExpressionsTests.test_case_in_filter_if_boolean_output_field",
             "expressions.tests.BasicExpressionsTests.test_exists_in_filter",
+            "expressions.tests.BasicExpressionsTests.test_order_by_exists",
             "expressions.tests.BasicExpressionsTests.test_subquery",
             "expressions.tests.ExistsTests.test_filter_by_empty_exists",
             "expressions.tests.ExistsTests.test_negated_empty_exists",
@@ -438,6 +426,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.FieldTransformTests.test_month_aggregation",
             "expressions_case.tests.CaseDocumentationExamples.test_conditional_aggregation_example",
             "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
+            "ordering.tests.OrderingTests.test_default_ordering_does_not_affect_group_by",
             "queries.tests.Queries1Tests.test_ticket_20250",
             "queries.tests.ValuesQuerysetTests.test_named_values_list_expression_with_default_alias",
         },
@@ -514,6 +503,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.tests.ValuesQuerysetTests.test_named_values_list_without_fields",
             "select_related.tests.SelectRelatedTests.test_select_related_with_extra",
         },
+        "Ordering a QuerySet by null_first/nulls_last is not supported on MongoDB.": {
+            "ordering.tests.OrderingTests.test_order_by_nulls_first",
+            "ordering.tests.OrderingTests.test_order_by_nulls_last",
+            "ordering.tests.OrderingTests.test_orders_nulls_first_on_filtered_subquery",
+        },
         "QuerySet.update() crash: Unrecognized expression '$count'": {
             "update.tests.AdvancedTests.test_update_annotated_multi_table_queryset",
         },
@@ -529,6 +523,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "delete_regress.tests.DeleteLockingTest.test_concurrent_delete",
             "expressions.tests.BasicExpressionsTests.test_annotate_values_filter",
             "expressions.tests.BasicExpressionsTests.test_filtering_on_rawsql_that_is_boolean",
+            "expressions.tests.BasicExpressionsTests.test_order_by_multiline_sql",
             "model_fields.test_jsonfield.TestQuerying.test_key_sql_injection_escape",
             "model_fields.test_jsonfield.TestQuerying.test_key_transform_raw_expression",
             "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_raw_expression",
@@ -616,18 +611,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "Randomized ordering isn't supported by MongoDB.": {
             "ordering.tests.OrderingTests.test_random_ordering",
-        },
-        # https://github.com/mongodb-labs/django-mongodb/issues/34
-        "Ordering can't span tables on MongoDB": {
-            "queries.tests.ConditionalTests.test_infinite_loop",
-            "queries.tests.NullableRelOrderingTests.test_join_already_in_query",
-            "queries.tests.Queries1Tests.test_order_by_related_field_transform",
-            "queries.tests.Queries1Tests.test_ticket7181",
-            "queries.tests.Queries1Tests.test_tickets_2076_7256",
-            "queries.tests.Queries1Tests.test_tickets_2874_3002",
-            "queries.tests.Queries5Tests.test_ordering",
-            "queries.tests.Queries5Tests.test_ticket9848",
-            "queries.tests.Ticket14056Tests.test_ticket_14056",
         },
         "Queries without a collection aren't supported on MongoDB.": {
             "queries.test_q.QCheckTests",

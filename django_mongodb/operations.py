@@ -6,9 +6,9 @@ from decimal import Decimal
 
 from bson.decimal128 import Decimal128
 from django.conf import settings
-from django.db import DataError
+from django.db import DataError, NotSupportedError
 from django.db.backends.base.operations import BaseDatabaseOperations
-from django.db.models.expressions import Combinable
+from django.db.models.expressions import Combinable, OrderBy
 from django.utils import timezone
 from django.utils.regex_helper import _lazy_re_compile
 
@@ -139,6 +139,11 @@ class DatabaseOperations(BaseDatabaseOperations):
         if value is not None:
             value = uuid.UUID(value)
         return value
+
+    def check_expression_support(self, expression):
+        if isinstance(expression, OrderBy) and (expression.nulls_first or expression.nulls_last):
+            option = "null_first" if expression.nulls_first else "nulls_last"
+            raise NotSupportedError(f"Ordering a QuerySet by {option} is not supported on MongoDB.")
 
     def combine_expression(self, connector, sub_expressions):
         lhs, rhs = sub_expressions
