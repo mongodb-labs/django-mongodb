@@ -148,6 +148,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_uuid.TestQuerying.test_istartswith",
             "model_fields.test_uuid.TestQuerying.test_startswith",
         },
+        "QuerySet.prefetch_related() is not supported on MongoDB.": {
+            "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_proxied",
+            "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_reverse_proxied",
+        },
         "QuerySet.update() with expression not supported.": {
             "annotations.tests.AliasTests.test_update_with_alias",
             "annotations.tests.NonAggregateAnnotationTestCase.test_update_with_annotation",
@@ -214,6 +218,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_nullable_fields",
             "lookup.tests.LookupTests.test_filter_by_reverse_related_field_transform",
             "lookup.tests.LookupTests.test_in_ignore_none_with_unhashable_items",
+            "m2m_through_regress.tests.ThroughLoadDataTestCase.test_sequence_creation",
             "model_fields.test_autofield.AutoFieldTests",
             "model_fields.test_autofield.BigAutoFieldTests",
             "model_fields.test_autofield.SmallAutoFieldTests",
