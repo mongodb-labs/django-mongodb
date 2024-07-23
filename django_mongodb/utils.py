@@ -42,7 +42,7 @@ class CollectionDebugWrapper:
 
     def log(self, op, duration, args, kwargs=None):
         msg = "(%.3f) %s"
-        args = " ".join(str(arg) for arg in args)
+        args = ", ".join(str(arg) for arg in args)
         operation = f"{self.collection.name}.{op}({args})"
         kwargs = {k: v for k, v in kwargs.items() if v}
         if kwargs:
