@@ -53,10 +53,6 @@ class MongoQuery:
     def __repr__(self):
         return f"<MongoQuery: {self.mongo_query!r} ORDER {self.ordering!r}>"
 
-    def fetch(self):
-        """Return an iterator over the query results."""
-        yield from self.get_cursor()
-
     @wrap_database_errors
     def count(self, limit=None, skip=None):
         """
