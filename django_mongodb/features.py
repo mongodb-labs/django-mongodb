@@ -51,9 +51,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "update.tests.AdvancedTests.test_update_ordered_by_inline_m2m_annotation",
         "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation",
         "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation_desc",
-        # pymongo: ValueError: update cannot be empty
-        "update.tests.SimpleTest.test_empty_update_with_inheritance",
-        "update.tests.SimpleTest.test_nonempty_update_with_inheritance",
         # Pattern lookups that use regexMatch don't work on JSONField:
         # Unsupported conversion from array to string in $convert
         "model_fields.test_jsonfield.TestQuerying.test_icontains",

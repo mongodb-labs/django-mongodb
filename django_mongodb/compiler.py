@@ -324,8 +324,14 @@ class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
             )
 
 
-class SQLUpdateCompiler(SQLCompiler):
+class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
     def execute_sql(self, result_type):
+        """
+        Execute the specified update. Return the number of rows affected by
+        the primary update query. The "primary update query" is the first
+        non-empty query that is executed. Row counts for any subsequent,
+        related queries are not available.
+        """
         self.pre_sql_setup()
         values = []
         for field, _, value in self.query.values:
@@ -340,7 +346,14 @@ class SQLUpdateCompiler(SQLCompiler):
                     )
             prepared = field.get_db_prep_save(value, connection=self.connection)
             values.append((field, prepared))
-        return self.update(values)
+        is_empty = not bool(values)
+        rows = 0 if is_empty else self.update(values)
+        for query in self.query.get_related_updates():
+            aux_rows = query.get_compiler(self.using).execute_sql(result_type)
+            if is_empty and aux_rows:
+                rows = aux_rows
+                is_empty = False
+        return rows
 
     def update(self, values):
         spec = {}
