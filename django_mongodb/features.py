@@ -101,7 +101,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "queries.tests.Queries1Tests.test_ticket_10790_4",
         "queries.tests.Queries1Tests.test_ticket_10790_6",
         "queries.tests.Queries1Tests.test_ticket_10790_7",
-        "queries.tests.Queries4Tests.test_filter_reverse_non_integer_pk",
         "queries.tests.Queries4Tests.test_ticket15316_exclude_false",
         "queries.tests.Queries4Tests.test_ticket15316_filter_true",
         "queries.tests.Queries4Tests.test_ticket15316_one2one_exclude_false",
