@@ -77,7 +77,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
         "lookup.tests.LookupTests.test_lookup_rhs",
         # Wrong results in queries with multiple tables.
-        "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_aggregate_with_m2o",
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_reverse_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_chaining_annotation_filter_with_m2m",
@@ -85,26 +84,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression_flat",
         "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
-        "expressions_case.tests.CaseExpressionTests.test_join_promotion",
-        "expressions_case.tests.CaseExpressionTests.test_join_promotion_multiple_annotations",
         "ordering.tests.OrderingTests.test_order_by_grandparent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_parent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
-        "queries.tests.NullJoinPromotionOrTest.test_isnull_filter_promotion",
-        "queries.tests.NullJoinPromotionOrTest.test_ticket_21366",
-        "queries.tests.NullJoinPromotionOrTest.test_ticket_21748",
         "queries.tests.Queries1Tests.test_order_by_tables",
-        "queries.tests.Queries1Tests.test_ticket1050",
-        "queries.tests.Queries1Tests.test_ticket2400",
         "queries.tests.Queries1Tests.test_ticket4358",
-        "queries.tests.Queries1Tests.test_ticket_10790_1",
-        "queries.tests.Queries1Tests.test_ticket_10790_4",
-        "queries.tests.Queries1Tests.test_ticket_10790_6",
-        "queries.tests.Queries1Tests.test_ticket_10790_7",
-        "queries.tests.Queries4Tests.test_ticket15316_exclude_false",
-        "queries.tests.Queries4Tests.test_ticket15316_filter_true",
-        "queries.tests.Queries4Tests.test_ticket15316_one2one_exclude_false",
-        "queries.tests.Queries4Tests.test_ticket15316_one2one_filter_true",
         "queries.tests.Queries4Tests.test_ticket7095",
         "queries.tests.TestTicket24605.test_ticket_24605",
         "queries.tests.TestInvalidValuesRelation.test_invalid_values",
@@ -113,9 +97,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "annotations.tests.AliasTests.test_order_by_alias_aggregate",
         # annotate() + values_list() + order_by() loses annotated value.
         "expressions_case.tests.CaseExpressionTests.test_annotate_values_not_in_order_by",
-        # Querying the reverse side of a foreign key for None returns no
-        # results: https://github.com/mongodb-labs/django-mongodb/issues/76
-        "one_to_one.tests.OneToOneTests.test_filter_one_to_one_relations",
         # pymongo.errors.OperationFailure: the limit must be positive
         "queries.tests.WeirdQuerysetSlicingTests.test_tickets_7698_10202",
         # QuerySet.explain() not implemented:

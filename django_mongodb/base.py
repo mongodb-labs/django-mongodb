@@ -82,6 +82,18 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "endswith": "LIKE '%%' || {}",
         "iendswith": "LIKE '%%' || UPPER({})",
     }
+
+    def _isnull_operator(a, b):
+        is_null = {
+            "$or": [
+                # The path does not exist (i.e. is "missing")
+                {"$eq": [{"$type": a}, "missing"]},
+                # or the value is None.
+                {"$eq": [a, None]},
+            ]
+        }
+        return is_null if b else {"$not": is_null}
+
     mongo_operators = {
         "exact": lambda a, b: {"$eq": [a, b]},
         "gt": lambda a, b: {"$gt": [a, b]},
@@ -89,7 +101,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "lt": lambda a, b: {"$lt": [a, b]},
         "lte": lambda a, b: {"$lte": [a, b]},
         "in": lambda a, b: {"$in": [a, b]},
-        "isnull": lambda a, b: {("$eq" if b else "$ne"): [a, None]},
+        "isnull": _isnull_operator,
         "range": lambda a, b: {"$and": [{"$gte": [a, b[0]]}, {"$lte": [a, b[1]]}]},
         "iexact": lambda a, b: regex_match(a, ("^", b, {"$literal": "$"}), insensitive=True),
         "startswith": lambda a, b: regex_match(a, ("^", b)),
