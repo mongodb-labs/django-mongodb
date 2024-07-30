@@ -113,10 +113,12 @@ Migrations for 'admin':
   - `bulk_update()`
   - `dates()`
   - `datetimes()`
-  - `delete()`, if the query uses multiple collections.
   - `distinct()`
   - `extra()`
   - `prefetch_related()`
+
+- `QuerySet.delete()` and `update()` do not support queries that span multiple
+  collections.
 
 - `Subquery`, `Exists`, and using a `QuerySet` in `QuerySet.annotate()` aren't
   supported.
