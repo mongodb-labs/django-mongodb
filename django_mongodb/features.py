@@ -49,17 +49,18 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_timezone_applied_before_truncation",
         # Length of null considered zero rather than null.
         "db_functions.text.test_length.LengthTests.test_basic",
-        # Wrong results in queries with multiple tables.
+        # Wrong annotation names in $project (dollar prefixed) when querying
+        # multiple collections.
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_reverse_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_chaining_annotation_filter_with_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_mti_annotations",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression_flat",
+        # range lookup includes incorrect values.
         "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
+        # Unexpected alias_refcount in alias_map.
         "queries.tests.Queries1Tests.test_order_by_tables",
-        "queries.tests.TestTicket24605.test_ticket_24605",
-        "queries.tests.TestInvalidValuesRelation.test_invalid_values",
         # QuerySet.explain() not implemented:
         # https://github.com/mongodb-labs/django-mongodb/issues/28
         "queries.test_explain.ExplainUnsupportedTests.test_message",
@@ -185,6 +186,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_autofield.AutoFieldTests",
             "model_fields.test_autofield.BigAutoFieldTests",
             "model_fields.test_autofield.SmallAutoFieldTests",
+            "queries.tests.TestInvalidValuesRelation.test_invalid_values",
         },
         "MongoDB does not enforce UNIQUE constraints.": {
             "auth_tests.test_basic.BasicTestCase.test_unicode_username",
@@ -254,6 +256,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.tests.Queries6Tests.test_tickets_8921_9188",
             "queries.tests.Queries6Tests.test_xor_subquery",
             "queries.tests.QuerySetBitwiseOperationTests.test_subquery_aliases",
+            "queries.tests.TestTicket24605.test_ticket_24605",
             "queries.tests.Ticket20101Tests.test_ticket_20101",
             "queries.tests.Ticket20788Tests.test_ticket_20788",
             "queries.tests.Ticket22429Tests.test_ticket_22429",
