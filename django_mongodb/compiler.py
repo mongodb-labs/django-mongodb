@@ -377,6 +377,13 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
         options = dict(options, **kwargs)
         return collection.update_many(criteria, update_spec, **options).matched_count
 
+    def check_query(self):
+        super().check_query()
+        if len([a for a in self.query.alias_map if self.query.alias_refcount[a]]) > 1:
+            raise NotSupportedError(
+                "Cannot use QuerySet.update() when querying across multiple collections on MongoDB."
+            )
+
 
 class SQLAggregateCompiler(SQLCompiler):
     pass

@@ -86,7 +86,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
         "queries.tests.Queries1Tests.test_order_by_tables",
         "queries.tests.Queries1Tests.test_ticket4358",
-        "queries.tests.Queries4Tests.test_ticket7095",
         "queries.tests.TestTicket24605.test_ticket_24605",
         "queries.tests.TestInvalidValuesRelation.test_invalid_values",
         # alias().order_by() doesn't work.
@@ -99,8 +98,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # QuerySet.explain() not implemented:
         # https://github.com/mongodb-labs/django-mongodb/issues/28
         "queries.test_explain.ExplainUnsupportedTests.test_message",
-        # filter() on related model + update() doesn't work.
-        "queries.tests.Queries5Tests.test_ticket9848",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -417,6 +414,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "delete_regress.tests.Ticket19102Tests.test_ticket_19102_defer",
             "delete_regress.tests.Ticket19102Tests.test_ticket_19102_select_related",
             "one_to_one.tests.OneToOneTests.test_o2o_primary_key_delete",
+        },
+        "Cannot use QuerySet.update() when querying across multiple collections on MongoDB.": {
+            "queries.tests.Queries4Tests.test_ticket7095",
+            "queries.tests.Queries5Tests.test_ticket9848",
         },
         "QuerySet.dates() is not supported on MongoDB.": {
             "annotations.tests.AliasTests.test_dates_alias",
