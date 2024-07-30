@@ -70,9 +70,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "model_fields.test_jsonfield.TestQuerying.test_order_grouping_custom_decoder",
         "model_fields.test_jsonfield.TestQuerying.test_ordering_by_transform",
         "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_key_transform",
-        # DecimalField lookup with F expression crashes:
-        # decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
-        "lookup.tests.LookupTests.test_lookup_rhs",
         # Wrong results in queries with multiple tables.
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_reverse_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
