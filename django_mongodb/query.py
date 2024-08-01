@@ -8,7 +8,7 @@ from django.db.models.functions import Mod
 from django.db.models.lookups import Exact
 from django.db.models.sql.constants import INNER
 from django.db.models.sql.datastructures import Join
-from django.db.models.sql.where import AND, OR, XOR, WhereNode
+from django.db.models.sql.where import AND, OR, XOR, NothingNode, WhereNode
 from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
@@ -282,4 +282,5 @@ def where_node(self, compiler, connection):
 
 def register_nodes():
     Join.as_mql = join
+    NothingNode.as_mql = NothingNode.as_sql
     WhereNode.as_mql = where_node

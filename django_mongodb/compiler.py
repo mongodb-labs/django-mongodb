@@ -119,8 +119,6 @@ class SQLCompiler(compiler.SQLCompiler):
 
     def check_query(self):
         """Check if the current query is supported by the database."""
-        if self.query.is_empty():
-            raise EmptyResultSet()
         if self.query.distinct or getattr(
             # In the case of Query.distinct().count(), the distinct attribute
             # will be set on the inner_query.
