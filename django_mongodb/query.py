@@ -97,8 +97,6 @@ class MongoQuery:
 
         Use `limit` or `skip` to override those options of the query.
         """
-        if self.query.low_mark == self.query.high_mark:
-            return []
         fields = {}
         for name, expr in self.columns or []:
             try:
