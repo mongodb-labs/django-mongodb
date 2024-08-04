@@ -9,7 +9,6 @@ from django.db.models.lookups import Exact
 from django.db.models.sql.constants import INNER
 from django.db.models.sql.datastructures import Join
 from django.db.models.sql.where import AND, OR, XOR, NothingNode, WhereNode
-from pymongo import ASCENDING, DESCENDING
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
 
@@ -51,27 +50,10 @@ class MongoQuery:
         self.lookup_pipeline = None
         self.project_fields = None
         self.aggregation_pipeline = compiler.aggregation_pipeline
+        self.extra_fields = None
 
     def __repr__(self):
         return f"<MongoQuery: {self.mongo_query!r} ORDER {self.ordering!r}>"
-
-    def order_by(self, ordering):
-        """
-        Reorder query results or execution order. Called by compiler during
-        query building.
-
-        `ordering` is a list with (column, ascending) tuples or a boolean --
-        use natural ordering, if any, when the argument is True and its reverse
-        otherwise.
-        """
-        if isinstance(ordering, bool):
-            # No need to add {$natural: ASCENDING} as it's the default.
-            if not ordering:
-                self.ordering.append(("$natural", DESCENDING))
-        else:
-            for column, ascending in ordering:
-                direction = ASCENDING if ascending else DESCENDING
-                self.ordering.append((column, direction))
 
     @wrap_database_errors
     def delete(self):
@@ -97,8 +79,10 @@ class MongoQuery:
             pipeline.extend(self.aggregation_pipeline)
         if self.project_fields:
             pipeline.append({"$project": self.project_fields})
+        if self.extra_fields:
+            pipeline.append({"$addFields": self.extra_fields})
         if self.ordering:
-            pipeline.append({"$sort": dict(self.ordering)})
+            pipeline.append({"$sort": self.ordering})
         if self.query.low_mark > 0:
             pipeline.append({"$skip": self.query.low_mark})
         if self.query.high_mark is not None:

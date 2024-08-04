@@ -123,7 +123,6 @@ Migrations for 'admin':
   supported.
 
 * Ordering a `QuerySet` by `nulls_first` or `nulls_last` isn't supported.
-  Neither is randomized ordering.
 
 - `DateTimeField` doesn't support microsecond precision, and correspondingly,
   `DurationField` stores milliseconds rather than microseconds.
