@@ -32,36 +32,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
-        # Order by constant not supported:
-        # AttributeError: 'Field' object has no attribute 'model'
-        "aggregation.tests.AggregateTestCase.test_annotate_values_list",
-        "aggregation.tests.AggregateTestCase.test_grouped_annotation_in_group_by",
-        "aggregation.tests.AggregateTestCase.test_non_grouped_annotation_not_in_group_by",
-        "aggregation.tests.AggregateTestCase.test_values_annotation_with_expression",
-        "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_aggregate",
-        "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
-        "ordering.tests.OrderingTests.test_default_ordering_does_not_affect_group_by",
-        "ordering.tests.OrderingTests.test_order_by_constant_value",
-        "expressions.tests.NegatedExpressionTests.test_filter",
-        "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_implicit",
         # BaseExpression.convert_value() crashes with Decimal128.
         "aggregation.tests.AggregateTestCase.test_combine_different_types",
         "annotations.tests.NonAggregateAnnotationTestCase.test_combined_f_expression_annotation_with_aggregation",
-        # NotSupportedError: order_by() expression not supported.
-        "aggregation.tests.AggregateTestCase.test_aggregation_order_by_not_selected_annotation_values",
-        "db_functions.comparison.test_coalesce.CoalesceTests.test_ordering",
-        "db_functions.tests.FunctionTests.test_nested_function_ordering",
-        "db_functions.text.test_length.LengthTests.test_ordering",
-        "db_functions.text.test_strindex.StrIndexTests.test_order_by",
-        "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_explicit",
-        "lookup.tests.LookupQueryingTests.test_lookup_in_order_by",
-        "ordering.tests.OrderingTests.test_order_by_expr_query_reuse",
-        "ordering.tests.OrderingTests.test_order_by_expression_ref",
-        "ordering.tests.OrderingTests.test_ordering_select_related_collision",
-        "queries.tests.Queries1Tests.test_order_by_related_field_transform",
-        "update.tests.AdvancedTests.test_update_ordered_by_inline_m2m_annotation",
-        "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation",
-        "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation_desc",
         # Pattern lookups that use regexMatch don't work on JSONField:
         # Unsupported conversion from array to string in $convert
         "model_fields.test_jsonfield.TestQuerying.test_icontains",
@@ -76,11 +49,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_timezone_applied_before_truncation",
         # Length of null considered zero rather than null.
         "db_functions.text.test_length.LengthTests.test_basic",
-        # Key transforms are incorrectly treated as joins:
-        # Ordering can't span tables on MongoDB (value_custom__a).
-        "model_fields.test_jsonfield.TestQuerying.test_order_grouping_custom_decoder",
-        "model_fields.test_jsonfield.TestQuerying.test_ordering_by_transform",
-        "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_key_transform",
         # Wrong results in queries with multiple tables.
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_reverse_m2m",
         "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
@@ -89,17 +57,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression_flat",
         "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
-        "ordering.tests.OrderingTests.test_order_by_grandparent_fk_with_expression_in_default_ordering",
-        "ordering.tests.OrderingTests.test_order_by_parent_fk_with_expression_in_default_ordering",
-        "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
         "queries.tests.Queries1Tests.test_order_by_tables",
         "queries.tests.TestTicket24605.test_ticket_24605",
         "queries.tests.TestInvalidValuesRelation.test_invalid_values",
-        # alias().order_by() doesn't work.
-        "annotations.tests.AliasTests.test_order_by_alias",
-        "annotations.tests.AliasTests.test_order_by_alias_aggregate",
-        # annotate() + values_list() + order_by() loses annotated value.
-        "expressions_case.tests.CaseExpressionTests.test_annotate_values_not_in_order_by",
         # QuerySet.explain() not implemented:
         # https://github.com/mongodb-labs/django-mongodb/issues/28
         "queries.test_explain.ExplainUnsupportedTests.test_message",
@@ -108,9 +68,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation.tests.AggregateTestCase.test_aggregation_default_passed_another_aggregate",
         "aggregation.tests.AggregateTestCase.test_annotation_expressions",
         "aggregation.tests.AggregateTestCase.test_reverse_fkey_annotate",
-        # Incorrect order: pipeline does not order by the correct fields.
-        "aggregation.tests.AggregateTestCase.test_annotate_ordering",
-        "aggregation.tests.AggregateTestCase.test_even_more_aggregate",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -395,6 +352,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Cannot use QuerySet.update() when querying across multiple collections on MongoDB.": {
             "queries.tests.Queries4Tests.test_ticket7095",
             "queries.tests.Queries5Tests.test_ticket9848",
+            "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation",
+            "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation_desc",
         },
         "QuerySet.dates() is not supported on MongoDB.": {
             "aggregation.tests.AggregateTestCase.test_dates_with_aggregation",
@@ -576,10 +535,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # returns objects where the key doesn't exist.
             "model_fields.test_jsonfield.TestQuerying.test_none_key",
             "model_fields.test_jsonfield.TestQuerying.test_none_key_exclude",
-        },
-        "Randomized ordering isn't supported by MongoDB.": {
-            "aggregation.tests.AggregateTestCase.test_aggregation_random_ordering",
-            "ordering.tests.OrderingTests.test_random_ordering",
         },
         "Queries without a collection aren't supported on MongoDB.": {
             "queries.test_q.QCheckTests",

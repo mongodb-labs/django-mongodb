@@ -1,16 +1,18 @@
 import itertools
 from collections import defaultdict
 
+from bson import SON
 from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError, NotSupportedError
 from django.db.models import Count, Expression
 from django.db.models.aggregates import Aggregate, Variance
-from django.db.models.expressions import Col, OrderBy, Value
+from django.db.models.expressions import Col, Ref, Value
 from django.db.models.functions.comparison import Coalesce
 from django.db.models.functions.math import Power
 from django.db.models.sql import compiler
-from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE, MULTI, ORDER_DIR, SINGLE
+from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE, MULTI, SINGLE
 from django.utils.functional import cached_property
+from pymongo import ASCENDING, DESCENDING
 
 from .base import Cursor
 from .query import MongoQuery, wrap_database_errors
@@ -25,6 +27,8 @@ class SQLCompiler(compiler.SQLCompiler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.aggregation_pipeline = None
+        # A list of OrderBy objects for this query.
+        self.order_by_objs = None
 
     def _get_group_alias_column(self, expr, annotation_group_idx):
         """Generate a dummy field for use in the ids fields in $group."""
@@ -98,7 +102,7 @@ class SQLCompiler(compiler.SQLCompiler):
             replacements[sub_expr] = replacing_expr
         return replacements, group
 
-    def _prepare_annotations_for_aggregation_pipeline(self):
+    def _prepare_annotations_for_aggregation_pipeline(self, order_by):
         """Prepare annotations for the aggregation pipeline."""
         replacements = {}
         group = {}
@@ -107,6 +111,13 @@ class SQLCompiler(compiler.SQLCompiler):
             if expr.contains_aggregate:
                 new_replacements, expr_group = self._prepare_expressions_for_pipeline(
                     expr, target, annotation_group_idx
+                )
+                replacements.update(new_replacements)
+                group.update(expr_group)
+        for expr, _ in order_by:
+            if expr.contains_aggregate:
+                new_replacements, expr_group = self._prepare_expressions_for_pipeline(
+                    expr, None, annotation_group_idx
                 )
                 replacements.update(new_replacements)
                 group.update(expr_group)
@@ -121,9 +132,10 @@ class SQLCompiler(compiler.SQLCompiler):
         """Generate group ID expressions for the aggregation pipeline."""
         group_expressions = set()
         replacements = {}
-        for expr, (_, _, is_ref) in order_by:
-            if not is_ref:
-                group_expressions |= set(expr.get_group_by_cols())
+        if not self._meta_ordering:
+            for expr, (_, _, is_ref) in order_by:
+                if not is_ref:
+                    group_expressions |= set(expr.get_group_by_cols())
         for expr, *_ in self.select:
             group_expressions |= set(expr.get_group_by_cols())
         having_group_by = self.having.get_group_by_cols() if self.having else ()
@@ -187,7 +199,7 @@ class SQLCompiler(compiler.SQLCompiler):
 
     def pre_sql_setup(self, with_col_aliases=False):
         extra_select, order_by, group_by = super().pre_sql_setup(with_col_aliases=with_col_aliases)
-        group, all_replacements = self._prepare_annotations_for_aggregation_pipeline()
+        group, all_replacements = self._prepare_annotations_for_aggregation_pipeline(order_by)
         # query.group_by is either:
         # - None: no GROUP BY
         # - True: group by select fields
@@ -211,6 +223,7 @@ class SQLCompiler(compiler.SQLCompiler):
             target: expr.replace_expressions(all_replacements)
             for target, expr in self.query.annotation_select.items()
         }
+        self.order_by_objs = [expr.replace_expressions(all_replacements) for expr, _ in order_by]
         return extra_select, order_by, group_by
 
     def execute_sql(
@@ -333,8 +346,11 @@ class SQLCompiler(compiler.SQLCompiler):
         self.check_query()
         query = self.query_class(self)
         query.lookup_pipeline = self.get_lookup_pipeline()
-        query.order_by(self._get_ordering())
-        query.project_fields = self.get_project_fields(columns, ordering=query.ordering)
+        ordering_fields, sort_ordering, extra_fields = self._get_ordering()
+        query.project_fields = self.get_project_fields(columns, ordering_fields)
+        query.ordering = sort_ordering
+        if extra_fields and columns is None:
+            query.extra_fields = self.get_project_fields(extra_fields)
         where = self.get_where()
         try:
             expr = where.as_mql(self, self.connection) if where else {}
@@ -379,52 +395,6 @@ class SQLCompiler(compiler.SQLCompiler):
             + tuple(self.annotations.items())
             + tuple(map(project_field, related_columns))
         )
-
-    def _get_ordering(self):
-        """
-        Return a list of (field, ascending) tuples that the query results
-        should be ordered by. If there is no field ordering defined, return
-        the standard_ordering (a boolean, needed for MongoDB "$natural"
-        ordering).
-        """
-        opts = self.query.get_meta()
-        ordering = (
-            self.query.order_by or opts.ordering
-            if self.query.default_ordering
-            else self.query.order_by
-        )
-        if not ordering:
-            return self.query.standard_ordering
-        default_order, _ = ORDER_DIR["ASC" if self.query.standard_ordering else "DESC"]
-        column_ordering = []
-        columns_seen = set()
-        for order in ordering:
-            if order == "?":
-                raise NotSupportedError("Randomized ordering isn't supported by MongoDB.")
-            if hasattr(order, "resolve_expression"):
-                # order is an expression like OrderBy, F, or database function.
-                orderby = order if isinstance(order, OrderBy) else order.asc()
-                orderby = orderby.resolve_expression(self.query, allow_joins=True, reuse=None)
-                ascending = not orderby.descending
-                # If the query is reversed, ascending and descending are inverted.
-                if not self.query.standard_ordering:
-                    ascending = not ascending
-            else:
-                # order is a string like "field" or "field__other_field".
-                orderby, _ = self.find_ordering_name(
-                    order, self.query.get_meta(), default_order=default_order
-                )[0]
-                ascending = not orderby.descending
-            column = orderby.expression.as_mql(self, self.connection)
-            if isinstance(column, dict):
-                raise NotSupportedError("order_by() expression not supported.")
-            # $sort references must not include the dollar sign.
-            column = column.removeprefix("$")
-            # Don't add the same column twice.
-            if column not in columns_seen:
-                columns_seen.add(column)
-                column_ordering.append((column, ascending))
-        return column_ordering
 
     @cached_property
     def collection_name(self):
@@ -473,11 +443,34 @@ class SQLCompiler(compiler.SQLCompiler):
                 if self.query.alias_refcount[alias] and self.collection_name != alias:
                     fields[alias] = 1
             # Add order_by() fields.
-            for column, _ in ordering or []:
-                foreign_table = column.split(".", 1)[0] if "." in column else None
-                if column not in fields and foreign_table not in fields:
-                    fields[column] = 1
+            for alias, expression in ordering or []:
+                nested_entity = alias.split(".", 1)[0] if "." in alias else None
+                if alias not in fields and nested_entity not in fields:
+                    fields[alias] = expression.as_mql(self, self.connection)
         return fields
+
+    def _get_ordering(self):
+        """
+        Process the query's OrderBy objects and return:
+        - A tuple of ('field_name': Col/Expression, ...)
+        - A bson.SON mapping to pass to $sort.
+        - A tuple of ('field_name': Expression, ...) for expressions that need
+          to be added to extra_fields.
+        """
+        fields = {}
+        sort_ordering = SON()
+        extra_fields = {}
+        idx = itertools.count(start=1)
+        for order in self.order_by_objs or []:
+            if isinstance(order.expression, Col | Ref):
+                field_name = order.expression.as_mql(self, self.connection).removeprefix("$")
+            else:
+                # The expression must be added to extra_fields with an alias.
+                field_name = f"__order{next(idx)}"
+                extra_fields[field_name] = order.expression
+            fields[field_name] = order.expression
+            sort_ordering[field_name] = DESCENDING if order.descending else ASCENDING
+        return tuple(fields.items()), sort_ordering, tuple(extra_fields.items())
 
     def get_where(self):
         return self.where
