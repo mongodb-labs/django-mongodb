@@ -138,7 +138,7 @@ def preserve_null(operator):
         lhs_mql = process_lhs(self, compiler, connection)
         return {
             "$cond": {
-                "if": {"$eq": [lhs_mql, None]},
+                "if": connection.mongo_operators["isnull"](lhs_mql, True),
                 "then": None,
                 "else": {f"${operator}": lhs_mql},
             }

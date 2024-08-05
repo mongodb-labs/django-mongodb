@@ -6,9 +6,10 @@ from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError, NotSupportedError
 from django.db.models import Count, Expression
 from django.db.models.aggregates import Aggregate, Variance
-from django.db.models.expressions import Col, Ref, Value
+from django.db.models.expressions import Case, Col, Ref, Value, When
 from django.db.models.functions.comparison import Coalesce
 from django.db.models.functions.math import Power
+from django.db.models.lookups import IsNull
 from django.db.models.sql import compiler
 from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE, MULTI, SINGLE
 from django.utils.functional import cached_property
@@ -349,8 +350,14 @@ class SQLCompiler(compiler.SQLCompiler):
         ordering_fields, sort_ordering, extra_fields = self._get_ordering()
         query.project_fields = self.get_project_fields(columns, ordering_fields)
         query.ordering = sort_ordering
-        if extra_fields and columns is None:
-            query.extra_fields = self.get_project_fields(extra_fields)
+        # If columns is None, then get_project_fields() won't add
+        # ordering_fields to $project. Use $addFields (extra_fields) instead.
+        if columns is None:
+            extra_fields += ordering_fields
+        if extra_fields:
+            query.extra_fields = {
+                field_name: expr.as_mql(self, self.connection) for field_name, expr in extra_fields
+            }
         where = self.get_where()
         try:
             expr = where.as_mql(self, self.connection) if where else {}
@@ -462,13 +469,21 @@ class SQLCompiler(compiler.SQLCompiler):
         extra_fields = {}
         idx = itertools.count(start=1)
         for order in self.order_by_objs or []:
-            if isinstance(order.expression, Col | Ref):
+            if isinstance(order.expression, Col):
+                field_name = order.expression.as_mql(self, self.connection).removeprefix("$")
+                fields[field_name] = order.expression
+            elif isinstance(order.expression, Ref):
                 field_name = order.expression.as_mql(self, self.connection).removeprefix("$")
             else:
-                # The expression must be added to extra_fields with an alias.
                 field_name = f"__order{next(idx)}"
-                extra_fields[field_name] = order.expression
-            fields[field_name] = order.expression
+                fields[field_name] = order.expression
+            # If the expression is ordered by NULLS FIRST or NULLS LAST,
+            # add a field for sorting that's 1 if null or 0 if not.
+            if order.nulls_first or order.nulls_last:
+                null_fieldname = f"__order{next(idx)}"
+                condition = When(IsNull(order.expression, True), then=Value(1))
+                extra_fields[null_fieldname] = Case(condition, default=Value(0))
+                sort_ordering[null_fieldname] = DESCENDING if order.nulls_first else ASCENDING
             sort_ordering[field_name] = DESCENDING if order.descending else ASCENDING
         return tuple(fields.items()), sort_ordering, tuple(extra_fields.items())
 
