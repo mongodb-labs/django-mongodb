@@ -122,8 +122,6 @@ Migrations for 'admin':
 - `Subquery`, `Exists`, and using a `QuerySet` in `QuerySet.annotate()` aren't
   supported.
 
-* Ordering a `QuerySet` by `nulls_first` or `nulls_last` isn't supported.
-
 - `DateTimeField` doesn't support microsecond precision, and correspondingly,
   `DurationField` stores milliseconds rather than microseconds.
 

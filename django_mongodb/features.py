@@ -376,6 +376,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "QuerySet.distinct() is not supported.": {
             "aggregation.tests.AggregateTestCase.test_sum_distinct_aggregate",
             "lookup.tests.LookupTests.test_lookup_collision_distinct",
+            "ordering.tests.OrderingTests.test_orders_nulls_first_on_filtered_subquery",
             "queries.tests.ExcludeTest17600.test_exclude_plain_distinct",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_is_equal_to_plain_exclude",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_object_distinct",
@@ -418,11 +419,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.tests.ValuesQuerysetTests.test_named_values_list_with_fields",
             "queries.tests.ValuesQuerysetTests.test_named_values_list_without_fields",
             "select_related.tests.SelectRelatedTests.test_select_related_with_extra",
-        },
-        "Ordering a QuerySet by null_first/nulls_last is not supported on MongoDB.": {
-            "ordering.tests.OrderingTests.test_order_by_nulls_first",
-            "ordering.tests.OrderingTests.test_order_by_nulls_last",
-            "ordering.tests.OrderingTests.test_orders_nulls_first_on_filtered_subquery",
         },
         "QuerySet.update() crash: Unrecognized expression '$count'": {
             "update.tests.AdvancedTests.test_update_annotated_multi_table_queryset",
