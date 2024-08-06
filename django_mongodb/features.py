@@ -77,7 +77,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "annotations.tests.NonAggregateAnnotationTestCase.test_mti_annotations",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression",
         "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression_flat",
-        "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
+        "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_range_lookups_join_choice",
         "ordering.tests.OrderingTests.test_order_by_grandparent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_parent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
@@ -95,6 +95,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # QuerySet.explain() not implemented:
         # https://github.com/mongodb-labs/django-mongodb/issues/28
         "queries.test_explain.ExplainUnsupportedTests.test_message",
+        # $concat only supports strings, not int
+        "db_functions.text.test_concat.ConcatTests.test_concat_non_str",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -156,6 +158,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.BasicExpressionsTests.test_object_update_unsaved_objects",
             "expressions.tests.BasicExpressionsTests.test_order_of_operations",
             "expressions.tests.BasicExpressionsTests.test_parenthesis_priority",
+            "expressions.tests.BasicExpressionsTests.test_slicing_of_f_expressions_charfield",
+            "expressions.tests.BasicExpressionsTests.test_slicing_of_f_expressions_textfield",
             "expressions.tests.BasicExpressionsTests.test_update",
             "expressions.tests.BasicExpressionsTests.test_update_with_fk",
             "expressions.tests.BasicExpressionsTests.test_update_with_none",
@@ -279,6 +283,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.BasicExpressionsTests.test_case_in_filter_if_boolean_output_field",
             "expressions.tests.BasicExpressionsTests.test_exists_in_filter",
             "expressions.tests.BasicExpressionsTests.test_order_by_exists",
+            "expressions.tests.BasicExpressionsTests.test_slicing_of_outerref",
             "expressions.tests.BasicExpressionsTests.test_subquery",
             "expressions.tests.ExistsTests.test_filter_by_empty_exists",
             "expressions.tests.ExistsTests.test_negated_empty_exists",
@@ -361,6 +366,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.tests.EmptyQuerySetTests.test_values_subquery",
             "queries.tests.ExcludeTests.test_exclude_subquery",
             "queries.tests.NullInExcludeTest.test_null_in_exclude_qs",
+            "queries.tests.Queries1Tests.test_combining_does_not_mutate",
             "queries.tests.Queries1Tests.test_ticket9985",
             "queries.tests.Queries1Tests.test_ticket9997",
             "queries.tests.Queries1Tests.test_ticket10742",
@@ -489,6 +495,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Test inspects query for SQL": {
             "delete.tests.DeletionTests.test_only_referenced_fields_selected",
             "lookup.tests.LookupTests.test_in_ignore_none",
+            "lookup.tests.LookupTests.test_lookup_direct_value_rhs_unwrapped",
             "lookup.tests.LookupTests.test_textfield_exact_null",
             "queries.tests.ExistsSql.test_exists",
             "queries.tests.Queries6Tests.test_col_alias_quoted",
