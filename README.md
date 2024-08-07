@@ -106,6 +106,12 @@ Migrations for 'admin':
 ...
 ```
 
+And whenever you run `python manage.py startapp`, you must remove the line:
+
+`default_auto_field = 'django.db.models.BigAutoField'`
+
+from the new application's `apps.py` file.
+
 ## Known issues and limitations
 
 - The following `QuerySet` methods aren't supported:
