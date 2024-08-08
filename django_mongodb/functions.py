@@ -131,7 +131,7 @@ def null_if(self, compiler, connection):
     return {"$cond": {"if": {"$eq": [expr1, expr2]}, "then": None, "else": expr1}}
 
 
-def perserve_null(operator):
+def preserve_null(operator):
     # If the argument is null, the function should return null, not
     # $toLower/Upper's behavior of returning an empty string.
     def wrapped(self, compiler, connection):
@@ -201,7 +201,7 @@ def register_functions():
     Left.as_mql = left
     Length.as_mql = length
     Log.as_mql = log
-    Lower.as_mql = perserve_null("toLower")
+    Lower.as_mql = preserve_null("toLower")
     LTrim.as_mql = trim("ltrim")
     Now.as_mql = now
     NullIf.as_mql = null_if
@@ -212,4 +212,4 @@ def register_functions():
     Substr.as_mql = substr
     Trim.as_mql = trim("trim")
     TruncBase.as_mql = trunc
-    Upper.as_mql = perserve_null("toUpper")
+    Upper.as_mql = preserve_null("toUpper")
