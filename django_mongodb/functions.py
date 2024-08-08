@@ -13,6 +13,7 @@ from django.db.models.functions.datetime import (
     ExtractWeek,
     ExtractWeekDay,
     ExtractYear,
+    Now,
     TruncBase,
 )
 from django.db.models.functions.math import Ceil, Cot, Degrees, Log, Power, Radians, Random, Round
@@ -120,6 +121,10 @@ def log(self, compiler, connection):
     return func(clone, compiler, connection)
 
 
+def now(self, compiler, connection):  # noqa: ARG001
+    return "$$NOW"
+
+
 def null_if(self, compiler, connection):
     """Return None if expr1==expr2 else expr1."""
     expr1, expr2 = (expr.as_mql(compiler, connection) for expr in self.get_source_expressions())
@@ -198,6 +203,7 @@ def register_functions():
     Log.as_mql = log
     Lower.as_mql = perserve_null("toLower")
     LTrim.as_mql = trim("ltrim")
+    Now.as_mql = now
     NullIf.as_mql = null_if
     Replace.as_mql = replace
     Round.as_mql = round_

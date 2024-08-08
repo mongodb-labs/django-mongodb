@@ -1,10 +1,13 @@
-from itertools import chain
+import itertools
+from collections import defaultdict
 
 from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError, NotSupportedError
 from django.db.models import Count, Expression
-from django.db.models.aggregates import Aggregate
-from django.db.models.expressions import OrderBy
+from django.db.models.aggregates import Aggregate, Variance
+from django.db.models.expressions import Col, OrderBy, Value
+from django.db.models.functions.comparison import Coalesce
+from django.db.models.functions.math import Power
 from django.db.models.sql import compiler
 from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE, MULTI, ORDER_DIR, SINGLE
 from django.utils.functional import cached_property
@@ -17,15 +20,203 @@ class SQLCompiler(compiler.SQLCompiler):
     """Base class for all Mongo compilers."""
 
     query_class = MongoQuery
+    GROUP_SEPARATOR = "___"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.aggregation_pipeline = None
+
+    def _get_group_alias_column(self, expr, annotation_group_idx):
+        """Generate a dummy field for use in the ids fields in $group."""
+        replacement = None
+        if isinstance(expr, Col):
+            col = expr
+        else:
+            # If the column is a composite expression, create a field for it.
+            alias = f"__annotation_group{next(annotation_group_idx)}"
+            col = self._get_column_from_expression(expr, alias)
+            replacement = col
+        if self.collection_name == col.alias:
+            return col.target.column, replacement
+        # If this is a foreign field, replace the normal dot (.) with
+        # GROUP_SEPARATOR since FieldPath field names may not contain '.'.
+        return f"{col.alias}{self.GROUP_SEPARATOR}{col.target.column}", replacement
+
+    def _get_column_from_expression(self, expr, alias):
+        """
+        Create a column named `alias` from the given expression to hold the
+        aggregate value.
+        """
+        column_target = expr.output_field.__class__()
+        column_target.db_column = alias
+        column_target.set_attributes_from_name(alias)
+        return Col(self.collection_name, column_target)
+
+    def _prepare_expressions_for_pipeline(self, expression, target, annotation_group_idx):
+        """
+        Prepare expressions for the aggregation pipeline.
+
+        Handle the computation of aggregation functions used by various
+        expressions. Separate and create intermediate columns, and replace
+        nodes to simulate a group by operation.
+
+        MongoDB's $group stage doesn't allow operations over the aggregator,
+        e.g. COALESCE(AVG(field), 3). However, it supports operations inside
+        the aggregation, e.g. AVG(number * 2).
+
+        Handle the first case by splitting the computation into stages: compute
+        the aggregation first, then apply additional operations in a subsequent
+        stage by replacing the aggregate expressions with new columns prefixed
+        by `__aggregation`.
+        """
+        replacements = {}
+        group = {}
+        for sub_expr in self._get_aggregate_expressions(expression):
+            alias = (
+                f"__aggregation{next(annotation_group_idx)}" if sub_expr != expression else target
+            )
+            column_target = sub_expr.output_field.__class__()
+            column_target.db_column = alias
+            column_target.set_attributes_from_name(alias)
+            inner_column = Col(self.collection_name, column_target)
+            if sub_expr.distinct:
+                # If the expression should return distinct values, use
+                # $addToSet to deduplicate.
+                rhs = sub_expr.as_mql(self, self.connection, resolve_inner_expression=True)
+                group[alias] = {"$addToSet": rhs}
+                replacing_expr = sub_expr.copy()
+                replacing_expr.set_source_expressions([inner_column])
+            else:
+                group[alias] = sub_expr.as_mql(self, self.connection)
+                replacing_expr = inner_column
+            # Count must return 0 rather than null.
+            if isinstance(sub_expr, Count):
+                replacing_expr = Coalesce(replacing_expr, 0)
+            # Variance = StdDev^2
+            if isinstance(sub_expr, Variance):
+                replacing_expr = Power(replacing_expr, 2)
+            replacements[sub_expr] = replacing_expr
+        return replacements, group
+
+    def _prepare_annotations_for_aggregation_pipeline(self):
+        """Prepare annotations for the aggregation pipeline."""
+        replacements = {}
+        group = {}
+        annotation_group_idx = itertools.count(start=1)
+        for target, expr in self.query.annotation_select.items():
+            if expr.contains_aggregate:
+                new_replacements, expr_group = self._prepare_expressions_for_pipeline(
+                    expr, target, annotation_group_idx
+                )
+                replacements.update(new_replacements)
+                group.update(expr_group)
+        having_replacements, having_group = self._prepare_expressions_for_pipeline(
+            self.having, None, annotation_group_idx
+        )
+        replacements.update(having_replacements)
+        group.update(having_group)
+        return group, replacements
+
+    def _get_group_id_expressions(self, order_by):
+        """Generate group ID expressions for the aggregation pipeline."""
+        group_expressions = set()
+        replacements = {}
+        for expr, (_, _, is_ref) in order_by:
+            if not is_ref:
+                group_expressions |= set(expr.get_group_by_cols())
+        for expr, *_ in self.select:
+            group_expressions |= set(expr.get_group_by_cols())
+        having_group_by = self.having.get_group_by_cols() if self.having else ()
+        for expr in having_group_by:
+            group_expressions.add(expr)
+        if isinstance(self.query.group_by, tuple | list):
+            group_expressions |= set(self.query.group_by)
+        elif self.query.group_by is None:
+            group_expressions = set()
+        if not group_expressions:
+            ids = None
+        else:
+            annotation_group_idx = itertools.count(start=1)
+            ids = {}
+            for col in group_expressions:
+                alias, replacement = self._get_group_alias_column(col, annotation_group_idx)
+                try:
+                    ids[alias] = col.as_mql(self, self.connection)
+                except EmptyResultSet:
+                    ids[alias] = Value(False).as_mql(self, self.connection)
+                except FullResultSet:
+                    ids[alias] = Value(True).as_mql(self, self.connection)
+                if replacement is not None:
+                    replacements[col] = replacement
+        return ids, replacements
+
+    def _build_aggregation_pipeline(self, ids, group):
+        """Build the aggregation pipeline for grouping."""
+        pipeline = []
+        if not ids:
+            group["_id"] = None
+            pipeline.append({"$facet": {"group": [{"$group": group}]}})
+            pipeline.append(
+                {
+                    "$addFields": {
+                        key: {
+                            "$getField": {
+                                "input": {"$arrayElemAt": ["$group", 0]},
+                                "field": key,
+                            }
+                        }
+                        for key in group
+                    }
+                }
+            )
+        else:
+            group["_id"] = ids
+            pipeline.append({"$group": group})
+            projected_fields = defaultdict(dict)
+            for key in ids:
+                value = f"$_id.{key}"
+                if self.GROUP_SEPARATOR in key:
+                    table, field = key.split(self.GROUP_SEPARATOR)
+                    projected_fields[table][field] = value
+                else:
+                    projected_fields[key] = value
+            pipeline.append({"$addFields": projected_fields})
+            if "_id" not in projected_fields:
+                pipeline.append({"$unset": "_id"})
+        return pipeline
+
+    def pre_sql_setup(self, with_col_aliases=False):
+        extra_select, order_by, group_by = super().pre_sql_setup(with_col_aliases=with_col_aliases)
+        group, all_replacements = self._prepare_annotations_for_aggregation_pipeline()
+        # query.group_by is either:
+        # - None: no GROUP BY
+        # - True: group by select fields
+        # - a list of expressions to group by.
+        if group or self.query.group_by:
+            ids, replacements = self._get_group_id_expressions(order_by)
+            all_replacements.update(replacements)
+            pipeline = self._build_aggregation_pipeline(ids, group)
+            if self.having:
+                pipeline.append(
+                    {
+                        "$match": {
+                            "$expr": self.having.replace_expressions(all_replacements).as_mql(
+                                self, self.connection
+                            )
+                        }
+                    }
+                )
+            self.aggregation_pipeline = pipeline
+        self.annotations = {
+            target: expr.replace_expressions(all_replacements)
+            for target, expr in self.query.annotation_select.items()
+        }
+        return extra_select, order_by, group_by
 
     def execute_sql(
         self, result_type=MULTI, chunked_fetch=False, chunk_size=GET_ITERATOR_CHUNK_SIZE
     ):
         self.pre_sql_setup()
-        # QuerySet.count()
-        if self.query.annotations == {"__count": Count("*")}:
-            return [self.get_count()]
-
         columns = self.get_columns()
         try:
             query = self.build_query(
@@ -77,15 +268,12 @@ class SQLCompiler(compiler.SQLCompiler):
 
         fields = [s[0] for s in self.select[0 : self.col_count]]
         converters = self.get_converters(fields)
-        rows = chain.from_iterable(results)
+        rows = itertools.chain.from_iterable(results)
         if converters:
             rows = self.apply_converters(rows, converters)
         if tuple_expected:
             rows = map(tuple, rows)
         return rows
-
-    def has_results(self):
-        return bool(self.get_count(check_exists=True))
 
     def _make_result(self, entity, columns):
         """
@@ -139,44 +327,21 @@ class SQLCompiler(compiler.SQLCompiler):
             if any(key.startswith("_prefetch_related_") for key in self.query.extra):
                 raise NotSupportedError("QuerySet.prefetch_related() is not supported on MongoDB.")
             raise NotSupportedError("QuerySet.extra() is not supported on MongoDB.")
-        if any(
-            isinstance(a, Aggregate) and not isinstance(a, Count)
-            for a in self.query.annotations.values()
-        ):
-            raise NotSupportedError("QuerySet.aggregate() isn't supported on MongoDB.")
-
-    def get_count(self, check_exists=False):
-        """
-        Count objects matching the current filters / constraints.
-
-        If `check_exists` is True, only check if any object matches.
-        """
-        kwargs = {}
-        # If this query is sliced, the limits will be set on the subquery.
-        inner_query = getattr(self.query, "inner_query", None)
-        low_mark = inner_query.low_mark if inner_query else 0
-        high_mark = inner_query.high_mark if inner_query else None
-        if low_mark > 0:
-            kwargs["skip"] = low_mark
-        if check_exists:
-            kwargs["limit"] = 1
-        elif high_mark is not None:
-            kwargs["limit"] = high_mark - low_mark
-        try:
-            return self.build_query().count(**kwargs)
-        except EmptyResultSet:
-            return 0
 
     def build_query(self, columns=None):
         """Check if the query is supported and prepare a MongoQuery."""
         self.check_query()
-        query = self.query_class(self, columns)
+        query = self.query_class(self)
         query.lookup_pipeline = self.get_lookup_pipeline()
+        query.order_by(self._get_ordering())
+        query.project_fields = self.get_project_fields(columns, ordering=query.ordering)
+        where = self.get_where()
         try:
-            query.mongo_query = {"$expr": self.query.where.as_mql(self, self.connection)}
+            expr = where.as_mql(self, self.connection) if where else {}
         except FullResultSet:
             query.mongo_query = {}
-        query.order_by(self._get_ordering())
+        else:
+            query.mongo_query = {"$expr": expr}
         return query
 
     def get_columns(self):
@@ -211,7 +376,7 @@ class SQLCompiler(compiler.SQLCompiler):
 
         return (
             tuple(map(project_field, columns))
-            + tuple(self.query.annotation_select.items())
+            + tuple(self.annotations.items())
             + tuple(map(project_field, related_columns))
         )
 
@@ -276,6 +441,47 @@ class SQLCompiler(compiler.SQLCompiler):
             result += self.query.alias_map[alias].as_mql(self, self.connection)
         return result
 
+    def _get_aggregate_expressions(self, expr):
+        stack = [expr]
+        while stack:
+            expr = stack.pop()
+            if isinstance(expr, Aggregate):
+                yield expr
+            elif hasattr(expr, "get_source_expressions"):
+                stack.extend(expr.get_source_expressions())
+
+    def get_project_fields(self, columns=None, ordering=None):
+        fields = {}
+        for name, expr in columns or []:
+            try:
+                column = expr.target.column
+            except AttributeError:
+                # Generate the MQL for an annotation.
+                try:
+                    fields[name] = expr.as_mql(self, self.connection)
+                except EmptyResultSet:
+                    fields[name] = Value(False).as_mql(self, self.connection)
+                except FullResultSet:
+                    fields[name] = Value(True).as_mql(self, self.connection)
+            else:
+                # If name != column, then this is an annotatation referencing
+                # another column.
+                fields[name] = 1 if name == column else f"${column}"
+        if fields:
+            # Add related fields.
+            for alias in self.query.alias_map:
+                if self.query.alias_refcount[alias] and self.collection_name != alias:
+                    fields[alias] = 1
+            # Add order_by() fields.
+            for column, _ in ordering or []:
+                foreign_table = column.split(".", 1)[0] if "." in column else None
+                if column not in fields and foreign_table not in fields:
+                    fields[column] = 1
+        return fields
+
+    def get_where(self):
+        return self.where
+
 
 class SQLInsertCompiler(SQLCompiler):
     def execute_sql(self, returning_fields=None):
@@ -311,7 +517,7 @@ class SQLInsertCompiler(SQLCompiler):
 class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
     def execute_sql(self, result_type=MULTI):
         cursor = Cursor()
-        cursor.rowcount = self.build_query([self.query.get_meta().pk]).delete()
+        cursor.rowcount = self.build_query().delete()
         return cursor
 
     def check_query(self):
@@ -320,6 +526,9 @@ class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
             raise NotSupportedError(
                 "Cannot use QuerySet.delete() when querying across multiple collections on MongoDB."
             )
+
+    def get_where(self):
+        return self.query.where
 
 
 class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
@@ -382,6 +591,28 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
                 "Cannot use QuerySet.update() when querying across multiple collections on MongoDB."
             )
 
+    def get_where(self):
+        return self.query.where
+
 
 class SQLAggregateCompiler(SQLCompiler):
-    pass
+    def build_query(self, columns=None):
+        query = self.query_class(self)
+        query.project_fields = self.get_project_fields(tuple(self.annotations.items()))
+        compiler = self.query.inner_query.get_compiler(
+            self.using,
+            elide_empty=self.elide_empty,
+        )
+        compiler.pre_sql_setup(with_col_aliases=False)
+        # Avoid $project (columns=None) if unneeded.
+        columns = (
+            compiler.get_columns()
+            if compiler.query.annotations or not compiler.query.default_cols
+            else None
+        )
+        subquery = compiler.build_query(columns)
+        query.subquery = subquery
+        return query
+
+    def _make_result(self, result, columns=None):
+        return [result[k] for k in self.query.annotation_select]

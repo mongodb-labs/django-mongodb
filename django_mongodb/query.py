@@ -3,7 +3,7 @@ from operator import add as add_operator
 
 from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError
-from django.db.models.expressions import Case, Value, When
+from django.db.models.expressions import Case, When
 from django.db.models.functions import Mod
 from django.db.models.lookups import Exact
 from django.db.models.sql.constants import INNER
@@ -37,30 +37,23 @@ class MongoQuery:
     built by Django to a "representation" more suitable for MongoDB.
     """
 
-    def __init__(self, compiler, columns):
+    def __init__(self, compiler):
         self.compiler = compiler
         self.connection = compiler.connection
         self.ops = compiler.connection.ops
         self.query = compiler.query
-        self.columns = columns
         self._negated = False
         self.ordering = []
         self.collection = self.compiler.get_collection()
         self.collection_name = self.compiler.collection_name
         self.mongo_query = getattr(compiler.query, "raw_query", {})
+        self.subquery = None
         self.lookup_pipeline = None
+        self.project_fields = None
+        self.aggregation_pipeline = compiler.aggregation_pipeline
 
     def __repr__(self):
         return f"<MongoQuery: {self.mongo_query!r} ORDER {self.ordering!r}>"
-
-    @wrap_database_errors
-    def count(self, limit=None, skip=None):
-        """
-        Return the number of objects that would be returned, if this query was
-        executed, up to `limit`, skipping `skip`.
-        """
-        result = list(self.get_cursor(count=True, limit=limit, skip=skip))
-        return result[0]["__count"] if result else 0
 
     def order_by(self, ordering):
         """
@@ -87,58 +80,30 @@ class MongoQuery:
         return self.collection.delete_many(self.mongo_query, **options).deleted_count
 
     @wrap_database_errors
-    def get_cursor(self, count=False, limit=None, skip=None):
+    def get_cursor(self):
         """
         Return a pymongo CommandCursor that can be iterated on to give the
         results of the query.
-
-        If `count` is True, return a single document with the number of
-        documents that match the query.
-
-        Use `limit` or `skip` to override those options of the query.
         """
-        fields = {}
-        for name, expr in self.columns or []:
-            try:
-                column = expr.target.column
-            except AttributeError:
-                # Generate the MQL for an annotation.
-                try:
-                    fields[name] = expr.as_mql(self.compiler, self.connection)
-                except EmptyResultSet:
-                    fields[name] = Value(False).as_mql(self.compiler, self.connection)
-                except FullResultSet:
-                    fields[name] = Value(True).as_mql(self.compiler, self.connection)
-            else:
-                # If name != column, then this is an annotatation referencing
-                # another column.
-                fields[name] = 1 if name == column else f"${column}"
-        if fields:
-            # Add related fields.
-            for alias in self.query.alias_map:
-                if self.query.alias_refcount[alias] and self.collection_name != alias:
-                    fields[alias] = 1
-        # Construct the query pipeline.
-        pipeline = []
+        return self.collection.aggregate(self.get_pipeline())
+
+    def get_pipeline(self):
+        pipeline = self.subquery.get_pipeline() if self.subquery else []
         if self.lookup_pipeline:
             pipeline.extend(self.lookup_pipeline)
         if self.mongo_query:
             pipeline.append({"$match": self.mongo_query})
-        if fields:
-            pipeline.append({"$project": fields})
+        if self.aggregation_pipeline:
+            pipeline.extend(self.aggregation_pipeline)
+        if self.project_fields:
+            pipeline.append({"$project": self.project_fields})
         if self.ordering:
             pipeline.append({"$sort": dict(self.ordering)})
-        if skip is not None:
-            pipeline.append({"$skip": skip})
-        elif self.query.low_mark > 0:
+        if self.query.low_mark > 0:
             pipeline.append({"$skip": self.query.low_mark})
-        if limit is not None:
-            pipeline.append({"$limit": limit})
-        elif self.query.high_mark is not None:
+        if self.query.high_mark is not None:
             pipeline.append({"$limit": self.query.high_mark - self.query.low_mark})
-        if count:
-            pipeline.append({"$group": {"_id": None, "__count": {"$sum": 1}}})
-        return self.collection.aggregate(pipeline)
+        return pipeline
 
 
 def join(self, compiler, connection):

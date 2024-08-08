@@ -13,6 +13,7 @@ from django.db.models.expressions import (
     NegatedExpression,
     Ref,
     ResolvedOuterRef,
+    Star,
     Subquery,
     Value,
     When,
@@ -76,7 +77,11 @@ def query(self, compiler, connection):  # noqa: ARG001
 
 
 def ref(self, compiler, connection):  # noqa: ARG001
-    return self.refs
+    return f"${self.refs}"
+
+
+def star(self, compiler, connection):  # noqa: ARG001
+    return {"$literal": True}
 
 
 def subquery(self, compiler, connection):  # noqa: ARG001
@@ -113,6 +118,7 @@ def register_expressions():
     Query.as_mql = query
     Ref.as_mql = ref
     ResolvedOuterRef.as_mql = ResolvedOuterRef.as_sql
+    Star.as_mql = star
     Subquery.as_mql = subquery
     When.as_mql = when
     Value.as_mql = value

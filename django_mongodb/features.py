@@ -34,10 +34,21 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "basic.tests.SelectOnSaveTests.test_select_on_save_lying_update",
         # Order by constant not supported:
         # AttributeError: 'Field' object has no attribute 'model'
+        "aggregation.tests.AggregateTestCase.test_annotate_values_list",
+        "aggregation.tests.AggregateTestCase.test_grouped_annotation_in_group_by",
+        "aggregation.tests.AggregateTestCase.test_non_grouped_annotation_not_in_group_by",
+        "aggregation.tests.AggregateTestCase.test_values_annotation_with_expression",
+        "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_aggregate",
+        "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
+        "ordering.tests.OrderingTests.test_default_ordering_does_not_affect_group_by",
         "ordering.tests.OrderingTests.test_order_by_constant_value",
         "expressions.tests.NegatedExpressionTests.test_filter",
         "expressions_case.tests.CaseExpressionTests.test_order_by_conditional_implicit",
+        # BaseExpression.convert_value() crashes with Decimal128.
+        "aggregation.tests.AggregateTestCase.test_combine_different_types",
+        "annotations.tests.NonAggregateAnnotationTestCase.test_combined_f_expression_annotation_with_aggregation",
         # NotSupportedError: order_by() expression not supported.
+        "aggregation.tests.AggregateTestCase.test_aggregation_order_by_not_selected_annotation_values",
         "db_functions.comparison.test_coalesce.CoalesceTests.test_ordering",
         "db_functions.tests.FunctionTests.test_nested_function_ordering",
         "db_functions.text.test_length.LengthTests.test_ordering",
@@ -82,7 +93,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "ordering.tests.OrderingTests.test_order_by_parent_fk_with_expression_in_default_ordering",
         "ordering.tests.OrderingTests.test_order_by_ptr_field_with_default_ordering_by_expression",
         "queries.tests.Queries1Tests.test_order_by_tables",
-        "queries.tests.Queries1Tests.test_ticket4358",
         "queries.tests.TestTicket24605.test_ticket_24605",
         "queries.tests.TestInvalidValuesRelation.test_invalid_values",
         # alias().order_by() doesn't work.
@@ -90,11 +100,17 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "annotations.tests.AliasTests.test_order_by_alias_aggregate",
         # annotate() + values_list() + order_by() loses annotated value.
         "expressions_case.tests.CaseExpressionTests.test_annotate_values_not_in_order_by",
-        # pymongo.errors.OperationFailure: the limit must be positive
-        "queries.tests.WeirdQuerysetSlicingTests.test_tickets_7698_10202",
         # QuerySet.explain() not implemented:
         # https://github.com/mongodb-labs/django-mongodb/issues/28
         "queries.test_explain.ExplainUnsupportedTests.test_message",
+        # The $sum aggregation returns 0 instead of None for null.
+        "aggregation.test_filter_argument.FilteredAggregateTests.test_plain_annotate",
+        "aggregation.tests.AggregateTestCase.test_aggregation_default_passed_another_aggregate",
+        "aggregation.tests.AggregateTestCase.test_annotation_expressions",
+        "aggregation.tests.AggregateTestCase.test_reverse_fkey_annotate",
+        # Incorrect order: pipeline does not order by the correct fields.
+        "aggregation.tests.AggregateTestCase.test_annotate_ordering",
+        "aggregation.tests.AggregateTestCase.test_even_more_aggregate",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -234,42 +250,14 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.comparison.test_cast.CastTests.test_cast_to_integer_foreign_key",
             "model_fields.test_foreignkey.ForeignKeyTests.test_to_python",
         },
-        # https://github.com/mongodb-labs/django-mongodb/issues/12
-        "QuerySet.aggregate() not supported.": {
-            "annotations.tests.AliasTests.test_alias_default_alias_expression",
-            "annotations.tests.AliasTests.test_filter_alias_agg_with_double_f",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_aggregate_over_annotation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_aggregate_over_full_expression_annotation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_aggregate_values_chaining",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_in_f_grouped_by_annotation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_subquery_and_aggregate_values_chaining",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_filter_agg_with_double_f",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_values_with_pk_annotation",
-            "expressions.test_queryset_values.ValuesExpressionsTests.test_chained_values_with_expression",
-            "expressions.test_queryset_values.ValuesExpressionsTests.test_values_expression_group_by",
-            "expressions.tests.BasicExpressionsTests.test_annotate_values_aggregate",
-            "expressions_case.tests.CaseExpressionTests.test_aggregate",
-            "expressions_case.tests.CaseExpressionTests.test_aggregate_with_expression_as_condition",
-            "expressions_case.tests.CaseExpressionTests.test_aggregate_with_expression_as_value",
-            "expressions_case.tests.CaseExpressionTests.test_aggregation_empty_cases",
-            "expressions_case.tests.CaseExpressionTests.test_annotate_with_aggregation_in_condition",
-            "expressions_case.tests.CaseExpressionTests.test_annotate_with_aggregation_in_predicate",
-            "expressions_case.tests.CaseExpressionTests.test_annotate_with_aggregation_in_value",
-            "expressions_case.tests.CaseExpressionTests.test_annotate_with_in_clause",
-            "expressions_case.tests.CaseExpressionTests.test_filter_with_aggregation_in_condition",
-            "expressions_case.tests.CaseExpressionTests.test_filter_with_aggregation_in_predicate",
-            "expressions_case.tests.CaseExpressionTests.test_filter_with_aggregation_in_value",
-            "expressions_case.tests.CaseExpressionTests.test_m2m_exclude",
-            "expressions_case.tests.CaseExpressionTests.test_m2m_reuse",
-            "lookup.test_decimalfield.DecimalFieldLookupTests",
-            "lookup.tests.LookupQueryingTests.test_aggregate_combined_lookup",
-            "from_db_value.tests.FromDBValueTest.test_aggregation",
-            "timezones.tests.LegacyDatabaseTests.test_query_aggregation",
-            "timezones.tests.LegacyDatabaseTests.test_query_annotation",
-            "timezones.tests.NewDatabaseTests.test_query_aggregation",
-            "timezones.tests.NewDatabaseTests.test_query_annotation",
-        },
         "Exists is not supported on MongoDB.": {
+            "aggregation.test_filter_argument.FilteredAggregateTests.test_filtered_aggregate_on_exists",
+            "aggregation.test_filter_argument.FilteredAggregateTests.test_filtered_aggregate_ref_multiple_subquery_annotation",
+            "aggregation.tests.AggregateTestCase.test_aggregation_exists_multivalued_outeref",
+            "aggregation.tests.AggregateTestCase.test_group_by_exists_annotation",
+            "aggregation.tests.AggregateTestCase.test_exists_none_with_aggregate",
+            "aggregation.tests.AggregateTestCase.test_exists_extra_where_with_aggregate",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_aggregate_values_chaining",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_none_query",
             "delete_regress.tests.DeleteTests.test_self_reference_with_through_m2m_at_second_level",
             "expressions.tests.BasicExpressionsTests.test_annotation_with_deeply_nested_outerref",
@@ -314,11 +302,22 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.tests.Ticket22429Tests.test_ticket_22429",
         },
         "Subquery is not supported on MongoDB.": {
+            "aggregation.test_filter_argument.FilteredAggregateTests.test_filtered_aggregate_ref_subquery_annotation",
+            "aggregation.tests.AggregateAnnotationPruningTests.test_referenced_composed_subquery_requires_wrapping",
+            "aggregation.tests.AggregateAnnotationPruningTests.test_referenced_subquery_requires_wrapping",
+            "aggregation.tests.AggregateTestCase.test_aggregation_nested_subquery_outerref",
+            "aggregation.tests.AggregateTestCase.test_aggregation_subquery_annotation",
+            "aggregation.tests.AggregateTestCase.test_aggregation_subquery_annotation_multivalued",
+            "aggregation.tests.AggregateTestCase.test_aggregation_subquery_annotation_related_field",
+            "aggregation.tests.AggregateTestCase.test_aggregation_subquery_annotation_values",
+            "aggregation.tests.AggregateTestCase.test_aggregation_subquery_annotation_values_collision",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_filter_with_subquery",
+            "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_subquery_and_aggregate_values_chaining",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_subquery_outerref_transform",
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_outerref",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_subquery_with_parameters",
+            "expressions.tests.BasicExpressionsTests.test_aggregate_subquery_annotation",
             "expressions.tests.BasicExpressionsTests.test_annotation_with_nested_outerref",
             "expressions.tests.BasicExpressionsTests.test_annotation_with_outerref",
             "expressions.tests.BasicExpressionsTests.test_annotations_within_subquery",
@@ -341,10 +340,15 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_jsonfield.TestQuerying.test_obj_subquery_lookup",
         },
         "Using a QuerySet in annotate() is not supported on MongoDB.": {
+            "aggregation.test_filter_argument.FilteredAggregateTests.test_filtered_reused_subquery",
+            "aggregation.tests.AggregateTestCase.test_filter_in_subquery_or_aggregation",
+            "aggregation.tests.AggregateTestCase.test_group_by_subquery_annotation",
+            "aggregation.tests.AggregateTestCase.test_group_by_reference_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_related_in_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_expression_annotation",
             "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
+            "expressions_case.tests.CaseExpressionTests.test_annotate_with_in_clause",
             "expressions.tests.FTimeDeltaTests.test_date_subquery_subtraction",
             "expressions.tests.FTimeDeltaTests.test_datetime_subquery_subtraction",
             "expressions.tests.FTimeDeltaTests.test_time_subquery_subtraction",
@@ -377,30 +381,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.tests.WeirdQuerysetSlicingTests.test_empty_sliced_subquery",
             "queries.tests.WeirdQuerysetSlicingTests.test_empty_sliced_subquery_exclude",
         },
-        # Invalid $project :: caused by :: Unknown expression $count
-        # https://github.com/mongodb-labs/django-mongodb/issues/79
-        "Count() in QuerySet.annotate() crashes.": {
-            "annotations.tests.AliasTests.test_alias_annotate_with_aggregation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_annotate_exists",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_annotate_with_aggregation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_combined_expression_annotation_with_aggregation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_combined_f_expression_annotation_with_aggregation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_full_expression_annotation_with_aggregation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_grouping_by_q_expression_annotation",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_order_by_aggregate",
-            "annotations.tests.NonAggregateAnnotationTestCase.test_q_expression_annotation_with_aggregation",
-            "db_functions.comparison.test_cast.CastTests.test_cast_from_db_datetime_to_date_group_by",
-            "defer_regress.tests.DeferRegressionTest.test_basic",
-            "defer_regress.tests.DeferRegressionTest.test_defer_annotate_select_related",
-            "defer_regress.tests.DeferRegressionTest.test_ticket_16409",
-            "expressions.tests.BasicExpressionsTests.test_aggregate_subquery_annotation",
-            "expressions.tests.FieldTransformTests.test_month_aggregation",
-            "expressions_case.tests.CaseDocumentationExamples.test_conditional_aggregation_example",
-            "model_fields.test_jsonfield.TestQuerying.test_ordering_grouping_by_count",
-            "ordering.tests.OrderingTests.test_default_ordering_does_not_affect_group_by",
-            "queries.tests.Queries1Tests.test_ticket_20250",
-            "queries.tests.ValuesQuerysetTests.test_named_values_list_expression_with_default_alias",
-        },
         "Cannot use QuerySet.delete() when querying across multiple collections on MongoDB.": {
             "delete.tests.FastDeleteTests.test_fast_delete_aggregation",
             "delete.tests.FastDeleteTests.test_fast_delete_empty_no_update_can_self_select",
@@ -417,6 +397,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.tests.Queries5Tests.test_ticket9848",
         },
         "QuerySet.dates() is not supported on MongoDB.": {
+            "aggregation.tests.AggregateTestCase.test_dates_with_aggregation",
             "annotations.tests.AliasTests.test_dates_alias",
             "dates.tests.DatesTests.test_dates_trunc_datetime_fields",
             "dates.tests.DatesTests.test_related_model_traverse",
@@ -434,6 +415,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_query_datetimes_in_other_timezone",
         },
         "QuerySet.distinct() is not supported.": {
+            "aggregation.tests.AggregateTestCase.test_sum_distinct_aggregate",
             "lookup.tests.LookupTests.test_lookup_collision_distinct",
             "queries.tests.ExcludeTest17600.test_exclude_plain_distinct",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_is_equal_to_plain_exclude",
@@ -487,6 +469,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "update.tests.AdvancedTests.test_update_annotated_multi_table_queryset",
         },
         "Test inspects query for SQL": {
+            "aggregation.tests.AggregateAnnotationPruningTests.test_non_aggregate_annotation_pruned",
+            "aggregation.tests.AggregateAnnotationPruningTests.test_unreferenced_aggregate_annotation_pruned",
+            "aggregation.tests.AggregateAnnotationPruningTests.test_unused_aliased_aggregate_pruned",
+            "aggregation.tests.AggregateAnnotationPruningTests.test_referenced_aggregate_annotation_kept",
+            "aggregation.tests.AggregateTestCase.test_count_star",
             "delete.tests.DeletionTests.test_only_referenced_fields_selected",
             "lookup.tests.LookupTests.test_in_ignore_none",
             "lookup.tests.LookupTests.test_textfield_exact_null",
@@ -494,6 +481,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.tests.Queries6Tests.test_col_alias_quoted",
         },
         "Test executes raw SQL.": {
+            "aggregation.tests.AggregateTestCase.test_coalesced_empty_result_set",
             "annotations.tests.NonAggregateAnnotationTestCase.test_raw_sql_with_inherited_field",
             "delete_regress.tests.DeleteLockingTest.test_concurrent_delete",
             "expressions.tests.BasicExpressionsTests.test_annotate_values_filter",
@@ -511,7 +499,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_cursor_explicit_time_zone",
             "timezones.tests.NewDatabaseTests.test_raw_sql",
         },
-        "Custom functions with SQL don't work on MongoDB.": {
+        "Custom aggregations/functions with SQL don't work on MongoDB.": {
+            "aggregation.tests.AggregateTestCase.test_add_implementation",
+            "aggregation.tests.AggregateTestCase.test_multi_arg_aggregate",
+            "aggregation.tests.AggregateTestCase.test_empty_result_optimization",
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions",
             "annotations.tests.NonAggregateAnnotationTestCase.test_custom_functions_can_ref_other_functions",
         },
@@ -540,6 +531,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_quarter_func_boundaries",
         },
         "TruncDate database function not supported.": {
+            "aggregation.tests.AggregateTestCase.test_aggregation_default_using_date_from_database",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_date_func",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_date_none",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_lookup_name_sql_injection",
@@ -554,6 +546,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_time_none",
         },
         "MongoDB can't annotate ($project) a function like PI().": {
+            "aggregation.tests.AggregateTestCase.test_aggregation_default_using_decimal_from_database",
             "db_functions.math.test_pi.PiTests.test",
         },
         "Can't cast from date to datetime without MongoDB interpreting the new value in UTC.": {
@@ -585,6 +578,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_jsonfield.TestQuerying.test_none_key_exclude",
         },
         "Randomized ordering isn't supported by MongoDB.": {
+            "aggregation.tests.AggregateTestCase.test_aggregation_random_ordering",
             "ordering.tests.OrderingTests.test_random_ordering",
         },
         "Queries without a collection aren't supported on MongoDB.": {

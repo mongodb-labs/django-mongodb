@@ -109,7 +109,6 @@ Migrations for 'admin':
 ## Known issues and limitations
 
 - The following `QuerySet` methods aren't supported:
-  - `aggregate()`
   - `bulk_update()`
   - `dates()`
   - `datetimes()`
