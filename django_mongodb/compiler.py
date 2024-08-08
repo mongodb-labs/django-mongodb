@@ -481,7 +481,7 @@ class SQLCompiler(compiler.SQLCompiler):
             else:
                 # The expression must be added to extra_fields with an alias.
                 field_name = f"__order{next(idx)}"
-                extra_fields[field_name] = order.expression
+                fields[field_name] = order.expression
             # If the expression is ordered by NULLS FIRST or NULLS LAST,
             # add a field for sorting that's 1 if null or 0 if not.
             if order.nulls_first or order.nulls_last:
@@ -489,7 +489,6 @@ class SQLCompiler(compiler.SQLCompiler):
                 condition = When(IsNull(order.expression, True), then=Value(1))
                 extra_fields[null_fieldname] = Case(condition, default=Value(0))
                 sort_ordering[null_fieldname] = DESCENDING if order.nulls_first else ASCENDING
-            fields[field_name] = order.expression
             sort_ordering[field_name] = DESCENDING if order.descending else ASCENDING
         return tuple(fields.items()), sort_ordering, tuple(extra_fields.items())
 
