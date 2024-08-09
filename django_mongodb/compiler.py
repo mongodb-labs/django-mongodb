@@ -471,15 +471,12 @@ class SQLCompiler(compiler.SQLCompiler):
         idx = itertools.count(start=1)
         for order in self.order_by_expressions or []:
             if isinstance(order.expression, Ref):
-                # TODO change?
-                # field_name = order.expression.as_mql(self, self.connection).removeprefix("$")
-                # extra_fields[field_name] = order.expression
                 field_name = order.expression.refs
             elif isinstance(order.expression, Col):
                 field_name = order.expression.as_mql(self, self.connection).removeprefix("$")
                 fields[field_name] = order.expression
             else:
-                # The expression must be added to extra_fields with an alias.
+                # The expression must be added to fields with an alias.
                 field_name = f"__order{next(idx)}"
                 fields[field_name] = order.expression
             # If the expression is ordered by NULLS FIRST or NULLS LAST,
