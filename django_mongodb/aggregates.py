@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from django.db.models.aggregates import Aggregate, Count, StdDev, Variance
 from django.db.models.expressions import Case, Value, When
-from django.db.models.lookups import Exact
+from django.db.models.lookups import IsNull
 from django.db.models.sql.where import WhereNode
 
 from .query_utils import process_lhs
@@ -47,7 +47,7 @@ def count(self, compiler, connection, resolve_inner_expression=False, **extra_co
             source_expressions = node.get_source_expressions()
             filter_ = deepcopy(self.filter)
             filter_.add(
-                WhereNode([Exact(source_expressions[0], Value(None))], negated=True),
+                WhereNode([IsNull(source_expressions[0], True)], negated=True),
                 filter_.default,
             )
             condition = When(filter_, then=Value(1))
