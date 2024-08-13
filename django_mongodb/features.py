@@ -67,6 +67,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation_regress.tests.AggregationTests.test_annotation",
         "aggregation_regress.tests.AggregationTests.test_more_more3",
         "aggregation_regress.tests.AggregationTests.test_more_more_more3",
+        # QuerySet.extra(where=...) should raise NotSupportedError instead of:
+        # 'ExtraWhere' object has no attribute 'as_mql'.
+        "many_to_one.tests.ManyToOneTests.test_selects",
         # Incorrect JOIN with GenericRelation gives incorrect results.
         "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
     }
@@ -113,6 +116,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "QuerySet.prefetch_related() is not supported on MongoDB.": {
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_proxied",
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_reverse_proxied",
+            "many_to_many.tests.ManyToManyTests.test_add_after_prefetch",
+            "many_to_many.tests.ManyToManyTests.test_add_then_remove_after_prefetch",
+            "many_to_many.tests.ManyToManyTests.test_clear_after_prefetch",
+            "many_to_many.tests.ManyToManyTests.test_create_after_prefetch",
+            "many_to_many.tests.ManyToManyTests.test_remove_after_prefetch",
+            "many_to_many.tests.ManyToManyTests.test_set_after_prefetch",
             "model_forms.tests.OtherModelFormTests.test_prefetch_related_queryset",
         },
         "QuerySet.update() with expression not supported.": {
@@ -184,6 +193,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_filter_by_reverse_related_field_transform",
             "lookup.tests.LookupTests.test_in_ignore_none_with_unhashable_items",
             "m2m_through_regress.tests.ThroughLoadDataTestCase.test_sequence_creation",
+            "many_to_many.tests.ManyToManyTests.test_add_remove_invalid_type",
             "model_fields.test_autofield.AutoFieldTests",
             "model_fields.test_autofield.BigAutoFieldTests",
             "model_fields.test_autofield.SmallAutoFieldTests",
@@ -241,6 +251,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_forms.tests.LimitChoicesToTests.test_limit_choices_to_callable_for_m2m_rel",
             "model_forms.tests.LimitChoicesToTests.test_limit_choices_to_m2m_through",
             "model_forms.tests.LimitChoicesToTests.test_limit_choices_to_no_duplicates",
+            "null_queries.tests.NullQueriesTests.test_reverse_relations",
             "queries.tests.ExcludeTest17600.test_exclude_plain",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_is_equal_to_plain_exclude_variation",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_object_no_distinct",
@@ -331,6 +342,14 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one",
             "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one_offset",
             "lookup.tests.LookupTests.test_in_different_database",
+            "many_to_many.tests.ManyToManyTests.test_assign",
+            "many_to_many.tests.ManyToManyTests.test_assign_ids",
+            "many_to_many.tests.ManyToManyTests.test_clear",
+            "many_to_many.tests.ManyToManyTests.test_remove",
+            "many_to_many.tests.ManyToManyTests.test_reverse_assign_with_queryset",
+            "many_to_many.tests.ManyToManyTests.test_set",
+            "many_to_many.tests.ManyToManyTests.test_set_existing_different_type",
+            "many_to_one.tests.ManyToOneTests.test_get_prefetch_queryset_reverse_warning",
             "model_fields.test_jsonfield.TestQuerying.test_usage_in_subquery",
             "one_to_one.tests.OneToOneTests.test_get_prefetch_queryset_warning",
             "one_to_one.tests.OneToOneTests.test_rel_pk_subquery",
@@ -378,6 +397,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "aggregation_regress.tests.AggregationTests.test_more_more_more2",
             "dates.tests.DatesTests.test_dates_trunc_datetime_fields",
             "dates.tests.DatesTests.test_related_model_traverse",
+            "many_to_one.tests.ManyToOneTests.test_select_related",
         },
         "QuerySet.datetimes() is not supported on MongoDB.": {
             "annotations.tests.AliasTests.test_datetimes_alias",
@@ -397,6 +417,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "aggregation_regress.tests.AggregationTests.test_conditional_aggregate_on_complex_condition",
             "aggregation_regress.tests.AggregationTests.test_distinct_conditional_aggregate",
             "lookup.tests.LookupTests.test_lookup_collision_distinct",
+            "many_to_many.tests.ManyToManyTests.test_reverse_selects",
+            "many_to_many.tests.ManyToManyTests.test_selects",
+            "many_to_one.tests.ManyToOneTests.test_reverse_selects",
             "ordering.tests.OrderingTests.test_orders_nulls_first_on_filtered_subquery",
             "queries.tests.ExcludeTest17600.test_exclude_plain_distinct",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_is_equal_to_plain_exclude",

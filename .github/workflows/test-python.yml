@@ -96,8 +96,16 @@ jobs:
           m2m_through
           m2m_through_regress
           m2o_recursive
+          many_to_many
+          many_to_one
+          many_to_one_null
           model_fields
           model_forms
+          mutually_referential
+          nested_foreign_keys
+          null_fk
+          null_fk_ordering
+          null_queries
           one_to_one
           ordering
           or_lookups
