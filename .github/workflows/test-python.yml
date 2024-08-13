@@ -71,7 +71,7 @@ jobs:
           aggregation_regress
           annotations
           auth_tests.test_models.UserManagerTestCase
-          backends.base.test_base.DatabaseWrapperTests
+          backends
           basic
           bulk_create
           dates

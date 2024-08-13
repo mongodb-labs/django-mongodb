@@ -19,10 +19,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_json_field_contains = False
     # BSON Date type doesn't support microsecond precision.
     supports_microsecond_precision = False
+    supports_paramstyle_pyformat = False
     supports_select_difference = False
     supports_select_intersection = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/72
     supports_select_union = False
+    supports_sequence_reset = False
     supports_table_check_constraints = False
     supports_temporal_subtraction = True
     # MongoDB stores datetimes in UTC.
@@ -78,6 +80,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "many_to_one.tests.ManyToOneTests.test_selects",
         # Incorrect JOIN with GenericRelation gives incorrect results.
         "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
+        # subclasses of BaseDatabaseWrapper may require an is_usable() method
+        "backends.tests.BackendTestCase.test_is_usable_after_database_disconnects",
+        # Connection creation doesn't follow the usual Django API.
+        "backends.tests.ThreadTests.test_pass_connection_between_threads",
+        "backends.tests.ThreadTests.test_closing_non_shared_connections",
+        "backends.tests.ThreadTests.test_default_connection_thread_local",
         # AddField
         "schema.tests.SchemaTests.test_add_datefield_and_datetimefield_use_effective_default",
         "schema.tests.SchemaTests.test_add_field",
@@ -201,6 +209,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_uuid.TestQuerying.test_startswith",
         },
         "QuerySet.prefetch_related() is not supported on MongoDB.": {
+            "backends.base.test_creation.TestDeserializeDbFromString.test_serialize_db_to_string_base_manager_with_prefetch_related",
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_proxied",
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_reverse_proxied",
             "many_to_many.tests.ManyToManyTests.test_add_after_prefetch",
@@ -424,6 +433,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "aggregation.tests.AggregateTestCase.test_dates_with_aggregation",
             "annotations.tests.AliasTests.test_dates_alias",
             "aggregation_regress.tests.AggregationTests.test_more_more_more2",
+            "backends.tests.DateQuotingTest.test_django_date_trunc",
             "dates.tests.DatesTests.test_dates_trunc_datetime_fields",
             "dates.tests.DatesTests.test_related_model_traverse",
             "many_to_one.tests.ManyToOneTests.test_select_related",
@@ -510,6 +520,19 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Test executes raw SQL.": {
             "aggregation.tests.AggregateTestCase.test_coalesced_empty_result_set",
             "annotations.tests.NonAggregateAnnotationTestCase.test_raw_sql_with_inherited_field",
+            "backends.base.test_base.ExecuteWrapperTests",
+            "backends.tests.BackendTestCase.test_cursor_contextmanager",
+            "backends.tests.BackendTestCase.test_cursor_executemany",
+            "backends.tests.BackendTestCase.test_cursor_executemany_with_empty_params_list",
+            "backends.tests.BackendTestCase.test_cursor_executemany_with_iterator",
+            "backends.tests.BackendTestCase.test_duplicate_table_error",
+            "backends.tests.BackendTestCase.test_queries",
+            "backends.tests.BackendTestCase.test_queries_bare_where",
+            "backends.tests.BackendTestCase.test_queries_limit",
+            "backends.tests.BackendTestCase.test_queries_logger",
+            "backends.tests.BackendTestCase.test_unicode_fetches",
+            "backends.tests.EscapingChecks",
+            "backends.test_utils.CursorWrapperTests",
             "delete_regress.tests.DeleteLockingTest.test_concurrent_delete",
             "expressions.tests.BasicExpressionsTests.test_annotate_values_filter",
             "expressions.tests.BasicExpressionsTests.test_filtering_on_rawsql_that_is_boolean",
@@ -627,11 +650,22 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.test_q.QCheckTests",
             "queries.test_query.TestQueryNoModel",
         },
+        "MongoDB doesn't use CursorDebugWrapper.": {
+            "backends.tests.LastExecutedQueryTest.test_last_executed_query",
+            "backends.tests.LastExecutedQueryTest.test_last_executed_query_with_duplicate_params",
+            "backends.tests.LastExecutedQueryTest.test_query_encoding",
+        },
         "Test not applicable for MongoDB's SQLCompiler.": {
             "queries.test_iterator.QuerySetIteratorTests",
         },
         "Support for views not implemented.": {
             "introspection.tests.IntrospectionTests.test_table_names_with_views",
+        },
+        "Connection health checks not implemented.": {
+            "backends.base.test_base.ConnectionHealthChecksTests",
+        },
+        "transaction.atomic() is not supported.": {
+            "backends.base.test_base.DatabaseWrapperLoggingTests",
         },
     }
 
