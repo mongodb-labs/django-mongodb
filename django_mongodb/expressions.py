@@ -77,7 +77,12 @@ def query(self, compiler, connection):  # noqa: ARG001
 
 
 def ref(self, compiler, connection):  # noqa: ARG001
-    return f"${self.refs}"
+    prefix = (
+        f"{self.source.alias}."
+        if isinstance(self.source, Col) and self.source.alias != compiler.collection_name
+        else ""
+    )
+    return f"${prefix}{self.refs}"
 
 
 def star(self, compiler, connection):  # noqa: ARG001

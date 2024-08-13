@@ -428,33 +428,31 @@ class SQLCompiler(compiler.SQLCompiler):
                 stack.extend(expr.get_source_expressions())
 
     def get_project_fields(self, columns=None, ordering=None):
-        fields = {}
+        fields = defaultdict(dict)
         for name, expr in columns or []:
+            collection = expr.alias if isinstance(expr, Col) else None
             try:
-                column = expr.target.column
-            except AttributeError:
-                # Generate the MQL for an annotation.
-                try:
-                    fields[name] = expr.as_mql(self, self.connection)
-                except EmptyResultSet:
-                    fields[name] = Value(False).as_mql(self, self.connection)
-                except FullResultSet:
-                    fields[name] = Value(True).as_mql(self, self.connection)
-            else:
-                # If name != column, then this is an annotatation referencing
-                # another column.
-                fields[name] = 1 if name == column else f"${column}"
-        if fields:
-            # Add related fields.
-            for alias in self.query.alias_map:
-                if self.query.alias_refcount[alias] and self.collection_name != alias:
-                    fields[alias] = 1
-            # Add order_by() fields.
-            for alias, expression in ordering or []:
-                nested_entity = alias.split(".", 1)[0] if "." in alias else None
-                if alias not in fields and nested_entity not in fields:
-                    fields[alias] = expression.as_mql(self, self.connection)
-        return fields
+                fields[collection][name] = (
+                    1
+                    # For brevity/simplicity, project {"field_name": 1}
+                    # instead of {"field_name": "$field_name"}.
+                    if isinstance(expr, Col) and name == expr.target.column
+                    else expr.as_mql(self, self.connection)
+                )
+            except EmptyResultSet:
+                fields[collection][name] = Value(False).as_mql(self, self.connection)
+            except FullResultSet:
+                fields[collection][name] = Value(True).as_mql(self, self.connection)
+        # Annotations (stored in None) and the main collection's fields
+        # should appear in the top-level of the fields dict.
+        fields.update(fields.pop(None, {}))
+        fields.update(fields.pop(self.collection_name, {}))
+        # Add order_by() fields.
+        if fields and ordering:
+            fields.update({alias: expr.as_mql(self, self.connection) for alias, expr in ordering})
+        # Convert defaultdict to dict so it doesn't appear as
+        # "defaultdict(<CLASS 'dict'>, ..." in query logging.
+        return dict(fields)
 
     def _get_ordering(self):
         """
