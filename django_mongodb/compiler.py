@@ -193,7 +193,9 @@ class SQLCompiler(compiler.SQLCompiler):
                     projected_fields[table][field] = value
                 else:
                     projected_fields[key] = value
-            pipeline.append({"$addFields": projected_fields})
+            # Convert defaultdict to dict so it doesn't appear as
+            # "defaultdict(<CLASS 'dict'>, ..." in query logging.
+            pipeline.append({"$addFields": dict(projected_fields)})
             if "_id" not in projected_fields:
                 pipeline.append({"$unset": "_id"})
         return pipeline
