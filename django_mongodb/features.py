@@ -49,14 +49,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_timezone_applied_before_truncation",
         # Length of null considered zero rather than null.
         "db_functions.text.test_length.LengthTests.test_basic",
-        # Wrong annotation names in $project (dollar prefixed) when querying
-        # multiple collections.
-        "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_reverse_m2m",
-        "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_with_m2m",
-        "annotations.tests.NonAggregateAnnotationTestCase.test_chaining_annotation_filter_with_m2m",
-        "annotations.tests.NonAggregateAnnotationTestCase.test_mti_annotations",
-        "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression",
-        "expressions.test_queryset_values.ValuesExpressionsTests.test_values_list_expression_flat",
         # range lookup includes incorrect values.
         "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
         # Unexpected alias_refcount in alias_map.
