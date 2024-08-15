@@ -1,6 +1,7 @@
 from bson import ObjectId, errors
 from django.core import exceptions
 from django.db.models.fields import AutoField, Field
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 
@@ -41,3 +42,8 @@ class MongoAutoField(AutoField):
                 code="invalid",
                 params={"value": value},
             ) from None
+
+    @cached_property
+    def validators(self):
+        # Avoid IntegerField validators inherited from AutoField.
+        return [*self.default_validators, *self._validators]

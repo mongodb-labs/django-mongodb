@@ -71,8 +71,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
         # MongoAutoField.get_prep_value() must accept numeric pks.
         "model_forms.tests.ModelFormBasicTests.test_int_pks",
-        # AutoField (IntegerField) validators crash MongoAutoField.
-        "model_forms.tests.ModelFormBasicTests.test_recleaning_model_form_instance",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
