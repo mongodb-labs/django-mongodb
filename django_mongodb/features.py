@@ -69,16 +69,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation_regress.tests.AggregationTests.test_more_more_more3",
         # Incorrect JOIN with GenericRelation gives incorrect results.
         "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
-        # MongoAutoField.get_prep_value() must accept strings.
-        "model_forms.test_modelchoicefield.ModelChoiceFieldTests.test_choices",
-        "model_forms.test_modelchoicefield.ModelChoiceFieldTests.test_clean_model_instance",
+        # MongoAutoField.get_prep_value() must accept numeric pks.
         "model_forms.tests.ModelFormBasicTests.test_int_pks",
-        "model_forms.tests.ModelFormBasicTests.test_m2m_editing",
-        "model_forms.tests.ModelMultipleChoiceFieldTests.test_clean_does_deduplicate_values",
-        "model_forms.tests.ModelMultipleChoiceFieldTests.test_model_multiple_choice_field",
-        "model_forms.tests.ModelOneToOneFieldTests.test_onetoonefield",
-        "model_forms.tests.ModelFormBasicTests.test_initial_values",
-        "model_forms.tests.ModelMultipleChoiceFieldTests.test_model_multiple_choice_show_hidden_initial",
         # AutoField (IntegerField) validators crash MongoAutoField.
         "model_forms.tests.ModelFormBasicTests.test_recleaning_model_form_instance",
     }
