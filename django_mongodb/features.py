@@ -69,6 +69,18 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation_regress.tests.AggregationTests.test_more_more_more3",
         # Incorrect JOIN with GenericRelation gives incorrect results.
         "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
+        # MongoAutoField.get_prep_value() must accept strings.
+        "model_forms.test_modelchoicefield.ModelChoiceFieldTests.test_choices",
+        "model_forms.test_modelchoicefield.ModelChoiceFieldTests.test_clean_model_instance",
+        "model_forms.tests.ModelFormBasicTests.test_int_pks",
+        "model_forms.tests.ModelFormBasicTests.test_m2m_editing",
+        "model_forms.tests.ModelMultipleChoiceFieldTests.test_clean_does_deduplicate_values",
+        "model_forms.tests.ModelMultipleChoiceFieldTests.test_model_multiple_choice_field",
+        "model_forms.tests.ModelOneToOneFieldTests.test_onetoonefield",
+        "model_forms.tests.ModelFormBasicTests.test_initial_values",
+        "model_forms.tests.ModelMultipleChoiceFieldTests.test_model_multiple_choice_show_hidden_initial",
+        # AutoField (IntegerField) validators crash MongoAutoField.
+        "model_forms.tests.ModelFormBasicTests.test_recleaning_model_form_instance",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -113,6 +125,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "QuerySet.prefetch_related() is not supported on MongoDB.": {
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_proxied",
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_reverse_proxied",
+            "model_forms.tests.OtherModelFormTests.test_prefetch_related_queryset",
         },
         "QuerySet.update() with expression not supported.": {
             "annotations.tests.AliasTests.test_update_with_alias",
@@ -235,6 +248,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_exact_exists",
             "lookup.tests.LookupTests.test_nested_outerref_lhs",
             "lookup.tests.LookupQueryingTests.test_filter_exists_lhs",
+            "model_forms.tests.LimitChoicesToTests.test_fields_for_model_applies_limit_choices_to",
+            "model_forms.tests.LimitChoicesToTests.test_limit_choices_to_callable_for_fk_rel",
+            "model_forms.tests.LimitChoicesToTests.test_limit_choices_to_callable_for_m2m_rel",
+            "model_forms.tests.LimitChoicesToTests.test_limit_choices_to_m2m_through",
+            "model_forms.tests.LimitChoicesToTests.test_limit_choices_to_no_duplicates",
             "queries.tests.ExcludeTest17600.test_exclude_plain",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_is_equal_to_plain_exclude_variation",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_object_no_distinct",

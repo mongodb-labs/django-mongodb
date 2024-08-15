@@ -97,6 +97,7 @@ jobs:
           m2m_through_regress
           m2o_recursive
           model_fields
+          model_forms
           one_to_one
           ordering
           or_lookups
