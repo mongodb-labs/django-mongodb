@@ -26,13 +26,16 @@ class MongoAutoField(AutoField):
         try:
             return ObjectId(value)
         except errors.InvalidId as e:
+            # A manually assigned integer ID?
+            if isinstance(value, str) and value.isdigit():
+                return int(value)
             raise ValueError(f"Field '{self.name}' expected an ObjectId but got {value!r}.") from e
 
     def rel_db_type(self, connection):
         return Field().db_type(connection=connection)
 
     def to_python(self, value):
-        if value is None:
+        if value is None or isinstance(value, int):
             return value
         try:
             return ObjectId(value)
