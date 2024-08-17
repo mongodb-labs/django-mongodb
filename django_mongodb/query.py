@@ -43,7 +43,7 @@ class MongoQuery:
         self.query = compiler.query
         self._negated = False
         self.ordering = []
-        self.collection = self.compiler.get_collection()
+        self.collection = self.compiler.collection
         self.collection_name = self.compiler.collection_name
         self.mongo_query = getattr(compiler.query, "raw_query", {})
         self.subquery = None

@@ -409,7 +409,8 @@ class SQLCompiler(compiler.SQLCompiler):
     def collection_name(self):
         return self.query.get_meta().db_table
 
-    def get_collection(self):
+    @cached_property
+    def collection(self):
         return self.connection.get_collection(self.collection_name)
 
     def get_lookup_pipeline(self):
@@ -516,8 +517,7 @@ class SQLInsertCompiler(SQLCompiler):
     @wrap_database_errors
     def insert(self, docs, returning_fields=None):
         """Store a list of documents using field columns as element names."""
-        collection = self.get_collection()
-        inserted_ids = collection.insert_many(docs).inserted_ids
+        inserted_ids = self.collection.insert_many(docs).inserted_ids
         return inserted_ids if returning_fields else []
 
 
@@ -582,12 +582,11 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
 
     @wrap_database_errors
     def execute_update(self, update_spec):
-        collection = self.get_collection()
         try:
             criteria = self.build_query().mongo_query
         except EmptyResultSet:
             return 0
-        return collection.update_many(criteria, update_spec).matched_count
+        return self.collection.update_many(criteria, update_spec).matched_count
 
     def check_query(self):
         super().check_query()
