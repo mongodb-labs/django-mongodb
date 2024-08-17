@@ -148,19 +148,10 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
     def _connect(self):
         settings_dict = self.settings_dict
-
-        options = settings_dict["OPTIONS"]
-        # TODO: review and document OPERATIONS: https://github.com/mongodb-labs/django-mongodb/issues/6
-        self.operation_flags = options.pop("OPERATIONS", {})
-        if not any(k in ["save", "delete", "update"] for k in self.operation_flags):
-            # Flags apply to all operations.
-            flags = self.operation_flags
-            self.operation_flags = {"save": flags, "delete": flags, "update": flags}
-
         self.connection = MongoClient(
             host=settings_dict["HOST"] or None,
             port=int(settings_dict["PORT"] or 27017),
-            **options,
+            **settings_dict["OPTIONS"],
         )
         db_name = settings_dict["NAME"]
         if db_name:

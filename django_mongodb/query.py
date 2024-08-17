@@ -58,8 +58,7 @@ class MongoQuery:
     @wrap_database_errors
     def delete(self):
         """Execute a delete query."""
-        options = self.connection.operation_flags.get("delete", {})
-        return self.collection.delete_many(self.mongo_query, **options).deleted_count
+        return self.collection.delete_many(self.mongo_query).deleted_count
 
     @wrap_database_errors
     def get_cursor(self):

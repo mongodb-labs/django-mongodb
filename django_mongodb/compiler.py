@@ -517,8 +517,7 @@ class SQLInsertCompiler(SQLCompiler):
     def insert(self, docs, returning_fields=None):
         """Store a list of documents using field columns as element names."""
         collection = self.get_collection()
-        options = self.connection.operation_flags.get("save", {})
-        inserted_ids = collection.insert_many(docs, **options).inserted_ids
+        inserted_ids = collection.insert_many(docs).inserted_ids
         return inserted_ids if returning_fields else []
 
 
@@ -582,15 +581,13 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
         return self.execute_update(spec)
 
     @wrap_database_errors
-    def execute_update(self, update_spec, **kwargs):
+    def execute_update(self, update_spec):
         collection = self.get_collection()
         try:
             criteria = self.build_query().mongo_query
         except EmptyResultSet:
             return 0
-        options = self.connection.operation_flags.get("update", {})
-        options = dict(options, **kwargs)
-        return collection.update_many(criteria, update_spec, **options).matched_count
+        return collection.update_many(criteria, update_spec).matched_count
 
     def check_query(self):
         super().check_query()
