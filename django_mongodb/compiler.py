@@ -358,9 +358,7 @@ class SQLCompiler(compiler.SQLCompiler):
         if columns is None:
             extra_fields += ordering_fields
         if extra_fields:
-            query.extra_fields = {
-                field_name: expr.as_mql(self, self.connection) for field_name, expr in extra_fields
-            }
+            query.extra_fields = self.get_project_fields(extra_fields, force_expression=True)
         where = self.get_where()
         try:
             expr = where.as_mql(self, self.connection) if where else {}
@@ -431,16 +429,18 @@ class SQLCompiler(compiler.SQLCompiler):
             elif hasattr(expr, "get_source_expressions"):
                 stack.extend(expr.get_source_expressions())
 
-    def get_project_fields(self, columns=None, ordering=None):
+    def get_project_fields(self, columns=None, ordering=None, force_expression=False):
+        if not columns:
+            return {}
         fields = defaultdict(dict)
-        for name, expr in columns or []:
+        for name, expr in columns + (ordering or ()):
             collection = expr.alias if isinstance(expr, Col) else None
             try:
                 fields[collection][name] = (
                     1
                     # For brevity/simplicity, project {"field_name": 1}
                     # instead of {"field_name": "$field_name"}.
-                    if isinstance(expr, Col) and name == expr.target.column
+                    if isinstance(expr, Col) and name == expr.target.column and not force_expression
                     else expr.as_mql(self, self.connection)
                 )
             except EmptyResultSet:
@@ -451,9 +451,6 @@ class SQLCompiler(compiler.SQLCompiler):
         # should appear in the top-level of the fields dict.
         fields.update(fields.pop(None, {}))
         fields.update(fields.pop(self.collection_name, {}))
-        # Add order_by() fields.
-        if fields and ordering:
-            fields.update({alias: expr.as_mql(self, self.connection) for alias, expr in ordering})
         # Convert defaultdict to dict so it doesn't appear as
         # "defaultdict(<CLASS 'dict'>, ..." in query logging.
         return dict(fields)
@@ -466,28 +463,28 @@ class SQLCompiler(compiler.SQLCompiler):
         - A tuple of ('field_name': Expression, ...) for expressions that need
           to be added to extra_fields.
         """
-        fields = {}
+        fields = []
         sort_ordering = SON()
-        extra_fields = {}
+        extra_fields = []
         idx = itertools.count(start=1)
         for order in self.order_by_objs or []:
             if isinstance(order.expression, Col):
                 field_name = order.expression.as_mql(self, self.connection).removeprefix("$")
-                fields[field_name] = order.expression
+                fields.append((order.expression.target.column, order.expression))
             elif isinstance(order.expression, Ref):
                 field_name = order.expression.as_mql(self, self.connection).removeprefix("$")
             else:
                 field_name = f"__order{next(idx)}"
-                fields[field_name] = order.expression
+                fields.append((field_name, order.expression))
             # If the expression is ordered by NULLS FIRST or NULLS LAST,
             # add a field for sorting that's 1 if null or 0 if not.
             if order.nulls_first or order.nulls_last:
                 null_fieldname = f"__order{next(idx)}"
                 condition = When(IsNull(order.expression, True), then=Value(1))
-                extra_fields[null_fieldname] = Case(condition, default=Value(0))
+                extra_fields.append((null_fieldname, Case(condition, default=Value(0))))
                 sort_ordering[null_fieldname] = DESCENDING if order.nulls_first else ASCENDING
             sort_ordering[field_name] = DESCENDING if order.descending else ASCENDING
-        return tuple(fields.items()), sort_ordering, tuple(extra_fields.items())
+        return tuple(fields), sort_ordering, tuple(extra_fields)
 
     def get_where(self):
         return self.where

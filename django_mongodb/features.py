@@ -61,8 +61,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation.tests.AggregateTestCase.test_reverse_fkey_annotate",
         "aggregation_regress.tests.AggregationTests.test_annotation_disjunction",
         "aggregation_regress.tests.AggregationTests.test_decimal_aggregate_annotation_filter",
-        # Invalid $project :: caused by :: Path collision at aggregation_regress_publisher.name
-        "aggregation_regress.tests.AggregationTests.test_values_list_annotation_args_ordering",
         # QuerySet.extra(select=...) should raise NotSupportedError instead of:
         # 'RawSQL' object has no attribute 'as_mql'.
         "aggregation_regress.tests.AggregationTests.test_annotate_with_extra",
