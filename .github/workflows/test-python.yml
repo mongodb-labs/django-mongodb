@@ -68,6 +68,7 @@ jobs:
         run: >
           python3 django_repo/tests/runtests.py --settings mongodb_settings -v 2
           aggregation
+          aggregation_regress
           annotations
           auth_tests.test_models.UserManagerTestCase
           backends.base.test_base.DatabaseWrapperTests

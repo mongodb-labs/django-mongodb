@@ -59,6 +59,18 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation.tests.AggregateTestCase.test_aggregation_default_passed_another_aggregate",
         "aggregation.tests.AggregateTestCase.test_annotation_expressions",
         "aggregation.tests.AggregateTestCase.test_reverse_fkey_annotate",
+        "aggregation_regress.tests.AggregationTests.test_annotation_disjunction",
+        "aggregation_regress.tests.AggregationTests.test_decimal_aggregate_annotation_filter",
+        # Invalid $project :: caused by :: Path collision at aggregation_regress_publisher.name
+        "aggregation_regress.tests.AggregationTests.test_values_list_annotation_args_ordering",
+        # QuerySet.extra(select=...) should raise NotSupportedError instead of:
+        # 'RawSQL' object has no attribute 'as_mql'.
+        "aggregation_regress.tests.AggregationTests.test_annotate_with_extra",
+        "aggregation_regress.tests.AggregationTests.test_annotation",
+        "aggregation_regress.tests.AggregationTests.test_more_more3",
+        "aggregation_regress.tests.AggregationTests.test_more_more_more3",
+        # Incorrect JOIN with GenericRelation gives incorrect results.
+        "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -208,6 +220,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "aggregation.tests.AggregateTestCase.test_exists_extra_where_with_aggregate",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_aggregate_values_chaining",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_exists_none_query",
+            "aggregation_regress.tests.AggregationTests.test_annotate_and_join",
             "delete_regress.tests.DeleteTests.test_self_reference_with_through_m2m_at_second_level",
             "expressions.tests.BasicExpressionsTests.test_annotation_with_deeply_nested_outerref",
             "expressions.tests.BasicExpressionsTests.test_boolean_expression_combined",
@@ -297,6 +310,13 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_in_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_and_alias_filter_related_in_subquery",
             "annotations.tests.NonAggregateAnnotationTestCase.test_empty_expression_annotation",
+            "aggregation_regress.tests.AggregationTests.test_aggregates_in_where_clause",
+            "aggregation_regress.tests.AggregationTests.test_aggregates_in_where_clause_pre_eval",
+            "aggregation_regress.tests.AggregationTests.test_f_expression_annotation",
+            "aggregation_regress.tests.AggregationTests.test_having_subquery_select",
+            "aggregation_regress.tests.AggregationTests.test_more_more4",
+            "aggregation_regress.tests.AggregationTests.test_more_more_more5",
+            "aggregation_regress.tests.AggregationTests.test_negated_aggregation",
             "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
             "expressions_case.tests.CaseExpressionTests.test_annotate_with_in_clause",
             "expressions.tests.FTimeDeltaTests.test_date_subquery_subtraction",
@@ -351,6 +371,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "QuerySet.dates() is not supported on MongoDB.": {
             "aggregation.tests.AggregateTestCase.test_dates_with_aggregation",
             "annotations.tests.AliasTests.test_dates_alias",
+            "aggregation_regress.tests.AggregationTests.test_more_more_more2",
             "dates.tests.DatesTests.test_dates_trunc_datetime_fields",
             "dates.tests.DatesTests.test_related_model_traverse",
         },
@@ -368,6 +389,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "QuerySet.distinct() is not supported.": {
             "aggregation.tests.AggregateTestCase.test_sum_distinct_aggregate",
+            "aggregation_regress.tests.AggregationTests.test_annotate_distinct_aggregate",
+            "aggregation_regress.tests.AggregationTests.test_conditional_aggregate_on_complex_condition",
+            "aggregation_regress.tests.AggregationTests.test_distinct_conditional_aggregate",
             "lookup.tests.LookupTests.test_lookup_collision_distinct",
             "ordering.tests.OrderingTests.test_orders_nulls_first_on_filtered_subquery",
             "queries.tests.ExcludeTest17600.test_exclude_plain_distinct",
