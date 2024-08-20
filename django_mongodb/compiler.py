@@ -614,26 +614,8 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
         if is_empty:
             rows = 0
         else:
-            base_pipeline = [
-                {"$match": criteria},
-                {"$set": dict(values)},
-            ]
-            count_pipeline = [*base_pipeline, {"$count": "count"}]
-            pipeline = [
-                *base_pipeline,
-                {
-                    "$merge": {
-                        "into": self.collection_name,
-                        "whenMatched": "replace",
-                        "whenNotMatched": "discard",
-                    }
-                },
-            ]
-            with self.connection.connection.start_session() as session, session.start_transaction():
-                result = next(self.collection.aggregate(count_pipeline), {"count": 0})
-                self.collection.aggregate(pipeline)
-                rows = result["count"]
-        # rows = 0 if is_empty else self.update(values)
+            rows = self.collection.update_many(criteria, [{"$set": dict(values)}]).matched_count
+
         for query in self.query.get_related_updates():
             aux_rows = query.get_compiler(self.using).execute_sql(result_type)
             if is_empty and aux_rows:
