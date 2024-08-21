@@ -3,9 +3,9 @@ import pprint
 from collections import defaultdict
 
 from bson import SON
-from django.core.exceptions import EmptyResultSet, FullResultSet
-from django.db import DatabaseError, IntegrityError, NotSupportedError
-from django.db.models import Count, Expression
+from django.core.exceptions import EmptyResultSet, FieldError, FullResultSet
+from django.db import IntegrityError, NotSupportedError
+from django.db.models import Count
 from django.db.models.aggregates import Aggregate, Variance
 from django.db.models.expressions import Case, Col, Ref, Value, When
 from django.db.models.functions.comparison import Coalesce
@@ -576,9 +576,21 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
         related queries are not available.
         """
         self.pre_sql_setup()
-        values = []
+        values = {}
         for field, _, value in self.query.values:
-            if hasattr(value, "prepare_database_save"):
+            if hasattr(value, "resolve_expression"):
+                value = value.resolve_expression(self.query, allow_joins=False, for_save=True)
+                if value.contains_aggregate:
+                    raise FieldError(
+                        "Aggregate functions are not allowed in this query "
+                        f"({field.name}={value})."
+                    )
+                if value.contains_over_clause:
+                    raise FieldError(
+                        "Window expressions are not allowed in this query "
+                        f"({field.name}={value})."
+                    )
+            elif hasattr(value, "prepare_database_save"):
                 if field.remote_field:
                     value = value.prepare_database_save(field)
                 else:
@@ -588,9 +600,15 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
                         f"{field.__class__.__name__}."
                     )
             prepared = field.get_db_prep_save(value, connection=self.connection)
-            values.append((field, prepared))
+            if hasattr(value, "as_mql"):
+                prepared = prepared.as_mql(self, self.connection)
+            values[field.column] = prepared
+        try:
+            criteria = self.build_query().mongo_query
+        except EmptyResultSet:
+            return 0
         is_empty = not bool(values)
-        rows = 0 if is_empty else self.update(values)
+        rows = 0 if is_empty else self.update(criteria, [{"$set": values}])
         for query in self.query.get_related_updates():
             aux_rows = query.get_compiler(self.using).execute_sql(result_type)
             if is_empty and aux_rows:
@@ -598,24 +616,9 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
                 is_empty = False
         return rows
 
-    def update(self, values):
-        spec = {}
-        for field, value in values:
-            if field.primary_key:
-                raise DatabaseError("Cannot modify _id.")
-            if isinstance(value, Expression):
-                raise NotSupportedError("QuerySet.update() with expression not supported.")
-            # .update(foo=123) --> {'$set': {'foo': 123}}
-            spec.setdefault("$set", {})[field.column] = value
-        return self.execute_update(spec)
-
     @wrap_database_errors
-    def execute_update(self, update_spec):
-        try:
-            criteria = self.build_query().mongo_query
-        except EmptyResultSet:
-            return 0
-        return self.collection.update_many(criteria, update_spec).matched_count
+    def update(self, criteria, pipeline):
+        return self.collection.update_many(criteria, pipeline).matched_count
 
     def check_query(self):
         super().check_query()
