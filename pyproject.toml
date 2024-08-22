@@ -32,6 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
+    "django>=5.0,<5.1",
     "pymongo>=4.6,<5.0",
 ]
 
