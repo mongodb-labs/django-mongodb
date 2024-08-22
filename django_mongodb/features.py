@@ -99,6 +99,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.BasicExpressionsTests.test_new_object_save",
             "expressions.tests.BasicExpressionsTests.test_object_create_with_aggregate",
             "expressions.tests.BasicExpressionsTests.test_object_create_with_f_expression_in_subquery",
+            "expressions.tests.BasicExpressionsTests.test_object_update_unsaved_objects",
             # PI()
             "db_functions.math.test_round.RoundTests.test_decimal_with_precision",
             "db_functions.math.test_round.RoundTests.test_float_with_precision",
@@ -137,7 +138,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.BasicExpressionsTests.test_arithmetic",
             "expressions.tests.BasicExpressionsTests.test_filter_with_join",
             "expressions.tests.BasicExpressionsTests.test_object_update",
-            "expressions.tests.BasicExpressionsTests.test_object_update_unsaved_objects",
             "expressions.tests.BasicExpressionsTests.test_order_of_operations",
             "expressions.tests.BasicExpressionsTests.test_parenthesis_priority",
             "expressions.tests.BasicExpressionsTests.test_update",
@@ -333,10 +333,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "aggregation_regress.tests.AggregationTests.test_more_more_more5",
             "aggregation_regress.tests.AggregationTests.test_negated_aggregation",
             "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
-            "expressions_case.tests.CaseExpressionTests.test_annotate_with_in_clause",
             "expressions.tests.FTimeDeltaTests.test_date_subquery_subtraction",
             "expressions.tests.FTimeDeltaTests.test_datetime_subquery_subtraction",
             "expressions.tests.FTimeDeltaTests.test_time_subquery_subtraction",
+            "expressions_case.tests.CaseExpressionTests.test_annotate_with_in_clause",
             "expressions_case.tests.CaseExpressionTests.test_in_subquery",
             "lookup.tests.LookupTests.test_exact_query_rhs_with_selected_columns",
             "lookup.tests.LookupTests.test_exact_sliced_queryset_limit_one",
@@ -388,6 +388,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Cannot use QuerySet.update() when querying across multiple collections on MongoDB.": {
             "queries.tests.Queries4Tests.test_ticket7095",
             "queries.tests.Queries5Tests.test_ticket9848",
+            "update.tests.AdvancedTests.test_update_annotated_multi_table_queryset",
             "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation",
             "update.tests.AdvancedTests.test_update_ordered_by_m2m_annotation_desc",
         },
@@ -463,9 +464,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.tests.ValuesQuerysetTests.test_named_values_list_with_fields",
             "queries.tests.ValuesQuerysetTests.test_named_values_list_without_fields",
             "select_related.tests.SelectRelatedTests.test_select_related_with_extra",
-        },
-        "QuerySet.update() crash: Unrecognized expression '$count'": {
-            "update.tests.AdvancedTests.test_update_annotated_multi_table_queryset",
         },
         "Test inspects query for SQL": {
             "aggregation.tests.AggregateAnnotationPruningTests.test_non_aggregate_annotation_pruned",
