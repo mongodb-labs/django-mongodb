@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+from uuid import UUID
 
 from bson import Decimal128
 from django.core.exceptions import EmptyResultSet, FullResultSet
@@ -110,6 +111,8 @@ def value(self, compiler, connection):  # noqa: ARG001
     elif isinstance(value, datetime.timedelta):
         # DurationField stores milliseconds rather than microseconds.
         value /= datetime.timedelta(milliseconds=1)
+    elif isinstance(value, UUID):
+        value = value.hex
     return {"$literal": value}
 
 

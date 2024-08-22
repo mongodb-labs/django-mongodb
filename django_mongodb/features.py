@@ -72,10 +72,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "many_to_one.tests.ManyToOneTests.test_selects",
         # Incorrect JOIN with GenericRelation gives incorrect results.
         "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
-        # QuerySet.update() with UUIDField fails:
-        # "cannot encode native uuid.UUID with UuidRepresentation.UNSPECIFIED."
-        "expressions.tests.ValueTests.test_update_UUIDField_using_Value",
-        "expressions_case.tests.CaseExpressionTests.test_update_uuid",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
