@@ -111,6 +111,7 @@ jobs:
           or_lookups
           queries
           schema.tests.SchemaTests.test_creation_deletion
+          schema.tests.SchemaTests.test_db_table
           select_related
           select_related_onetoone
           select_related_regress
