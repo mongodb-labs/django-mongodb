@@ -3,10 +3,10 @@ from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     def create_model(self, model):
-        pass
+        self.connection.database.create_collection(model._meta.db_table)
 
     def delete_model(self, model):
-        pass
+        self.connection.database[model._meta.db_table].drop()
 
     def add_field(self, model, field):
         pass
