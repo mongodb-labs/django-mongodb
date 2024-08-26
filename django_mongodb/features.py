@@ -4,6 +4,7 @@ from django.utils.functional import cached_property
 
 class DatabaseFeatures(BaseDatabaseFeatures):
     allow_sliced_subqueries_with_in = False
+    can_introspect_foreign_keys = False
     greatest_least_ignores_nulls = True
     has_json_object_function = False
     has_native_json_field = True
@@ -72,6 +73,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "many_to_one.tests.ManyToOneTests.test_selects",
         # Incorrect JOIN with GenericRelation gives incorrect results.
         "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
+        # Table names should be sorted.
+        "introspection.tests.IntrospectionTests.test_table_names",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -127,6 +130,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "AutoField not supported.": {
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_nullable_fields",
+            "introspection.tests.IntrospectionTests.test_sequence_list",
             "lookup.tests.LookupTests.test_filter_by_reverse_related_field_transform",
             "lookup.tests.LookupTests.test_in_ignore_none_with_unhashable_items",
             "m2m_through_regress.tests.ThroughLoadDataTestCase.test_sequence_creation",
@@ -497,6 +501,21 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.comparison.test_cast.CastTests.test_cast_from_python_to_datetime",
             "db_functions.comparison.test_cast.CastTests.test_cast_to_duration",
         },
+        "DatabaseIntrospection.get_table_description() not supported.": {
+            "introspection.tests.IntrospectionTests.test_bigautofield",
+            "introspection.tests.IntrospectionTests.test_get_table_description_col_lengths",
+            "introspection.tests.IntrospectionTests.test_get_table_description_names",
+            "introspection.tests.IntrospectionTests.test_get_table_description_nullable",
+            "introspection.tests.IntrospectionTests.test_get_table_description_types",
+            "introspection.tests.IntrospectionTests.test_smallautofield",
+        },
+        "DatabaseIntrospection.get_constraints() not implemented.": {
+            "introspection.tests.IntrospectionTests.test_get_constraints",
+            "introspection.tests.IntrospectionTests.test_get_constraints_index_types",
+            "introspection.tests.IntrospectionTests.test_get_constraints_indexes_orders",
+            "introspection.tests.IntrospectionTests.test_get_constraints_unique_indexes_orders",
+            "introspection.tests.IntrospectionTests.test_get_primary_key_column",
+        },
         "Known issue querying JSONField.": {
             # An ExpressionWrapper annotation with KeyTransform followed by
             # .filter(expr__isnull=False) doesn't use KeyTransformIsNull as it
@@ -521,6 +540,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "Test not applicable for MongoDB's SQLCompiler.": {
             "queries.test_iterator.QuerySetIteratorTests",
+        },
+        "Support for views not implemented.": {
+            "introspection.tests.IntrospectionTests.test_table_names_with_views",
         },
     }
 

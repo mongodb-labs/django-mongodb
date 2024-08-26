@@ -85,6 +85,7 @@ jobs:
           defer
           defer_regress
           from_db_value
+          introspection
           known_related_objects
           lookup
           m2m_and_m2o
