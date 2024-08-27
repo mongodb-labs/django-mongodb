@@ -175,7 +175,7 @@ class DatabaseOperations(BaseDatabaseOperations):
             collection = self.connection.database[table]
             options = collection.options()
             if not options.get("capped", False):
-                collection.drop()
+                collection.delete_many({})
 
     def prep_lookup_value(self, value, field, lookup):
         """
