@@ -49,10 +49,10 @@ DATABASES = {
 [`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
 
 In your Django settings, you must specify that all models should use
-`MongoAutoField`.
+`ObjectIdAutoField`.
 
 ```python
-DEFAULT_AUTO_FIELD = "django_mongodb.fields.MongoAutoField"
+DEFAULT_AUTO_FIELD = "django_mongodb.fields.ObjectIdAutoField"
 ```
 
 This won't override any apps that have an `AppConfig` that specifies
@@ -68,22 +68,22 @@ from django.contrib.contenttypes.apps import ContentTypesConfig
 
 
 class MongoAdminConfig(AdminConfig):
-    default_auto_field = "django_mongodb.fields.MongoAutoField"
+    default_auto_field = "django_mongodb.fields.ObjectIdAutoField"
 
 
 class MongoAuthConfig(AuthConfig):
-    default_auto_field = "django_mongodb.fields.MongoAutoField"
+    default_auto_field = "django_mongodb.fields.ObjectIdAutoField"
 
 
 class MongoContentTypesConfig(ContentTypesConfig):
-    default_auto_field = "django_mongodb.fields.MongoAutoField"
+    default_auto_field = "django_mongodb.fields.ObjectIdAutoField"
 ```
 
 Then replace each app reference in the `INSTALLED_APPS` setting with the new
 ``AppConfig``. For example, replace  `'django.contrib.admin'` with
 `'mysite.apps.MongoAdminConfig'`.
 
-Because all models must use `MongoAutoField`, each third-party and contrib app
+Because all models must use `ObjectIdAutoField`, each third-party and contrib app
 you use needs to have its own migrations specific to MongoDB.
 
 For example, you might configure your settings like this:

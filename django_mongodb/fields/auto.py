@@ -5,7 +5,7 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 
-class MongoAutoField(AutoField):
+class ObjectIdAutoField(AutoField):
     default_error_messages = {
         "invalid": _("“%(value)s” value must be an Object Id."),
     }

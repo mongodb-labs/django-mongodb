@@ -8,7 +8,7 @@ DATABASES = {
         "NAME": "djangotests-other",
     },
 }
-DEFAULT_AUTO_FIELD = "django_mongodb.fields.MongoAutoField"
+DEFAULT_AUTO_FIELD = "django_mongodb.fields.ObjectIdAutoField"
 PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
 SECRET_KEY = "django_tests_secret_key"
 USE_TZ = False
