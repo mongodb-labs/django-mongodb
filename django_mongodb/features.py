@@ -70,29 +70,13 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "backends.tests.ThreadTests.test_closing_non_shared_connections",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
         # AddField
-        "schema.tests.SchemaTests.test_add_indexed_charfield",
         "schema.tests.SchemaTests.test_add_unique_charfield",
-        # Add/RemoveIndex
-        "migrations.test_operations.OperationTests.test_add_index",
-        "migrations.test_operations.OperationTests.test_alter_field_with_index",
-        "migrations.test_operations.OperationTests.test_remove_index",
-        "migrations.test_operations.OperationTests.test_rename_index",
-        "migrations.test_operations.OperationTests.test_rename_index_unknown_unnamed_index",
-        "migrations.test_operations.OperationTests.test_rename_index_unnamed_index",
-        "schema.tests.SchemaTests.test_add_remove_index",
-        "schema.tests.SchemaTests.test_composed_desc_index_with_fk",
-        "schema.tests.SchemaTests.test_composed_index_with_fk",
-        "schema.tests.SchemaTests.test_create_index_together",
-        "schema.tests.SchemaTests.test_order_index",
-        "schema.tests.SchemaTests.test_text_field_with_db_index",
         # AlterField
         "schema.tests.SchemaTests.test_alter_field_add_index_to_integerfield",
-        "schema.tests.SchemaTests.test_alter_field_fk_keeps_index",
         "schema.tests.SchemaTests.test_alter_field_fk_to_o2o",
         "schema.tests.SchemaTests.test_alter_field_o2o_keeps_unique",
         "schema.tests.SchemaTests.test_alter_field_o2o_to_fk",
         "schema.tests.SchemaTests.test_alter_int_pk_to_int_unique",
-        "schema.tests.SchemaTests.test_alter_not_unique_field_to_primary_key",
         # AlterField (db_index)
         "schema.tests.SchemaTests.test_alter_renames_index",
         "schema.tests.SchemaTests.test_indexes",
@@ -114,9 +98,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_composed_constraint_with_fk",
         "schema.tests.SchemaTests.test_remove_ignored_unique_constraint_not_create_fk_index",
         "schema.tests.SchemaTests.test_unique_constraint",
-        # subclasses of BaseDatabaseIntrospection may require a get_constraints() method
-        "migrations.test_operations.OperationTests.test_add_func_unique_constraint",
-        "migrations.test_operations.OperationTests.test_remove_func_unique_constraint",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -220,6 +201,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "get_or_create.tests.GetOrCreateThroughManyToMany.test_something",
             "get_or_create.tests.UpdateOrCreateTests.test_manual_primary_key_test",
             "get_or_create.tests.UpdateOrCreateTestsWithManualPKs.test_create_with_duplicate_primary_key",
+            "introspection.tests.IntrospectionTests.test_get_constraints_unique_indexes_orders",
             "model_fields.test_filefield.FileFieldTests.test_unique_when_same_filename",
             "one_to_one.tests.OneToOneTests.test_multiple_o2o",
             "queries.test_bulk_update.BulkUpdateTests.test_database_routing_batch_atomicity",
@@ -613,14 +595,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "introspection.tests.IntrospectionTests.test_get_table_description_types",
             "introspection.tests.IntrospectionTests.test_smallautofield",
         },
-        "DatabaseIntrospection.get_constraints() not implemented.": {
-            "introspection.tests.IntrospectionTests.test_get_constraints",
-            "introspection.tests.IntrospectionTests.test_get_constraints_index_types",
-            "introspection.tests.IntrospectionTests.test_get_constraints_indexes_orders",
-            "introspection.tests.IntrospectionTests.test_get_constraints_unique_indexes_orders",
-            "introspection.tests.IntrospectionTests.test_get_primary_key_column",
-        },
         "MongoDB can't introspect primary key.": {
+            "introspection.tests.IntrospectionTests.test_get_primary_key_column",
             "schema.tests.SchemaTests.test_alter_primary_key_the_same_name",
             "schema.tests.SchemaTests.test_primary_key",
         },

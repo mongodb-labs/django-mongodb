@@ -40,9 +40,12 @@ class OperationDebugWrapper:
     wrapped_methods = {
         "aggregate",
         "create_collection",
+        "create_indexes",
         "drop",
+        "index_information",
         "insert_many",
         "delete_many",
+        "drop_index",
         "rename",
         "update_many",
     }
