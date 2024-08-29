@@ -4,12 +4,16 @@ from django.utils.functional import cached_property
 
 class DatabaseFeatures(BaseDatabaseFeatures):
     allow_sliced_subqueries_with_in = False
+    can_create_inline_fk = False
     can_introspect_foreign_keys = False
     greatest_least_ignores_nulls = True
     has_json_object_function = False
     has_native_json_field = True
+    supports_collation_on_charfield = False
+    supports_column_check_constraints = False
     supports_date_lookup_using_string = False
     supports_explaining_query_execution = True
+    supports_expression_indexes = False
     supports_foreign_keys = False
     supports_ignore_conflicts = False
     supports_json_field_contains = False
@@ -19,6 +23,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_select_intersection = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/72
     supports_select_union = False
+    supports_table_check_constraints = False
     supports_temporal_subtraction = True
     # MongoDB stores datetimes in UTC.
     supports_timezones = False
@@ -73,6 +78,83 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "many_to_one.tests.ManyToOneTests.test_selects",
         # Incorrect JOIN with GenericRelation gives incorrect results.
         "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
+        # AddField
+        "schema.tests.SchemaTests.test_add_datefield_and_datetimefield_use_effective_default",
+        "schema.tests.SchemaTests.test_add_field",
+        "schema.tests.SchemaTests.test_add_field_binary",
+        "schema.tests.SchemaTests.test_add_field_both_defaults_preserves_db_default",
+        "schema.tests.SchemaTests.test_add_field_default_dropped",
+        "schema.tests.SchemaTests.test_add_field_default_nullable",
+        "schema.tests.SchemaTests.test_add_field_default_transform",
+        "schema.tests.SchemaTests.test_add_field_durationfield_with_default",
+        "schema.tests.SchemaTests.test_add_field_o2o_nullable",
+        "schema.tests.SchemaTests.test_add_field_temp_default",
+        "schema.tests.SchemaTests.test_add_field_temp_default_boolean",
+        "schema.tests.SchemaTests.test_add_field_use_effective_default",
+        "schema.tests.SchemaTests.test_add_text_field_with_db_default",
+        "schema.tests.SchemaTests.test_add_textfield_default_nullable",
+        # RemoveField
+        "schema.tests.SchemaTests.test_remove_field",
+        "schema.tests.SchemaTests.test_remove_indexed_field",
+        # Add/RemoveIndex
+        "schema.tests.SchemaTests.test_add_remove_index",
+        "schema.tests.SchemaTests.test_composed_desc_index_with_fk",
+        "schema.tests.SchemaTests.test_composed_index_with_fk",
+        "schema.tests.SchemaTests.test_create_index_together",
+        "schema.tests.SchemaTests.test_order_index",
+        "schema.tests.SchemaTests.test_text_field_with_db_index",
+        # AlterField
+        "schema.tests.SchemaTests.test_alter",
+        "schema.tests.SchemaTests.test_alter_auto_field_to_integer_field",
+        "schema.tests.SchemaTests.test_alter_field_add_index_to_integerfield",
+        "schema.tests.SchemaTests.test_alter_field_default_dropped",
+        "schema.tests.SchemaTests.test_alter_field_fk_keeps_index",
+        "schema.tests.SchemaTests.test_alter_field_fk_to_o2o",
+        "schema.tests.SchemaTests.test_alter_field_o2o_keeps_unique",
+        "schema.tests.SchemaTests.test_alter_field_o2o_to_fk",
+        "schema.tests.SchemaTests.test_alter_int_pk_to_int_unique",
+        "schema.tests.SchemaTests.test_alter_not_unique_field_to_primary_key",
+        "schema.tests.SchemaTests.test_alter_null_to_not_null",
+        "schema.tests.SchemaTests.test_alter_null_to_not_null_keeping_default",
+        "schema.tests.SchemaTests.test_alter_primary_key_the_same_name",
+        "schema.tests.SchemaTests.test_autofield_to_o2o",
+        # AlterField (rename)
+        "schema.tests.SchemaTests.test_rename",
+        "schema.tests.SchemaTests.test_rename_keep_db_default",
+        "schema.tests.SchemaTests.test_rename_keep_null_status",
+        # AlterField (db_index)
+        "schema.tests.SchemaTests.test_indexes",
+        "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
+        "schema.tests.SchemaTests.test_remove_db_index_doesnt_remove_custom_indexes",
+        # AlterField (unique)
+        "schema.tests.SchemaTests.test_remove_field_unique_does_not_remove_meta_constraints",
+        "schema.tests.SchemaTests.test_unique",
+        "schema.tests.SchemaTests.test_unique_and_reverse_m2m",
+        # alter_index_together
+        "schema.tests.SchemaTests.test_index_together",
+        "schema.tests.SchemaTests.test_remove_index_together_does_not_remove_meta_indexes",
+        # alter_unique_together
+        "schema.tests.SchemaTests.test_remove_unique_together_does_not_remove_meta_constraints",
+        "schema.tests.SchemaTests.test_unique_together",
+        # ManyToManyField
+        "schema.tests.SchemaTests.test_m2m",
+        "schema.tests.SchemaTests.test_m2m_create",
+        "schema.tests.SchemaTests.test_m2m_create_custom",
+        "schema.tests.SchemaTests.test_m2m_create_inherited",
+        "schema.tests.SchemaTests.test_m2m_custom",
+        "schema.tests.SchemaTests.test_m2m_inherited",
+        "schema.tests.SchemaTests.test_m2m_rename_field_in_target_model",
+        "schema.tests.SchemaTests.test_m2m_repoint",
+        "schema.tests.SchemaTests.test_m2m_repoint_custom",
+        "schema.tests.SchemaTests.test_m2m_repoint_inherited",
+        "schema.tests.SchemaTests.test_m2m_through_alter",
+        "schema.tests.SchemaTests.test_m2m_through_alter_custom",
+        "schema.tests.SchemaTests.test_m2m_through_alter_inherited",
+        "schema.tests.SchemaTests.test_m2m_through_remove",
+        # add/remove_constraint
+        "schema.tests.SchemaTests.test_composed_constraint_with_fk",
+        "schema.tests.SchemaTests.test_remove_ignored_unique_constraint_not_create_fk_index",
+        "schema.tests.SchemaTests.test_unique_constraint",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -93,6 +175,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         return expected_failures
 
     django_test_skips = {
+        "Database defaults aren't supported by MongoDB.": {
+            "schema.tests.SchemaTests.test_db_default_output_field_resolving",
+        },
         "Insert expressions aren't supported.": {
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_now",
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_expressions",
@@ -419,6 +504,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_textfield_exact_null",
             "queries.tests.ExistsSql.test_exists",
             "queries.tests.Queries6Tests.test_col_alias_quoted",
+            "schema.tests.SchemaTests.test_rename_column_renames_deferred_sql_references",
+            "schema.tests.SchemaTests.test_rename_table_renames_deferred_sql_references",
         },
         "Test executes raw SQL.": {
             "aggregation.tests.AggregateTestCase.test_coalesced_empty_result_set",
@@ -431,6 +518,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_jsonfield.TestQuerying.test_key_transform_raw_expression",
             "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_raw_expression",
             "queries.tests.Queries1Tests.test_order_by_rawsql",
+            "schema.test_logging.SchemaLoggerTests.test_extra_args",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_raw_sql",
@@ -513,6 +601,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "introspection.tests.IntrospectionTests.test_get_constraints_indexes_orders",
             "introspection.tests.IntrospectionTests.test_get_constraints_unique_indexes_orders",
             "introspection.tests.IntrospectionTests.test_get_primary_key_column",
+        },
+        "MongoDB can't introspect primary key.": {
+            "schema.tests.SchemaTests.test_primary_key",
         },
         "Known issue querying JSONField.": {
             # An ExpressionWrapper annotation with KeyTransform followed by
