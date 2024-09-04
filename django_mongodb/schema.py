@@ -9,13 +9,27 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         self.connection.database[model._meta.db_table].drop()
 
     def add_field(self, model, field):
-        pass
+        # Create implicit M2M tables.
+        if field.many_to_many and field.remote_field.through._meta.auto_created:
+            self.create_model(field.remote_field.through)
+            return
+        # Set default value on existing documents.
+        if column := field.column:
+            self.connection.database[model._meta.db_table].update_many(
+                {}, [{"$set": {column: self.effective_default(field)}}]
+            )
 
     def alter_field(self, model, old_field, new_field, strict=False):
         pass
 
     def remove_field(self, model, field):
-        pass
+        # Remove implicit M2M tables.
+        if field.many_to_many and field.remote_field.through._meta.auto_created:
+            self.delete_model(field.remote_field.through)
+            return
+        # Unset field on existing documents.
+        if column := field.column:
+            self.connection.database[model._meta.db_table].update_many({}, {"$unset": {column: ""}})
 
     def alter_index_together(self, model, old_index_together, new_index_together):
         pass
