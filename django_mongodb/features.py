@@ -22,9 +22,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_paramstyle_pyformat = False
     supports_select_difference = False
     supports_select_intersection = False
-    # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/72
-    supports_select_union = False
     supports_sequence_reset = False
+    supports_slicing_ordering_in_compound = True
     supports_table_check_constraints = False
     supports_temporal_subtraction = True
     # MongoDB stores datetimes in UTC.
@@ -234,6 +233,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Test assumes integer primary key.": {
             "db_functions.comparison.test_cast.CastTests.test_cast_to_integer_foreign_key",
             "model_fields.test_foreignkey.ForeignKeyTests.test_to_python",
+            "queries.test_qs_combinators.QuerySetSetOperationTests.test_order_raises_on_non_selected_column",
         },
         "Exists is not supported on MongoDB.": {
             "aggregation.test_filter_argument.FilteredAggregateTests.test_filtered_aggregate_on_exists",
@@ -267,6 +267,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_forms.tests.LimitChoicesToTests.test_limit_choices_to_m2m_through",
             "model_forms.tests.LimitChoicesToTests.test_limit_choices_to_no_duplicates",
             "null_queries.tests.NullQueriesTests.test_reverse_relations",
+            "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_with_values_list_on_annotated_and_unannotated",
             "queries.tests.ExcludeTest17600.test_exclude_plain",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_is_equal_to_plain_exclude_variation",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_object_no_distinct",
@@ -331,6 +332,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupQueryingTests.test_filter_subquery_lhs",
             "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_on_subquery",
             "model_fields.test_jsonfield.TestQuerying.test_obj_subquery_lookup",
+            "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_in_subquery",
+            "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_in_subquery_related_outerref",
         },
         "Using a QuerySet in annotate() is not supported on MongoDB.": {
             "aggregation.test_filter_argument.FilteredAggregateTests.test_filtered_reused_subquery",
@@ -368,6 +371,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_jsonfield.TestQuerying.test_usage_in_subquery",
             "one_to_one.tests.OneToOneTests.test_get_prefetch_queryset_warning",
             "one_to_one.tests.OneToOneTests.test_rel_pk_subquery",
+            "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_in_with_ordering",
             "queries.tests.CloneTests.test_evaluated_queryset_as_argument",
             "queries.tests.DoubleInSubqueryTests.test_double_subquery_in",
             "queries.tests.EmptyQuerySetTests.test_values_subquery",
@@ -468,6 +472,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "ordering.tests.OrderingTests.test_extra_ordering",
             "ordering.tests.OrderingTests.test_extra_ordering_quoting",
             "ordering.tests.OrderingTests.test_extra_ordering_with_table_name",
+            "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_multiple_models_with_values_list_and_order_by_extra_select",
+            "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_with_extra_and_values_list",
             "queries.tests.EscapingTests.test_ticket_7302",
             "queries.tests.Queries5Tests.test_extra_select_literal_percent_s",
             "queries.tests.Queries5Tests.test_ticket7256",

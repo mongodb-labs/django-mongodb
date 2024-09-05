@@ -7,7 +7,7 @@ from django.core.exceptions import EmptyResultSet, FieldError, FullResultSet
 from django.db import IntegrityError, NotSupportedError
 from django.db.models import Count
 from django.db.models.aggregates import Aggregate, Variance
-from django.db.models.expressions import Case, Col, Ref, Value, When
+from django.db.models.expressions import Case, Col, OrderBy, Ref, Value, When
 from django.db.models.functions.comparison import Coalesce
 from django.db.models.functions.math import Power
 from django.db.models.lookups import IsNull
@@ -32,6 +32,34 @@ class SQLCompiler(compiler.SQLCompiler):
         # A list of OrderBy objects for this query.
         self.order_by_objs = None
 
+    def _unfold_column(self, col):
+        """
+        Flatten a field by returning its target or by replacing dots with
+        GROUP_SEPARATOR for foreign fields.
+        """
+        if self.collection_name == col.alias:
+            return col.target.column
+        # If this is a foreign field, replace the normal dot (.) with
+        # GROUP_SEPARATOR since FieldPath field names may not contain '.'.
+        return f"{col.alias}{self.GROUP_SEPARATOR}{col.target.column}"
+
+    def _fold_columns(self, unfold_columns):
+        """
+        Convert flat columns into a nested dictionary, grouping fields by
+        table name.
+        """
+        result = defaultdict(dict)
+        for key in unfold_columns:
+            value = f"$_id.{key}"
+            if self.GROUP_SEPARATOR in key:
+                table, field = key.split(self.GROUP_SEPARATOR)
+                result[table][field] = value
+            else:
+                result[key] = value
+        # Convert defaultdict to dict so it doesn't appear as
+        # "defaultdict(<CLASS 'dict'>, ..." in query logging.
+        return dict(result)
+
     def _get_group_alias_column(self, expr, annotation_group_idx):
         """Generate a dummy field for use in the ids fields in $group."""
         replacement = None
@@ -42,11 +70,7 @@ class SQLCompiler(compiler.SQLCompiler):
             alias = f"__annotation_group{next(annotation_group_idx)}"
             col = self._get_column_from_expression(expr, alias)
             replacement = col
-        if self.collection_name == col.alias:
-            return col.target.column, replacement
-        # If this is a foreign field, replace the normal dot (.) with
-        # GROUP_SEPARATOR since FieldPath field names may not contain '.'.
-        return f"{col.alias}{self.GROUP_SEPARATOR}{col.target.column}", replacement
+        return self._unfold_column(col), replacement
 
     def _get_column_from_expression(self, expr, alias):
         """
@@ -186,17 +210,8 @@ class SQLCompiler(compiler.SQLCompiler):
         else:
             group["_id"] = ids
             pipeline.append({"$group": group})
-            projected_fields = defaultdict(dict)
-            for key in ids:
-                value = f"$_id.{key}"
-                if self.GROUP_SEPARATOR in key:
-                    table, field = key.split(self.GROUP_SEPARATOR)
-                    projected_fields[table][field] = value
-                else:
-                    projected_fields[key] = value
-            # Convert defaultdict to dict so it doesn't appear as
-            # "defaultdict(<CLASS 'dict'>, ..." in query logging.
-            pipeline.append({"$addFields": dict(projected_fields)})
+            projected_fields = self._fold_columns(ids)
+            pipeline.append({"$addFields": projected_fields})
             if "_id" not in projected_fields:
                 pipeline.append({"$unset": "_id"})
         return pipeline
@@ -349,23 +364,30 @@ class SQLCompiler(compiler.SQLCompiler):
         """Check if the query is supported and prepare a MongoQuery."""
         self.check_query()
         query = self.query_class(self)
-        query.lookup_pipeline = self.get_lookup_pipeline()
         ordering_fields, sort_ordering, extra_fields = self._get_ordering()
-        query.project_fields = self.get_project_fields(columns, ordering_fields)
         query.ordering = sort_ordering
-        # If columns is None, then get_project_fields() won't add
-        # ordering_fields to $project. Use $addFields (extra_fields) instead.
-        if columns is None:
-            extra_fields += ordering_fields
+        if self.query.combinator:
+            if not getattr(self.connection.features, f"supports_select_{self.query.combinator}"):
+                raise NotSupportedError(
+                    f"{self.query.combinator} is not supported on this database backend."
+                )
+            query.combinator_pipeline = self.get_combinator_queries()
+        else:
+            query.project_fields = self.get_project_fields(columns, ordering_fields)
+            # If columns is None, then get_project_fields() won't add
+            # ordering_fields to $project. Use $addFields (extra_fields) instead.
+            if columns is None:
+                extra_fields += ordering_fields
+            query.lookup_pipeline = self.get_lookup_pipeline()
+            where = self.get_where()
+            try:
+                expr = where.as_mql(self, self.connection) if where else {}
+            except FullResultSet:
+                query.mongo_query = {}
+            else:
+                query.mongo_query = {"$expr": expr}
         if extra_fields:
             query.extra_fields = self.get_project_fields(extra_fields, force_expression=True)
-        where = self.get_where()
-        try:
-            expr = where.as_mql(self, self.connection) if where else {}
-        except FullResultSet:
-            query.mongo_query = {}
-        else:
-            query.mongo_query = {"$expr": expr}
         return query
 
     def get_columns(self):
@@ -391,6 +413,9 @@ class SQLCompiler(compiler.SQLCompiler):
             if hasattr(column, "target"):
                 # column is a Col.
                 target = column.target.column
+            # Handle Order By columns as refs columns.
+            elif isinstance(column, OrderBy) and isinstance(column.expression, Ref):
+                target = column.expression.refs
             else:
                 # column is a Transform in values()/values_list() that needs a
                 # name for $proj.
@@ -411,6 +436,75 @@ class SQLCompiler(compiler.SQLCompiler):
     @cached_property
     def collection(self):
         return self.connection.get_collection(self.collection_name)
+
+    def get_combinator_queries(self):
+        parts = []
+        compilers = [
+            query.get_compiler(self.using, self.connection, self.elide_empty)
+            for query in self.query.combined_queries
+        ]
+        main_query_columns = self.get_columns()
+        main_query_fields, _ = zip(*main_query_columns, strict=True)
+        for compiler_ in compilers:
+            try:
+                # If the columns list is limited, then all combined queries
+                # must have the same columns list. Set the selects defined on
+                # the query on all combined queries, if not already set.
+                if not compiler_.query.values_select and self.query.values_select:
+                    compiler_.query = compiler_.query.clone()
+                    compiler_.query.set_values(
+                        (
+                            *self.query.extra_select,
+                            *self.query.values_select,
+                            *self.query.annotation_select,
+                        )
+                    )
+                compiler_.pre_sql_setup()
+                columns = compiler_.get_columns()
+                parts.append((compiler_.build_query(columns), compiler_, columns))
+            except EmptyResultSet:
+                # Omit the empty queryset with UNION.
+                if self.query.combinator == "union":
+                    continue
+                raise
+        # Raise EmptyResultSet if all the combinator queries are empty.
+        if not parts:
+            raise EmptyResultSet
+        # Make the combinator's stages.
+        combinator_pipeline = None
+        for part, compiler_, columns in parts:
+            inner_pipeline = part.get_pipeline()
+            # Standardize result fields.
+            fields = {}
+            # When a .count() is called, the main_query_field has length 1
+            # otherwise it has the same length as columns.
+            for alias, (ref, expr) in zip(main_query_fields, columns, strict=False):
+                if isinstance(expr, Col) and expr.alias != compiler_.collection_name:
+                    fields[expr.alias] = 1
+                else:
+                    fields[alias] = f"${ref}" if alias != ref else 1
+            inner_pipeline.append({"$project": fields})
+            # Combine query with the current combinator pipeline.
+            if combinator_pipeline:
+                combinator_pipeline.append(
+                    {"$unionWith": {"coll": compiler_.collection_name, "pipeline": inner_pipeline}}
+                )
+            else:
+                combinator_pipeline = inner_pipeline
+        if not self.query.combinator_all:
+            ids = {}
+            for alias, expr in main_query_columns:
+                # Unfold foreign fields.
+                if isinstance(expr, Col) and expr.alias != self.collection_name:
+                    ids[self._unfold_column(expr)] = expr.as_mql(self, self.connection)
+                else:
+                    ids[alias] = f"${alias}"
+            combinator_pipeline.append({"$group": {"_id": ids}})
+            projected_fields = self._fold_columns(ids)
+            combinator_pipeline.append({"$addFields": projected_fields})
+            if "_id" not in projected_fields:
+                combinator_pipeline.append({"$unset": "_id"})
+        return combinator_pipeline
 
     def get_lookup_pipeline(self):
         result = []

@@ -51,6 +51,7 @@ class MongoQuery:
         self.project_fields = None
         self.aggregation_pipeline = compiler.aggregation_pipeline
         self.extra_fields = None
+        self.combinator_pipeline = None
 
     def __repr__(self):
         return f"<MongoQuery: {self.mongo_query!r} ORDER {self.ordering!r}>"
@@ -78,6 +79,8 @@ class MongoQuery:
             pipeline.extend(self.aggregation_pipeline)
         if self.project_fields:
             pipeline.append({"$project": self.project_fields})
+        if self.combinator_pipeline:
+            pipeline.extend(self.combinator_pipeline)
         if self.extra_fields:
             pipeline.append({"$addFields": self.extra_fields})
         if self.ordering:
