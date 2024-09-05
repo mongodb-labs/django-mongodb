@@ -4,6 +4,7 @@ from django.utils.functional import cached_property
 
 class DatabaseFeatures(BaseDatabaseFeatures):
     allow_sliced_subqueries_with_in = False
+    allows_multiple_constraints_on_same_fields = False
     can_create_inline_fk = False
     can_introspect_foreign_keys = False
     greatest_least_ignores_nulls = True
@@ -107,14 +108,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
         "schema.tests.SchemaTests.test_remove_db_index_doesnt_remove_custom_indexes",
         # AlterField (unique)
-        "schema.tests.SchemaTests.test_remove_field_unique_does_not_remove_meta_constraints",
         "schema.tests.SchemaTests.test_unique",
         "schema.tests.SchemaTests.test_unique_and_reverse_m2m",
         # alter_index_together
         "schema.tests.SchemaTests.test_index_together",
-        "schema.tests.SchemaTests.test_remove_index_together_does_not_remove_meta_indexes",
         # alter_unique_together
-        "schema.tests.SchemaTests.test_remove_unique_together_does_not_remove_meta_constraints",
         "schema.tests.SchemaTests.test_unique_together",
         # add/remove_constraint
         "schema.tests.SchemaTests.test_composed_constraint_with_fk",
