@@ -469,10 +469,10 @@ class SQLCompiler(compiler.SQLCompiler):
         idx = itertools.count(start=1)
         for order in self.order_by_objs or []:
             if isinstance(order.expression, Col):
-                field_name = order.expression.as_mql(self, self.connection).removeprefix("$")
+                field_name = order.as_mql(self, self.connection).removeprefix("$")
                 fields.append((order.expression.target.column, order.expression))
             elif isinstance(order.expression, Ref):
-                field_name = order.expression.as_mql(self, self.connection).removeprefix("$")
+                field_name = order.as_mql(self, self.connection).removeprefix("$")
             else:
                 field_name = f"__order{next(idx)}"
                 fields.append((field_name, order.expression))

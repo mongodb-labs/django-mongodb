@@ -12,6 +12,7 @@ from django.db.models.expressions import (
     ExpressionWrapper,
     F,
     NegatedExpression,
+    OrderBy,
     Ref,
     ResolvedOuterRef,
     Star,
@@ -73,6 +74,10 @@ def negated_expression(self, compiler, connection):
     return {"$not": expression_wrapper(self, compiler, connection)}
 
 
+def order_by(self, compiler, connection):
+    return self.expression.as_mql(compiler, connection)
+
+
 def query(self, compiler, connection):  # noqa: ARG001
     raise NotSupportedError("Using a QuerySet in annotate() is not supported on MongoDB.")
 
@@ -123,6 +128,7 @@ def register_expressions():
     ExpressionWrapper.as_mql = expression_wrapper
     F.as_mql = f
     NegatedExpression.as_mql = negated_expression
+    OrderBy.as_mql = order_by
     Query.as_mql = query
     Ref.as_mql = ref
     ResolvedOuterRef.as_mql = ResolvedOuterRef.as_sql
