@@ -84,9 +84,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # AlterField (unique)
         "schema.tests.SchemaTests.test_unique",
         "schema.tests.SchemaTests.test_unique_and_reverse_m2m",
-        # alter_index_together
-        "migrations.test_operations.OperationTests.test_alter_index_together",
-        "schema.tests.SchemaTests.test_index_together",
         # alter_unique_together
         "migrations.test_operations.OperationTests.test_alter_unique_together",
         "schema.tests.SchemaTests.test_unique_together",

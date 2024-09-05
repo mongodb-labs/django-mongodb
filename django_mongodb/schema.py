@@ -100,7 +100,14 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 self._remove_field_index(model, field)
 
     def alter_index_together(self, model, old_index_together, new_index_together):
-        pass
+        olds = {tuple(fields) for fields in old_index_together}
+        news = {tuple(fields) for fields in new_index_together}
+        # Deleted indexes
+        for field_names in olds.difference(news):
+            self._remove_composed_index(model, field_names, {"index": True, "unique": False})
+        # Created indexes
+        for field_names in news.difference(olds):
+            self._add_composed_index(model, field_names)
 
     def alter_unique_together(self, model, old_unique_together, new_unique_together):
         pass
@@ -137,6 +144,30 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         if index.contains_expressions:
             return
         self.get_collection(model._meta.db_table).drop_index(index.name)
+
+    def _remove_composed_index(self, model, field_names, constraint_kwargs):
+        """
+        Remove the index on the given list of field_names created by
+        index/unique_together, depending on constraint_kwargs.
+        """
+        meta_constraint_names = {constraint.name for constraint in model._meta.constraints}
+        meta_index_names = {constraint.name for constraint in model._meta.indexes}
+        columns = [model._meta.get_field(field).column for field in field_names]
+        constraint_names = self._constraint_names(
+            model,
+            columns,
+            exclude=meta_constraint_names | meta_index_names,
+            **constraint_kwargs,
+        )
+        if len(constraint_names) != 1:
+            num_found = len(constraint_names)
+            columns_str = ", ".join(columns)
+            raise ValueError(
+                f"Found wrong number ({num_found}) of constraints for "
+                f"{model._meta.db_table}({columns_str})."
+            )
+        collection = self.get_collection(model._meta.db_table)
+        collection.drop_index(constraint_names[0])
 
     def _remove_field_index(self, model, field):
         """Remove a field's db_index=True index."""
