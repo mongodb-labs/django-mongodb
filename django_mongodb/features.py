@@ -126,9 +126,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_remove_unique_together_does_not_remove_meta_constraints",
         "schema.tests.SchemaTests.test_unique_together",
         # ManyToManyField
-        "schema.tests.SchemaTests.test_m2m_create",
-        "schema.tests.SchemaTests.test_m2m_create_custom",
-        "schema.tests.SchemaTests.test_m2m_create_inherited",
         "schema.tests.SchemaTests.test_m2m_rename_field_in_target_model",
         "schema.tests.SchemaTests.test_m2m_repoint",
         "schema.tests.SchemaTests.test_m2m_repoint_custom",

@@ -4,8 +4,16 @@ from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     def create_model(self, model):
         self.connection.database.create_collection(model._meta.db_table)
+        # Make implicit M2M tables.
+        for field in model._meta.local_many_to_many:
+            if field.remote_field.through._meta.auto_created:
+                self.create_model(field.remote_field.through)
 
     def delete_model(self, model):
+        # Delete implicit M2m tables.
+        for field in model._meta.local_many_to_many:
+            if field.remote_field.through._meta.auto_created:
+                self.delete_model(field.remote_field.through)
         self.connection.database[model._meta.db_table].drop()
 
     def add_field(self, model, field):
