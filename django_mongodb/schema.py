@@ -1,5 +1,5 @@
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
-from django.db.models import Index
+from django.db.models import Index, UniqueConstraint
 from pymongo import ASCENDING, DESCENDING
 from pymongo.operations import IndexModel
 
@@ -29,18 +29,23 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
 
     def _create_model_indexes(self, model):
         """
-        Create all indexes (field indexes, index_together, Meta.indexes) for
-        the specified model.
+        Create all indexes (field indexes & uniques, Meta.index_together,
+        Meta.constraints, Meta.indexes) for the specified model.
         """
         if not model._meta.managed or model._meta.proxy or model._meta.swapped:
             return
-        # Field indexes
+        # Field indexes and uniques
         for field in model._meta.local_fields:
             if self._field_should_be_indexed(model, field):
                 self._add_field_index(model, field)
+            elif self._field_should_have_unique(field):
+                self._add_field_unique(model, field)
         # Meta.index_together (RemovedInDjango51Warning)
         for field_names in model._meta.index_together:
             self._add_composed_index(model, field_names)
+        # Meta.constraints
+        for constraint in model._meta.constraints:
+            self.add_constraint(model, constraint)
         # Meta.indexes
         for index in model._meta.indexes:
             self.add_index(model, index)
@@ -62,9 +67,11 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             self.get_collection(model._meta.db_table).update_many(
                 {}, [{"$set": {column: self.effective_default(field)}}]
             )
-        # Add an index, if required.
+        # Add an index or unique, if required.
         if self._field_should_be_indexed(model, field):
             self._add_field_index(model, field)
+        elif self._field_should_have_unique(field):
+            self._add_field_unique(model, field)
 
     def _alter_field(
         self,
@@ -110,6 +117,8 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             self.get_collection(model._meta.db_table).update_many({}, {"$unset": {column: ""}})
             if self._field_should_be_indexed(model, field):
                 self._remove_field_index(model, field)
+            elif self._field_should_have_unique(field):
+                self._remove_field_unique(model, field)
 
     def alter_index_together(self, model, old_index_together, new_index_together):
         olds = {tuple(fields) for fields in old_index_together}
@@ -124,9 +133,21 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     def alter_unique_together(self, model, old_unique_together, new_unique_together):
         pass
 
-    def add_index(self, model, index, field=None):
+    def add_index(self, model, index, field=None, unique=False):
         if index.contains_expressions:
             return
+        kwargs = {}
+        if unique:
+            filter_expression = {}
+            # Indexing on $type matches the value of most SQL databases by
+            # allowing multiple null values for the unique constraint.
+            if field:
+                filter_expression[field.column] = {"$type": field.db_type(self.connection)}
+            else:
+                for field_name, _ in index.fields_orders:
+                    field_ = model._meta.get_field(field_name)
+                    filter_expression[field_.column] = {"$type": field_.db_type(self.connection)}
+            kwargs = {"partialFilterExpression": filter_expression, "unique": True}
         index_orders = (
             [(field.column, ASCENDING)]
             if field
@@ -137,7 +158,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 for field_name, order in index.fields_orders
             ]
         )
-        idx = IndexModel(index_orders, name=index.name)
+        idx = IndexModel(index_orders, name=index.name, **kwargs)
         self.get_collection(model._meta.db_table).create_indexes([idx])
 
     def _add_composed_index(self, model, field_names):
@@ -202,13 +223,57 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             )
         collection.drop_index(index_names[0])
 
-    def add_constraint(self, model, constraint):
-        pass
+    def add_constraint(self, model, constraint, field=None):
+        if isinstance(constraint, UniqueConstraint) and self._unique_supported(
+            condition=constraint.condition,
+            deferrable=constraint.deferrable,
+            include=constraint.include,
+            expressions=constraint.expressions,
+            nulls_distinct=constraint.nulls_distinct,
+        ):
+            idx = Index(fields=constraint.fields, name=constraint.name)
+            self.add_index(model, idx, field=field, unique=True)
+
+    def _add_field_unique(self, model, field):
+        name = str(self._unique_constraint_name(model._meta.db_table, [field.column]))
+        constraint = UniqueConstraint(fields=[field.name], name=name)
+        self.add_constraint(model, constraint, field=field)
 
     def remove_constraint(self, model, constraint):
-        pass
+        if isinstance(constraint, UniqueConstraint) and self._unique_supported(
+            condition=constraint.condition,
+            deferrable=constraint.deferrable,
+            include=constraint.include,
+            expressions=constraint.expressions,
+            nulls_distinct=constraint.nulls_distinct,
+        ):
+            idx = Index(fields=constraint.fields, name=constraint.name)
+            self.remove_index(model, idx)
+
+    def _remove_field_unique(self, model, field):
+        # Find the unique constraint for this field
+        meta_constraint_names = {constraint.name for constraint in model._meta.constraints}
+        constraint_names = self._constraint_names(
+            model,
+            [field.column],
+            unique=True,
+            primary_key=False,
+            exclude=meta_constraint_names,
+        )
+        if len(constraint_names) != 1:
+            num_found = len(constraint_names)
+            raise ValueError(
+                f"Found wrong number ({num_found}) of unique constraints for "
+                f"{model._meta.db_table}.{field.column}."
+            )
+        self.get_collection(model._meta.db_table).drop_index(constraint_names[0])
 
     def alter_db_table(self, model, old_db_table, new_db_table):
         if old_db_table == new_db_table:
             return
         self.get_collection(old_db_table).rename(new_db_table)
+
+    def _field_should_have_unique(self, field):
+        db_type = field.db_type(self.connection)
+        # The _id column is automatically unique.
+        return db_type and field.unique and field.column != "_id"

@@ -14,6 +14,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_collation_on_charfield = False
     supports_column_check_constraints = False
     supports_date_lookup_using_string = False
+    supports_deferrable_unique_constraints = False
     supports_explaining_query_execution = True
     supports_expression_defaults = False
     supports_expression_indexes = False
@@ -23,6 +24,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     # BSON Date type doesn't support microsecond precision.
     supports_microsecond_precision = False
     supports_paramstyle_pyformat = False
+    # Not implemented.
+    supports_partial_indexes = False
     supports_select_difference = False
     supports_select_intersection = False
     supports_sequence_reset = False
@@ -70,28 +73,15 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_closing_non_shared_connections",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
-        # AddField
-        "schema.tests.SchemaTests.test_add_unique_charfield",
         # AlterField
         "schema.tests.SchemaTests.test_alter_field_fk_to_o2o",
-        "schema.tests.SchemaTests.test_alter_field_o2o_keeps_unique",
         "schema.tests.SchemaTests.test_alter_field_o2o_to_fk",
-        "schema.tests.SchemaTests.test_alter_int_pk_to_int_unique",
         # AlterField (unique)
         "schema.tests.SchemaTests.test_indexes",
         "schema.tests.SchemaTests.test_unique",
-        "schema.tests.SchemaTests.test_unique_and_reverse_m2m",
         # alter_unique_together
         "migrations.test_operations.OperationTests.test_alter_unique_together",
         "schema.tests.SchemaTests.test_unique_together",
-        # add/remove_constraint
-        "introspection.tests.IntrospectionTests.test_get_constraints",
-        "migrations.test_operations.OperationTests.test_add_partial_unique_constraint",
-        "migrations.test_operations.OperationTests.test_create_model_with_partial_unique_constraint",
-        "migrations.test_operations.OperationTests.test_remove_partial_unique_constraint",
-        "schema.tests.SchemaTests.test_composed_constraint_with_fk",
-        "schema.tests.SchemaTests.test_remove_ignored_unique_constraint_not_create_fk_index",
-        "schema.tests.SchemaTests.test_unique_constraint",
         # Column default values aren't handled when a field raises
         # EmptyResultSet: https://github.com/mongodb-labs/django-mongodb/issues/155
         "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
@@ -194,24 +184,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_autofield.BigAutoFieldTests",
             "model_fields.test_autofield.SmallAutoFieldTests",
             "queries.tests.TestInvalidValuesRelation.test_invalid_values",
-        },
-        "MongoDB does not enforce UNIQUE constraints.": {
-            "auth_tests.test_basic.BasicTestCase.test_unicode_username",
-            "auth_tests.test_migrations.ProxyModelWithSameAppLabelTests.test_migrate_with_existing_target_permission",
-            "constraints.tests.UniqueConstraintTests.test_database_constraint",
-            "contenttypes_tests.test_operations.ContentTypeOperationsTests.test_content_type_rename_conflict",
-            "contenttypes_tests.test_operations.ContentTypeOperationsTests.test_existing_content_type_rename",
-            "custom_pk.tests.CustomPKTests.test_unique_pk",
-            "force_insert_update.tests.ForceInsertInheritanceTests.test_force_insert_with_existing_grandparent",
-            "get_or_create.tests.GetOrCreateTestsWithManualPKs.test_create_with_duplicate_primary_key",
-            "get_or_create.tests.GetOrCreateTestsWithManualPKs.test_savepoint_rollback",
-            "get_or_create.tests.GetOrCreateThroughManyToMany.test_something",
-            "get_or_create.tests.UpdateOrCreateTests.test_manual_primary_key_test",
-            "get_or_create.tests.UpdateOrCreateTestsWithManualPKs.test_create_with_duplicate_primary_key",
-            "introspection.tests.IntrospectionTests.test_get_constraints_unique_indexes_orders",
-            "model_fields.test_filefield.FileFieldTests.test_unique_when_same_filename",
-            "one_to_one.tests.OneToOneTests.test_multiple_o2o",
-            "queries.test_bulk_update.BulkUpdateTests.test_database_routing_batch_atomicity",
         },
         "MongoDB does not enforce PositiveIntegerField constraint.": {
             "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
