@@ -30,7 +30,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     def _create_model_indexes(self, model):
         """
         Create all indexes (field indexes & uniques, Meta.index_together,
-        Meta.constraints, Meta.indexes) for the specified model.
+        Meta.unique_together, Meta.constraints, Meta.indexes) for the model.
         """
         if not model._meta.managed or model._meta.proxy or model._meta.swapped:
             return
@@ -43,6 +43,9 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         # Meta.index_together (RemovedInDjango51Warning)
         for field_names in model._meta.index_together:
             self._add_composed_index(model, field_names)
+        # Meta.unique_together
+        if model._meta.unique_together:
+            self.alter_unique_together(model, [], model._meta.unique_together)
         # Meta.constraints
         for constraint in model._meta.constraints:
             self.add_constraint(model, constraint)
@@ -131,7 +134,21 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             self._add_composed_index(model, field_names)
 
     def alter_unique_together(self, model, old_unique_together, new_unique_together):
-        pass
+        olds = {tuple(fields) for fields in old_unique_together}
+        news = {tuple(fields) for fields in new_unique_together}
+        # Deleted uniques
+        for field_names in olds.difference(news):
+            self._remove_composed_index(
+                model,
+                field_names,
+                {"unique": True, "primary_key": False},
+            )
+        # Created uniques
+        for field_names in news.difference(olds):
+            columns = [model._meta.get_field(field).column for field in field_names]
+            name = str(self._unique_constraint_name(model._meta.db_table, columns))
+            constraint = UniqueConstraint(fields=field_names, name=name)
+            self.add_constraint(model, constraint)
 
     def add_index(self, model, index, field=None, unique=False):
         if index.contains_expressions:
