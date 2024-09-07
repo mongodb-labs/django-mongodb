@@ -78,9 +78,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # AlterField (unique)
         "schema.tests.SchemaTests.test_indexes",
         "schema.tests.SchemaTests.test_unique",
-        # alter_unique_together
-        "migrations.test_operations.OperationTests.test_alter_unique_together",
-        "schema.tests.SchemaTests.test_unique_together",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
