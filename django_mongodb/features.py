@@ -79,9 +79,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # AlterField (unique)
         "schema.tests.SchemaTests.test_indexes",
         "schema.tests.SchemaTests.test_unique",
-        # alter_unique_together
-        "migrations.test_operations.OperationTests.test_alter_unique_together",
-        "schema.tests.SchemaTests.test_unique_together",
         # Column default values aren't handled when a field raises
         # EmptyResultSet: https://github.com/mongodb-labs/django-mongodb/issues/155
         "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
