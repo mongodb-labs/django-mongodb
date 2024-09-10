@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from django.db.models.aggregates import Aggregate, Count, StdDev, Variance
-from django.db.models.expressions import Case, Value, When
+from django.db.models.expressions import Case, Col, Value, When
 from django.db.models.lookups import IsNull
 from django.db.models.sql.where import WhereNode
 
@@ -19,7 +19,7 @@ def aggregate(
     resolve_inner_expression=False,
     **extra_context,  # noqa: ARG001
 ):
-    if self.filter:
+    if self.filter and not isinstance(self.filter, Col):
         node = self.copy()
         node.filter = None
         source_expressions = node.get_source_expressions()

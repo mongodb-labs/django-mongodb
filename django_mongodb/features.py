@@ -33,6 +33,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     uses_savepoints = False
 
     _django_test_expected_failures = {
+        # $concat only supports strings, not int
+        "db_functions.text.test_concat.ConcatTests.test_concat_non_str",
+        # QuerySet.order_by() with annotation transform doesn't work:
+        # "Expression $mod takes exactly 2 arguments. 1 were passed in"
+        # https://github.com/django/django/commit/b0ad41198b3e333f57351e3fce5a1fb47f23f376
+        "aggregation.tests.AggregateTestCase.test_order_by_aggregate_transform",
         # Database defaults not supported: bson.errors.InvalidDocument:
         # cannot encode object: <django.db.models.expressions.DatabaseDefault
         "basic.tests.ModelInstanceCreationTests.test_save_primary_with_db_default",
@@ -58,7 +64,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Length of null considered zero rather than null.
         "db_functions.text.test_length.LengthTests.test_basic",
         # range lookup includes incorrect values.
-        "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
+        "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_range_lookups_join_choice",
         # Unexpected alias_refcount in alias_map.
         "queries.tests.Queries1Tests.test_order_by_tables",
         # The $sum aggregation returns 0 instead of None for null.
@@ -190,6 +196,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "backends.base.test_creation.TestDeserializeDbFromString.test_serialize_db_to_string_base_manager_with_prefetch_related",
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_proxied",
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_reverse_proxied",
+            "many_to_many.tests.ManyToManyQueryTests.test_prefetch_related_no_queries_optimization_disabled",
             "many_to_many.tests.ManyToManyTests.test_add_after_prefetch",
             "many_to_many.tests.ManyToManyTests.test_add_then_remove_after_prefetch",
             "many_to_many.tests.ManyToManyTests.test_clear_after_prefetch",
@@ -253,6 +260,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.BasicExpressionsTests.test_case_in_filter_if_boolean_output_field",
             "expressions.tests.BasicExpressionsTests.test_exists_in_filter",
             "expressions.tests.BasicExpressionsTests.test_order_by_exists",
+            "expressions.tests.BasicExpressionsTests.test_slicing_of_outerref",
             "expressions.tests.BasicExpressionsTests.test_subquery",
             "expressions.tests.ExistsTests.test_filter_by_empty_exists",
             "expressions.tests.ExistsTests.test_negated_empty_exists",
@@ -377,6 +385,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "queries.tests.EmptyQuerySetTests.test_values_subquery",
             "queries.tests.ExcludeTests.test_exclude_subquery",
             "queries.tests.NullInExcludeTest.test_null_in_exclude_qs",
+            "queries.tests.Queries1Tests.test_combining_does_not_mutate",
             "queries.tests.Queries1Tests.test_ticket9985",
             "queries.tests.Queries1Tests.test_ticket9997",
             "queries.tests.Queries1Tests.test_ticket10742",
@@ -496,7 +505,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "aggregation.tests.AggregateTestCase.test_count_star",
             "delete.tests.DeletionTests.test_only_referenced_fields_selected",
             "lookup.tests.LookupTests.test_in_ignore_none",
+            "lookup.tests.LookupTests.test_lookup_direct_value_rhs_unwrapped",
             "lookup.tests.LookupTests.test_textfield_exact_null",
+            "many_to_many.tests.ManyToManyQueryTests.test_count_join_optimization_disabled",
+            "many_to_many.tests.ManyToManyQueryTests.test_exists_join_optimization_disabled",
+            "many_to_many.tests.ManyToManyTests.test_custom_default_manager_exists_count",
             "queries.tests.ExistsSql.test_exists",
             "queries.tests.Queries6Tests.test_col_alias_quoted",
             "schema.tests.SchemaTests.test_rename_column_renames_deferred_sql_references",
