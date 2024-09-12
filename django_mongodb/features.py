@@ -93,7 +93,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_order_index",
         "schema.tests.SchemaTests.test_text_field_with_db_index",
         # AlterField
-        "schema.tests.SchemaTests.test_alter",
         "schema.tests.SchemaTests.test_alter_auto_field_to_integer_field",
         "schema.tests.SchemaTests.test_alter_field_add_index_to_integerfield",
         "schema.tests.SchemaTests.test_alter_field_default_dropped",
@@ -104,13 +103,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_alter_int_pk_to_int_unique",
         "schema.tests.SchemaTests.test_alter_not_unique_field_to_primary_key",
         "schema.tests.SchemaTests.test_alter_null_to_not_null",
-        "schema.tests.SchemaTests.test_alter_null_to_not_null_keeping_default",
         "schema.tests.SchemaTests.test_alter_primary_key_the_same_name",
         "schema.tests.SchemaTests.test_autofield_to_o2o",
         # AlterField (rename)
         "schema.tests.SchemaTests.test_rename",
         "schema.tests.SchemaTests.test_rename_keep_db_default",
-        "schema.tests.SchemaTests.test_rename_keep_null_status",
         # AlterField (db_index)
         "schema.tests.SchemaTests.test_indexes",
         "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
@@ -126,13 +123,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_remove_unique_together_does_not_remove_meta_constraints",
         "schema.tests.SchemaTests.test_unique_together",
         # ManyToManyField
-        "schema.tests.SchemaTests.test_m2m_rename_field_in_target_model",
         "schema.tests.SchemaTests.test_m2m_repoint",
         "schema.tests.SchemaTests.test_m2m_repoint_custom",
         "schema.tests.SchemaTests.test_m2m_repoint_inherited",
-        "schema.tests.SchemaTests.test_m2m_through_alter",
-        "schema.tests.SchemaTests.test_m2m_through_alter_custom",
-        "schema.tests.SchemaTests.test_m2m_through_alter_inherited",
         "schema.tests.SchemaTests.test_m2m_through_remove",
         # add/remove_constraint
         "schema.tests.SchemaTests.test_composed_constraint_with_fk",
