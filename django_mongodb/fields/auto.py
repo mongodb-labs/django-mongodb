@@ -1,6 +1,6 @@
 from bson import ObjectId, errors
 from django.core import exceptions
-from django.db.models.fields import AutoField, Field
+from django.db.models.fields import AutoField
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
@@ -31,8 +31,8 @@ class ObjectIdAutoField(AutoField):
                 return int(value)
             raise ValueError(f"Field '{self.name}' expected an ObjectId but got {value!r}.") from e
 
-    def rel_db_type(self, connection):
-        return Field().db_type(connection=connection)
+    def db_type(self, connection):
+        return "ObjectId"
 
     def to_python(self, value):
         if value is None or isinstance(value, int):

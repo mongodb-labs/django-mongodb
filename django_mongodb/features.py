@@ -122,11 +122,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # alter_unique_together
         "schema.tests.SchemaTests.test_remove_unique_together_does_not_remove_meta_constraints",
         "schema.tests.SchemaTests.test_unique_together",
-        # ManyToManyField
-        "schema.tests.SchemaTests.test_m2m_repoint",
-        "schema.tests.SchemaTests.test_m2m_repoint_custom",
-        "schema.tests.SchemaTests.test_m2m_repoint_inherited",
-        "schema.tests.SchemaTests.test_m2m_through_remove",
         # add/remove_constraint
         "schema.tests.SchemaTests.test_composed_constraint_with_fk",
         "schema.tests.SchemaTests.test_remove_ignored_unique_constraint_not_create_fk_index",

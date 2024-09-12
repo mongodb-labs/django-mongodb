@@ -27,7 +27,17 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 {}, [{"$set": {column: self.effective_default(field)}}]
             )
 
-    def alter_field(self, model, old_field, new_field, strict=False):
+    def _alter_field(
+        self,
+        model,
+        old_field,
+        new_field,
+        old_type,
+        new_type,
+        old_db_params,
+        new_db_params,
+        strict=False,
+    ):
         pass
 
     def remove_field(self, model, field):
