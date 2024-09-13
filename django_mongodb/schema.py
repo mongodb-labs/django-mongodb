@@ -38,7 +38,11 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         new_db_params,
         strict=False,
     ):
-        pass
+        # Have they renamed the column?
+        if old_field.column != new_field.column:
+            self.connection.database[model._meta.db_table].update_many(
+                {}, {"$rename": {old_field.column: new_field.column}}
+            )
 
     def remove_field(self, model, field):
         # Remove implicit M2M tables.

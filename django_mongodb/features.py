@@ -102,8 +102,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_alter_null_to_not_null",
         "schema.tests.SchemaTests.test_alter_primary_key_the_same_name",
         "schema.tests.SchemaTests.test_autofield_to_o2o",
-        # AlterField (rename)
-        "schema.tests.SchemaTests.test_rename",
         # AlterField (db_index)
         "schema.tests.SchemaTests.test_indexes",
         "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
