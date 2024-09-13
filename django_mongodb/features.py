@@ -14,6 +14,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_column_check_constraints = False
     supports_date_lookup_using_string = False
     supports_explaining_query_execution = True
+    supports_expression_defaults = False
     supports_expression_indexes = False
     supports_foreign_keys = False
     supports_ignore_conflicts = False
@@ -84,6 +85,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "backends.tests.ThreadTests.test_closing_non_shared_connections",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
         # Add/RemoveIndex
+        "migrations.test_operations.OperationTests.test_add_index",
+        "migrations.test_operations.OperationTests.test_alter_field_with_index",
+        "migrations.test_operations.OperationTests.test_remove_index",
+        "migrations.test_operations.OperationTests.test_rename_index",
+        "migrations.test_operations.OperationTests.test_rename_index_unknown_unnamed_index",
+        "migrations.test_operations.OperationTests.test_rename_index_unnamed_index",
         "schema.tests.SchemaTests.test_add_remove_index",
         "schema.tests.SchemaTests.test_composed_desc_index_with_fk",
         "schema.tests.SchemaTests.test_composed_index_with_fk",
@@ -111,13 +118,26 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_unique",
         "schema.tests.SchemaTests.test_unique_and_reverse_m2m",
         # alter_index_together
+        "migrations.test_operations.OperationTests.test_alter_index_together",
         "schema.tests.SchemaTests.test_index_together",
         # alter_unique_together
+        "migrations.test_operations.OperationTests.test_alter_unique_together",
         "schema.tests.SchemaTests.test_unique_together",
         # add/remove_constraint
+        "introspection.tests.IntrospectionTests.test_get_constraints",
+        "migrations.test_operations.OperationTests.test_add_partial_unique_constraint",
+        "migrations.test_operations.OperationTests.test_create_model_with_partial_unique_constraint",
+        "migrations.test_operations.OperationTests.test_remove_partial_unique_constraint",
         "schema.tests.SchemaTests.test_composed_constraint_with_fk",
         "schema.tests.SchemaTests.test_remove_ignored_unique_constraint_not_create_fk_index",
         "schema.tests.SchemaTests.test_unique_constraint",
+        # pymongo.errors.OperationFailure: Can't rename a collection to itself
+        "migrations.test_operations.OperationTests.test_alter_model_table_noop",
+        "migrations.test_operations.OperationTests.test_rename_model_no_relations_with_db_table_noop",
+        "migrations.test_operations.OperationTests.test_rename_model_with_db_table_rename_m2m",
+        # subclasses of BaseDatabaseIntrospection may require a get_constraints() method
+        "migrations.test_operations.OperationTests.test_add_func_unique_constraint",
+        "migrations.test_operations.OperationTests.test_remove_func_unique_constraint",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -142,6 +162,14 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # bson.errors.InvalidDocument: cannot encode object:
             # <django.db.models.expressions.DatabaseDefault
             "basic.tests.ModelInstanceCreationTests.test_save_primary_with_db_default",
+            "migrations.test_operations.OperationTests.test_add_field_both_defaults",
+            "migrations.test_operations.OperationTests.test_add_field_database_default",
+            "migrations.test_operations.OperationTests.test_add_field_database_default_special_char_escaping",
+            "migrations.test_operations.OperationTests.test_alter_field_add_database_default",
+            "migrations.test_operations.OperationTests.test_alter_field_change_blank_nullable_database_default_to_not_null",
+            "migrations.test_operations.OperationTests.test_alter_field_change_default_to_database_default",
+            "migrations.test_operations.OperationTests.test_alter_field_change_nullable_to_database_default_not_null",
+            "migrations.test_operations.OperationTests.test_alter_field_change_nullable_to_decimal_database_default_not_null",
             "schema.tests.SchemaTests.test_db_default_output_field_resolving",
             "schema.tests.SchemaTests.test_rename_keep_db_default",
         },
@@ -156,6 +184,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # PI()
             "db_functions.math.test_round.RoundTests.test_decimal_with_precision",
             "db_functions.math.test_round.RoundTests.test_float_with_precision",
+        },
+        "MongoDB doesn't rename an index when a field is renamed.": {
+            "migrations.test_operations.OperationTests.test_rename_field_index_together",
+            "migrations.test_operations.OperationTests.test_rename_field_unique_together",
         },
         "Pattern lookups on UUIDField are not supported.": {
             "model_fields.test_uuid.TestQuerying.test_contains",
@@ -186,6 +218,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "lookup.tests.LookupTests.test_in_ignore_none_with_unhashable_items",
             "m2m_through_regress.tests.ThroughLoadDataTestCase.test_sequence_creation",
             "many_to_many.tests.ManyToManyTests.test_add_remove_invalid_type",
+            "migrations.test_operations.OperationTests.test_autofield__bigautofield_foreignfield_growth",
+            "migrations.test_operations.OperationTests.test_model_with_bigautofield",
+            "migrations.test_operations.OperationTests.test_smallfield_autofield_foreignfield_growth",
+            "migrations.test_operations.OperationTests.test_smallfield_bigautofield_foreignfield_growth",
             "model_fields.test_autofield.AutoFieldTests",
             "model_fields.test_autofield.BigAutoFieldTests",
             "model_fields.test_autofield.SmallAutoFieldTests",
@@ -503,6 +539,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.BasicExpressionsTests.test_annotate_values_filter",
             "expressions.tests.BasicExpressionsTests.test_filtering_on_rawsql_that_is_boolean",
             "expressions.tests.BasicExpressionsTests.test_order_by_multiline_sql",
+            "migrations.test_operations.OperationTests.test_run_sql",
+            "migrations.test_operations.OperationTests.test_run_sql_params",
+            "migrations.test_operations.OperationTests.test_separate_database_and_state",
             "model_fields.test_jsonfield.TestQuerying.test_key_sql_injection_escape",
             "model_fields.test_jsonfield.TestQuerying.test_key_transform_raw_expression",
             "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_raw_expression",
@@ -632,6 +671,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "transaction.atomic() is not supported.": {
             "backends.base.test_base.DatabaseWrapperLoggingTests",
+            "migrations.test_operations.OperationTests.test_run_python_atomic",
         },
     }
 
