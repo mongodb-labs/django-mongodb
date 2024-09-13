@@ -75,4 +75,6 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         pass
 
     def alter_db_table(self, model, old_db_table, new_db_table):
+        if old_db_table == new_db_table:
+            return
         self.connection.database[old_db_table].rename(new_db_table)

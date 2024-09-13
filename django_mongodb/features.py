@@ -131,10 +131,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_composed_constraint_with_fk",
         "schema.tests.SchemaTests.test_remove_ignored_unique_constraint_not_create_fk_index",
         "schema.tests.SchemaTests.test_unique_constraint",
-        # pymongo.errors.OperationFailure: Can't rename a collection to itself
-        "migrations.test_operations.OperationTests.test_alter_model_table_noop",
-        "migrations.test_operations.OperationTests.test_rename_model_no_relations_with_db_table_noop",
-        "migrations.test_operations.OperationTests.test_rename_model_with_db_table_rename_m2m",
         # subclasses of BaseDatabaseIntrospection may require a get_constraints() method
         "migrations.test_operations.OperationTests.test_add_func_unique_constraint",
         "migrations.test_operations.OperationTests.test_remove_func_unique_constraint",
