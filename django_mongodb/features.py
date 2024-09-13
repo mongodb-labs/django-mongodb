@@ -33,9 +33,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     uses_savepoints = False
 
     _django_test_expected_failures = {
-        # Database defaults not supported: bson.errors.InvalidDocument:
-        # cannot encode object: <django.db.models.expressions.DatabaseDefault
-        "basic.tests.ModelInstanceCreationTests.test_save_primary_with_db_default",
         # 'NulledTransform' object has no attribute 'as_mql'.
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
@@ -107,7 +104,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_autofield_to_o2o",
         # AlterField (rename)
         "schema.tests.SchemaTests.test_rename",
-        "schema.tests.SchemaTests.test_rename_keep_db_default",
         # AlterField (db_index)
         "schema.tests.SchemaTests.test_indexes",
         "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
@@ -147,7 +143,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
 
     django_test_skips = {
         "Database defaults aren't supported by MongoDB.": {
+            # bson.errors.InvalidDocument: cannot encode object:
+            # <django.db.models.expressions.DatabaseDefault
+            "basic.tests.ModelInstanceCreationTests.test_save_primary_with_db_default",
             "schema.tests.SchemaTests.test_db_default_output_field_resolving",
+            "schema.tests.SchemaTests.test_rename_keep_db_default",
         },
         "Insert expressions aren't supported.": {
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_now",
