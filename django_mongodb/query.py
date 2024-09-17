@@ -99,12 +99,12 @@ def join(self, compiler, connection):
     # Add a join condition for each pair of joining fields.
     for lhs, rhs in self.join_fields:
         lhs, rhs = connection.ops.prepare_join_on_clause(
-            self.parent_alias, lhs, self.table_name, rhs
+            self.parent_alias, lhs, compiler.collection_name, rhs
         )
         lhs_fields.append(lhs.as_mql(compiler, connection))
         # In the lookup stage, the reference to this column doesn't include
         # the collection name.
-        rhs_fields.append(rhs.as_mql(compiler, connection).replace(f"{self.table_name}.", "", 1))
+        rhs_fields.append(rhs.as_mql(compiler, connection))
 
     parent_template = "parent__field__"
     lookup_pipeline = [
