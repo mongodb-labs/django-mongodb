@@ -38,11 +38,16 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         new_db_params,
         strict=False,
     ):
+        collection = self.connection.database[model._meta.db_table]
         # Have they renamed the column?
         if old_field.column != new_field.column:
-            self.connection.database[model._meta.db_table].update_many(
-                {}, {"$rename": {old_field.column: new_field.column}}
-            )
+            collection.update_many({}, {"$rename": {old_field.column: new_field.column}})
+        # Replace NULL with the field default if the field and was changed from
+        # NULL to NOT NULL.
+        if new_field.has_default() and old_field.null and not new_field.null:
+            column = new_field.column
+            default = self.effective_default(new_field)
+            collection.update_many({column: {"$eq": None}}, [{"$set": {column: default}}])
 
     def remove_field(self, model, field):
         # Remove implicit M2M tables.
