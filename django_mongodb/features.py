@@ -103,14 +103,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_text_field_with_db_index",
         # AlterField
         "schema.tests.SchemaTests.test_alter_field_add_index_to_integerfield",
-        "schema.tests.SchemaTests.test_alter_field_default_dropped",
         "schema.tests.SchemaTests.test_alter_field_fk_keeps_index",
         "schema.tests.SchemaTests.test_alter_field_fk_to_o2o",
         "schema.tests.SchemaTests.test_alter_field_o2o_keeps_unique",
         "schema.tests.SchemaTests.test_alter_field_o2o_to_fk",
         "schema.tests.SchemaTests.test_alter_int_pk_to_int_unique",
         "schema.tests.SchemaTests.test_alter_not_unique_field_to_primary_key",
-        "schema.tests.SchemaTests.test_alter_null_to_not_null",
         # AlterField (db_index)
         "schema.tests.SchemaTests.test_alter_renames_index",
         "schema.tests.SchemaTests.test_indexes",
