@@ -72,16 +72,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # AddField
         "schema.tests.SchemaTests.test_add_unique_charfield",
         # AlterField
-        "schema.tests.SchemaTests.test_alter_field_add_index_to_integerfield",
         "schema.tests.SchemaTests.test_alter_field_fk_to_o2o",
         "schema.tests.SchemaTests.test_alter_field_o2o_keeps_unique",
         "schema.tests.SchemaTests.test_alter_field_o2o_to_fk",
         "schema.tests.SchemaTests.test_alter_int_pk_to_int_unique",
-        # AlterField (db_index)
-        "schema.tests.SchemaTests.test_alter_renames_index",
-        "schema.tests.SchemaTests.test_indexes",
-        "schema.tests.SchemaTests.test_remove_db_index_doesnt_remove_custom_indexes",
         # AlterField (unique)
+        "schema.tests.SchemaTests.test_indexes",
         "schema.tests.SchemaTests.test_unique",
         "schema.tests.SchemaTests.test_unique_and_reverse_m2m",
         # alter_unique_together

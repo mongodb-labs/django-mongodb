@@ -78,15 +78,27 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         strict=False,
     ):
         collection = self.get_collection(model._meta.db_table)
+        # Removed an index?
+        old_field_indexed = self._field_should_be_indexed(model, old_field)
+        new_field_indexed = self._field_should_be_indexed(model, new_field)
+        if old_field_indexed and not new_field_indexed:
+            self._remove_field_index(model, old_field)
         # Have they renamed the column?
         if old_field.column != new_field.column:
             collection.update_many({}, {"$rename": {old_field.column: new_field.column}})
+            # Move index to the new field, if needed.
+            if old_field_indexed and new_field_indexed:
+                self._remove_field_index(model, old_field)
+                self._add_field_index(model, new_field)
         # Replace NULL with the field default if the field and was changed from
         # NULL to NOT NULL.
         if new_field.has_default() and old_field.null and not new_field.null:
             column = new_field.column
             default = self.effective_default(new_field)
             collection.update_many({column: {"$eq": None}}, [{"$set": {column: default}}])
+        # Added an index?
+        if not old_field_indexed and new_field_indexed:
+            self._add_field_index(model, new_field)
 
     def remove_field(self, model, field):
         # Remove implicit M2M tables.
