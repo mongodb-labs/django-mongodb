@@ -85,6 +85,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_closing_non_shared_connections",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
+        # AddField
+        "schema.tests.SchemaTests.test_add_indexed_charfield",
+        "schema.tests.SchemaTests.test_add_unique_charfield",
         # Add/RemoveIndex
         "migrations.test_operations.OperationTests.test_add_index",
         "migrations.test_operations.OperationTests.test_alter_field_with_index",
@@ -109,8 +112,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_alter_not_unique_field_to_primary_key",
         "schema.tests.SchemaTests.test_alter_null_to_not_null",
         "schema.tests.SchemaTests.test_alter_primary_key_the_same_name",
-        "schema.tests.SchemaTests.test_autofield_to_o2o",
         # AlterField (db_index)
+        "schema.tests.SchemaTests.test_alter_renames_index",
         "schema.tests.SchemaTests.test_indexes",
         "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
         "schema.tests.SchemaTests.test_remove_db_index_doesnt_remove_custom_indexes",
