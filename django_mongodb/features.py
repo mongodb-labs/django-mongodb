@@ -72,12 +72,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_closing_non_shared_connections",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
-        # AlterField
-        "schema.tests.SchemaTests.test_alter_field_fk_to_o2o",
-        "schema.tests.SchemaTests.test_alter_field_o2o_to_fk",
-        # AlterField (unique)
-        "schema.tests.SchemaTests.test_indexes",
-        "schema.tests.SchemaTests.test_unique",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
