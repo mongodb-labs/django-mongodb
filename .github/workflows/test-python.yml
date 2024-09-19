@@ -71,6 +71,7 @@ jobs:
           backends
           basic
           bulk_create
+          custom_pk
           dates
           datetimes
           db_functions

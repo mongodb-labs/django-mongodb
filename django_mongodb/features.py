@@ -32,6 +32,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_timezones = False
     # Not implemented: https://github.com/mongodb-labs/django-mongodb/issues/7
     supports_transactions = False
+    supports_unspecified_pk = True
     uses_savepoints = False
 
     _django_test_expected_failures = {
@@ -98,7 +99,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_order_index",
         "schema.tests.SchemaTests.test_text_field_with_db_index",
         # AlterField
-        "schema.tests.SchemaTests.test_alter_auto_field_to_integer_field",
         "schema.tests.SchemaTests.test_alter_field_add_index_to_integerfield",
         "schema.tests.SchemaTests.test_alter_field_default_dropped",
         "schema.tests.SchemaTests.test_alter_field_fk_keeps_index",
@@ -209,6 +209,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "AutoField not supported.": {
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_nullable_fields",
+            "custom_pk.tests.CustomPKTests.test_auto_field_subclass_create",
             "introspection.tests.IntrospectionTests.test_sequence_list",
             "lookup.tests.LookupTests.test_filter_by_reverse_related_field_transform",
             "lookup.tests.LookupTests.test_in_ignore_none_with_unhashable_items",
