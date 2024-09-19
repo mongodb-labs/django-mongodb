@@ -32,7 +32,7 @@ class ObjectIdAutoField(AutoField):
             raise ValueError(f"Field '{self.name}' expected an ObjectId but got {value!r}.") from e
 
     def db_type(self, connection):
-        return "ObjectId"
+        return "objectId"
 
     def to_python(self, value):
         if value is None or isinstance(value, int):
