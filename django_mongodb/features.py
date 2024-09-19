@@ -111,11 +111,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "schema.tests.SchemaTests.test_alter_int_pk_to_int_unique",
         "schema.tests.SchemaTests.test_alter_not_unique_field_to_primary_key",
         "schema.tests.SchemaTests.test_alter_null_to_not_null",
-        "schema.tests.SchemaTests.test_alter_primary_key_the_same_name",
         # AlterField (db_index)
         "schema.tests.SchemaTests.test_alter_renames_index",
         "schema.tests.SchemaTests.test_indexes",
-        "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
         "schema.tests.SchemaTests.test_remove_db_index_doesnt_remove_custom_indexes",
         # AlterField (unique)
         "schema.tests.SchemaTests.test_unique",
@@ -547,6 +545,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_raw_expression",
             "queries.tests.Queries1Tests.test_order_by_rawsql",
             "schema.test_logging.SchemaLoggerTests.test_extra_args",
+            "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_raw_sql",
@@ -631,6 +630,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "introspection.tests.IntrospectionTests.test_get_primary_key_column",
         },
         "MongoDB can't introspect primary key.": {
+            "schema.tests.SchemaTests.test_alter_primary_key_the_same_name",
             "schema.tests.SchemaTests.test_primary_key",
         },
         "Known issue querying JSONField.": {
