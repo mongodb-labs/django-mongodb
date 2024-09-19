@@ -88,6 +88,11 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         strict=False,
     ):
         collection = self.get_collection(model._meta.db_table)
+        # Has unique been removed?
+        old_field_unique = self._field_should_have_unique(old_field)
+        new_field_unique = self._field_should_have_unique(new_field)
+        if old_field_unique and not new_field_unique:
+            self._remove_field_unique(model, old_field)
         # Removed an index?
         old_field_indexed = self._field_should_be_indexed(model, old_field)
         new_field_indexed = self._field_should_be_indexed(model, new_field)
@@ -100,6 +105,10 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             if old_field_indexed and new_field_indexed:
                 self._remove_field_index(model, old_field)
                 self._add_field_index(model, new_field)
+            # Move unique to the new field, if needed.
+            if old_field_unique and new_field_unique:
+                self._remove_field_unique(model, old_field)
+                self._add_field_unique(model, new_field)
         # Replace NULL with the field default if the field and was changed from
         # NULL to NOT NULL.
         if new_field.has_default() and old_field.null and not new_field.null:
@@ -109,6 +118,9 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         # Added an index?
         if not old_field_indexed and new_field_indexed:
             self._add_field_index(model, new_field)
+        # Added a unique?
+        if not old_field_unique and new_field_unique:
+            self._add_field_unique(model, new_field)
 
     def remove_field(self, model, field):
         # Remove implicit M2M tables.
