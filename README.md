@@ -101,6 +101,29 @@ from the new application's `apps.py` file.
    Valid values for `verbosity` are `"queryPlanner"` (default),
    `"executionStats"`, and `"allPlansExecution"`.
 
+## Why are we building a MongoDB-Django integration?
+
+Building a robust solution that makes Django and NoSQL databases work together well has historically been challenging due to Django's ORM being built around relational database principles. While there have been several attempts in the past to create NoSQL (and MongoDB) integrations for Django, many of these projects have not achieved lasting success for various reasons. So, why have we chosen to tackle this problem now?
+
+According to the 2023 Django Developer Survey, 8% of respondents reported using MongoDB as a database backend with Django. This figure has shown a consistent upward trend in recent years (see 2021 and 2022 surveys). Additionally, numerous community members and customers have expressed a strong interest in leveraging Django alongside MongoDB.
+Our goal is to meet the needs of the developer community by providing an exceptional experience when working with MongoDB. Therefore, we are embarking on this journey to create a reliable integration. **Please note that the current project is in a very early stage of development and is not yet ready for PoC or Production use cases.**
+
+## Current capabilities
+
+At this stage, the project should let you replicate the djangoproject.com tutorial with minimal changes. You will likely be able to run it passing a portion of the standard Django test suite but not all of it. Some key features that we have added so far are:
+- Able to define MongoDB collections using Django models
+- Able to query data using Django’s `QuerySets`
+- Able to use Django’s authentication system `django.contrib.auth`
+- Able to use Django’s automatic admin interface `django.contrib.admin`
+- Able to use Django’s management commands
+- Able to use MongoDB’s Aggregation Pipeline
+
+## What's next?
+We are working towards a Public Preview release early 2025. We do not yet have a timeline for general availability. Exact details of the roadmap will be published soon. Stay tuned! 
+What level of support will MongoDB provide to developers using this code?
+
+This code is still in development and not intended for POC or production use cases, so we are not providing formal support within our Technical Services team at this time. 
+
 ## Known issues and limitations
 
 - The following `QuerySet` methods aren't supported:
@@ -148,6 +171,10 @@ from the new application's `apps.py` file.
     incorrectly returns objects where the key doesn't exist.
   - You can study the skipped tests in `DatabaseFeatures.django_test_skips` for
     more details on known issues.
+
+
+## We value your feedback!
+We invite you to share your feedback as we work to address this challenge. If you are interested in becoming a design partner, please connect with us through our community forum. You can also create issues or submit pull requests directly to our project GitHub repository.
 
 ## Troubleshooting
 
