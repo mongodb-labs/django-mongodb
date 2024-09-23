@@ -1,8 +1,8 @@
 # MongoDB backend for Django
 
-This backend is in the pre-alpha stage of development. Backwards incompatible
+This backend is in currently in development and is not advised for Production workflows. Backwards incompatible
 changes may be made without notice. We welcome your feedback as we continue to
-explore and build.
+explore and build. The best way to share this is via our [MongoDB Community Forum](https://www.mongodb.com/community/forums/tag/python)
 
 ## Install and usage
 
