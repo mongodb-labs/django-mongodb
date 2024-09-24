@@ -83,6 +83,8 @@ jobs:
           defer
           defer_regress
           from_db_value
+          generic_relations
+          generic_relations_regress
           introspection
           known_related_objects
           lookup

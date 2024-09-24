@@ -79,12 +79,34 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "many_to_one.tests.ManyToOneTests.test_selects",
         # Incorrect JOIN with GenericRelation gives incorrect results.
         "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
+        "generic_relations.tests.GenericRelationsTests.test_queries_content_type_restriction",
+        "generic_relations_regress.tests.GenericRelationTests.test_annotate",
         # subclasses of BaseDatabaseWrapper may require an is_usable() method
         "backends.tests.BackendTestCase.test_is_usable_after_database_disconnects",
         # Connection creation doesn't follow the usual Django API.
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_closing_non_shared_connections",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
+        # GenericRelation join doesn't work due to type mismatch between
+        # object_id (string) and target id (ObjectId) field.
+        "generic_relations.tests.GenericRelationsTests.test_subclasses_with_gen_rel",
+        "generic_relations.tests.GenericRelationsTests.test_subclasses_with_parent_gen_rel",
+        "generic_relations.tests.ProxyRelatedModelTest.test_query",
+        "generic_relations.tests.ProxyRelatedModelTest.test_query_proxy",
+        "generic_relations.tests.GenericRelationsTests.test_access_via_content_type",
+        "generic_relations.tests.GenericRelationsTests.test_generic_relation_to_inherited_child",
+        "generic_relations.tests.GenericRelationsTests.test_query_content_object",
+        "generic_relations_regress.tests.GenericRelationTests.test_filter_on_related_proxy_model",
+        "generic_relations_regress.tests.GenericRelationTests.test_charlink_filter",
+        "generic_relations_regress.tests.GenericRelationTests.test_filter_targets_related_pk",
+        "generic_relations_regress.tests.GenericRelationTests.test_generic_reverse_relation_exclude_filter",
+        "generic_relations_regress.tests.GenericRelationTests.test_generic_reverse_relation_with_abc",
+        "generic_relations_regress.tests.GenericRelationTests.test_generic_reverse_relation_with_mti",
+        "generic_relations_regress.tests.GenericRelationTests.test_reverse_relation_pk",
+        "generic_relations_regress.tests.GenericRelationTests.test_textlink_filter",
+        "generic_relations_regress.tests.GenericRelationTests.test_ticket_20378",
+        "generic_relations_regress.tests.GenericRelationTests.test_ticket_20564",
+        "generic_relations_regress.tests.GenericRelationTests.test_ticket_20564_nullable_fk",
         # AddField
         "schema.tests.SchemaTests.test_add_indexed_charfield",
         "schema.tests.SchemaTests.test_add_unique_charfield",
