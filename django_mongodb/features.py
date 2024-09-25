@@ -68,9 +68,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation.tests.AggregateTestCase.test_reverse_fkey_annotate",
         "aggregation_regress.tests.AggregationTests.test_annotation_disjunction",
         "aggregation_regress.tests.AggregationTests.test_decimal_aggregate_annotation_filter",
-        # Incorrect JOIN with GenericRelation gives incorrect results.
-        "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
-        "generic_relations.tests.GenericRelationsTests.test_queries_content_type_restriction",
+        # Wrong result for GenericRelation annotation.
         "generic_relations_regress.tests.GenericRelationTests.test_annotate",
         # subclasses of BaseDatabaseWrapper may require an is_usable() method
         "backends.tests.BackendTestCase.test_is_usable_after_database_disconnects",

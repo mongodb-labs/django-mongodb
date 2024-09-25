@@ -3,7 +3,7 @@ from operator import add as add_operator
 
 from django.core.exceptions import EmptyResultSet, FullResultSet
 from django.db import DatabaseError, IntegrityError, NotSupportedError
-from django.db.models.expressions import Case, When
+from django.db.models.expressions import Case, Col, When
 from django.db.models.functions import Mod
 from django.db.models.lookups import Exact
 from django.db.models.sql.constants import INNER
@@ -105,6 +105,7 @@ def join(self, compiler, connection):
     lhs_fields = []
     rhs_fields = []
     # Add a join condition for each pair of joining fields.
+    parent_template = "parent__field__"
     for lhs, rhs in self.join_fields:
         lhs, rhs = connection.ops.prepare_join_on_clause(
             self.parent_alias, lhs, compiler.collection_name, rhs
@@ -113,8 +114,41 @@ def join(self, compiler, connection):
         # In the lookup stage, the reference to this column doesn't include
         # the collection name.
         rhs_fields.append(rhs.as_mql(compiler, connection))
+    # Handle any join conditions besides matching field pairs.
+    extra = self.join_field.get_extra_restriction(self.table_alias, self.parent_alias)
+    if extra:
+        columns = []
+        for expr in extra.leaves():
+            # Determine whether the column needs to be transformed or rerouted
+            # as part of the subquery.
+            for hand_side in ["lhs", "rhs"]:
+                hand_side_value = getattr(expr, hand_side, None)
+                if isinstance(hand_side_value, Col):
+                    # If the column is not part of the joined table, add it to
+                    # lhs_fields.
+                    if hand_side_value.alias != self.table_name:
+                        pos = len(lhs_fields)
+                        lhs_fields.append(expr.lhs.as_mql(compiler, connection))
+                    else:
+                        pos = None
+                    columns.append((hand_side_value, pos))
+        # Replace columns in the extra conditions with new column references
+        # based on their rerouted positions in the join pipeline.
+        replacements = {}
+        for col, parent_pos in columns:
+            column_target = Col(compiler.collection_name, expr.output_field.__class__())
+            if parent_pos is not None:
+                target_col = f"${parent_template}{parent_pos}"
+                column_target.target.db_column = target_col
+                column_target.target.set_attributes_from_name(target_col)
+            else:
+                column_target.target = col.target
+            replacements[col] = column_target
+        # Apply the transformed expressions in the extra condition.
+        extra_condition = [extra.replace_expressions(replacements).as_mql(compiler, connection)]
+    else:
+        extra_condition = []
 
-    parent_template = "parent__field__"
     lookup_pipeline = [
         {
             "$lookup": {
@@ -140,6 +174,7 @@ def join(self, compiler, connection):
                                     {"$eq": [f"$${parent_template}{i}", field]}
                                     for i, field in enumerate(rhs_fields)
                                 ]
+                                + extra_condition
                             }
                         }
                     }
