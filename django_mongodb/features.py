@@ -688,10 +688,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "migrations.test_commands.MigrateTests.test_sqlmigrate_replaced_migration",
             "migrations.test_commands.MigrateTests.test_sqlmigrate_squashed_migration",
         },
-        "SchemaEditor.create_model() must raise DatabaseError rather than "
-        "pymongo.errors.CollectionInvalid: collection already exists": {
-            "migrations.test_commands.MigrateTests.test_migrate_initial_false",
-        },
     }
 
     @cached_property

@@ -1,7 +1,10 @@
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 
+from .query import wrap_database_errors
+
 
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
+    @wrap_database_errors
     def create_model(self, model):
         self.connection.database.create_collection(model._meta.db_table)
         # Make implicit M2M tables.
