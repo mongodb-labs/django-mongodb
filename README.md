@@ -149,6 +149,9 @@ from the new application's `apps.py` file.
   - You can study the skipped tests in `DatabaseFeatures.django_test_skips` for
     more details on known issues.
 
+- Due to the lack of ability to introspect MongoDB collection schema,
+  `migrate --fake-initial` isn't supported.
+
 ## Troubleshooting
 
 TODO

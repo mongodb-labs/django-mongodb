@@ -100,7 +100,7 @@ jobs:
           many_to_many
           many_to_one
           many_to_one_null
-          migrations.test_operations
+          migrations
           model_fields
           model_forms
           mutually_referential

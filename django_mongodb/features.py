@@ -533,6 +533,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.BasicExpressionsTests.test_annotate_values_filter",
             "expressions.tests.BasicExpressionsTests.test_filtering_on_rawsql_that_is_boolean",
             "expressions.tests.BasicExpressionsTests.test_order_by_multiline_sql",
+            "migrations.test_commands.MigrateTests.test_migrate_plan",
+            "migrations.test_multidb.MultiDBOperationTests.test_run_sql_migrate_foo_router_with_hints",
             "migrations.test_operations.OperationTests.test_run_sql",
             "migrations.test_operations.OperationTests.test_run_sql_params",
             "migrations.test_operations.OperationTests.test_separate_database_and_state",
@@ -667,7 +669,28 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "transaction.atomic() is not supported.": {
             "backends.base.test_base.DatabaseWrapperLoggingTests",
+            "migrations.test_executor.ExecutorTests.test_atomic_operation_in_non_atomic_migration",
             "migrations.test_operations.OperationTests.test_run_python_atomic",
+        },
+        "migrate --fake-initial is not supported.": {
+            "migrations.test_commands.MigrateTests.test_migrate_fake_initial",
+            "migrations.test_commands.MigrateTests.test_migrate_fake_split_initial",
+            "migrations.test_executor.ExecutorTests.test_soft_apply",
+        },
+        "SchemaEditor doesn't log or collect queries.": {
+            # https://github.com/mongodb-labs/django-mongodb/issues/141
+            "migrations.test_commands.MigrateTests.test_migrate_syncdb_app_label",
+            "migrations.test_commands.MigrateTests.test_migrate_syncdb_deferred_sql_executed_with_schemaeditor",
+            "migrations.test_commands.MigrateTests.test_sqlmigrate_backwards",
+            "migrations.test_commands.MigrateTests.test_sqlmigrate_for_non_atomic_migration",
+            "migrations.test_commands.MigrateTests.test_sqlmigrate_for_non_transactional_databases",
+            "migrations.test_commands.MigrateTests.test_sqlmigrate_forwards",
+            "migrations.test_commands.MigrateTests.test_sqlmigrate_replaced_migration",
+            "migrations.test_commands.MigrateTests.test_sqlmigrate_squashed_migration",
+        },
+        "SchemaEditor.create_model() must raise DatabaseError rather than "
+        "pymongo.errors.CollectionInvalid: collection already exists": {
+            "migrations.test_commands.MigrateTests.test_migrate_initial_false",
         },
     }
 
