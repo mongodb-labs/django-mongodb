@@ -9,7 +9,7 @@ from django.db.models.lookups import Exact
 from django.db.models.sql.constants import INNER
 from django.db.models.sql.datastructures import Join
 from django.db.models.sql.where import AND, OR, XOR, ExtraWhere, NothingNode, WhereNode
-from pymongo.errors import DuplicateKeyError, PyMongoError
+from pymongo.errors import BulkWriteError, DuplicateKeyError, PyMongoError
 
 
 def wrap_database_errors(func):
@@ -17,6 +17,10 @@ def wrap_database_errors(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
+        except BulkWriteError as e:
+            if "E11000 duplicate key error" in str(e):
+                raise IntegrityError from e
+            raise
         except DuplicateKeyError as e:
             raise IntegrityError from e
         except PyMongoError as e:
