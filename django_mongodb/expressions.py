@@ -13,6 +13,7 @@ from django.db.models.expressions import (
     F,
     NegatedExpression,
     OrderBy,
+    RawSQL,
     Ref,
     ResolvedOuterRef,
     Star,
@@ -82,6 +83,10 @@ def query(self, compiler, connection):  # noqa: ARG001
     raise NotSupportedError("Using a QuerySet in annotate() is not supported on MongoDB.")
 
 
+def raw_sql(self, compiler, connection):  # noqa: ARG001
+    raise NotSupportedError("RawSQL is not supported on MongoDB.")
+
+
 def ref(self, compiler, connection):  # noqa: ARG001
     prefix = (
         f"{self.source.alias}."
@@ -130,6 +135,7 @@ def register_expressions():
     NegatedExpression.as_mql = negated_expression
     OrderBy.as_mql = order_by
     Query.as_mql = query
+    RawSQL.as_mql = raw_sql
     Ref.as_mql = ref
     ResolvedOuterRef.as_mql = ResolvedOuterRef.as_sql
     Star.as_mql = star

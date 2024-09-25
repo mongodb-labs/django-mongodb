@@ -68,15 +68,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation.tests.AggregateTestCase.test_reverse_fkey_annotate",
         "aggregation_regress.tests.AggregationTests.test_annotation_disjunction",
         "aggregation_regress.tests.AggregationTests.test_decimal_aggregate_annotation_filter",
-        # QuerySet.extra(select=...) should raise NotSupportedError instead of:
-        # 'RawSQL' object has no attribute 'as_mql'.
-        "aggregation_regress.tests.AggregationTests.test_annotate_with_extra",
-        "aggregation_regress.tests.AggregationTests.test_annotation",
-        "aggregation_regress.tests.AggregationTests.test_more_more3",
-        "aggregation_regress.tests.AggregationTests.test_more_more_more3",
-        # QuerySet.extra(where=...) should raise NotSupportedError instead of:
-        # 'ExtraWhere' object has no attribute 'as_mql'.
-        "many_to_one.tests.ManyToOneTests.test_selects",
         # Incorrect JOIN with GenericRelation gives incorrect results.
         "aggregation_regress.tests.AggregationTests.test_aggregation_with_generic_reverse_relation",
         "generic_relations.tests.GenericRelationsTests.test_queries_content_type_restriction",
@@ -484,6 +475,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "delete_regress.tests.Ticket19102Tests.test_ticket_19102_extra",
             "lookup.tests.LookupTests.test_values",
             "lookup.tests.LookupTests.test_values_list",
+            "many_to_one.tests.ManyToOneTests.test_selects",
             "ordering.tests.OrderingTests.test_extra_ordering",
             "ordering.tests.OrderingTests.test_extra_ordering_quoting",
             "ordering.tests.OrderingTests.test_extra_ordering_with_table_name",
@@ -519,6 +511,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "Test executes raw SQL.": {
             "aggregation.tests.AggregateTestCase.test_coalesced_empty_result_set",
+            "aggregation_regress.tests.AggregationTests.test_annotate_with_extra",
+            "aggregation_regress.tests.AggregationTests.test_annotation",
+            "aggregation_regress.tests.AggregationTests.test_more_more3",
+            "aggregation_regress.tests.AggregationTests.test_more_more_more3",
             "annotations.tests.NonAggregateAnnotationTestCase.test_raw_sql_with_inherited_field",
             "backends.base.test_base.ExecuteWrapperTests",
             "backends.tests.BackendTestCase.test_cursor_contextmanager",

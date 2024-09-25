@@ -2,13 +2,13 @@ from functools import reduce, wraps
 from operator import add as add_operator
 
 from django.core.exceptions import EmptyResultSet, FullResultSet
-from django.db import DatabaseError, IntegrityError
+from django.db import DatabaseError, IntegrityError, NotSupportedError
 from django.db.models.expressions import Case, When
 from django.db.models.functions import Mod
 from django.db.models.lookups import Exact
 from django.db.models.sql.constants import INNER
 from django.db.models.sql.datastructures import Join
-from django.db.models.sql.where import AND, OR, XOR, NothingNode, WhereNode
+from django.db.models.sql.where import AND, OR, XOR, ExtraWhere, NothingNode, WhereNode
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
 
@@ -90,6 +90,10 @@ class MongoQuery:
         if self.query.high_mark is not None:
             pipeline.append({"$limit": self.query.high_mark - self.query.low_mark})
         return pipeline
+
+
+def extra_where(self, compiler, connection):  # noqa: ARG001
+    raise NotSupportedError("QuerySet.extra() is not supported on MongoDB.")
 
 
 def join(self, compiler, connection):
@@ -232,6 +236,7 @@ def where_node(self, compiler, connection):
 
 
 def register_nodes():
+    ExtraWhere.as_mql = extra_where
     Join.as_mql = join
     NothingNode.as_mql = NothingNode.as_sql
     WhereNode.as_mql = where_node
