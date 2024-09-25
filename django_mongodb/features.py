@@ -126,6 +126,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # subclasses of BaseDatabaseIntrospection may require a get_constraints() method
         "migrations.test_operations.OperationTests.test_add_func_unique_constraint",
         "migrations.test_operations.OperationTests.test_remove_func_unique_constraint",
+        # MongoDB's "duplicate key error" must be raised as IntegrityError, not
+        # DatabaseError.
+        "force_insert_update.tests.ForceInsertInheritanceTests.test_force_insert_diamond_mti",
+        "force_insert_update.tests.ForceTests.test_force_update",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {

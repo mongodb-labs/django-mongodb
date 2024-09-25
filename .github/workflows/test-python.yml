@@ -82,6 +82,7 @@ jobs:
           expressions_case
           defer
           defer_regress
+          force_insert_update
           from_db_value
           generic_relations
           generic_relations_regress
