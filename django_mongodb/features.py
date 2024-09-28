@@ -68,8 +68,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation.tests.AggregateTestCase.test_reverse_fkey_annotate",
         "aggregation_regress.tests.AggregationTests.test_annotation_disjunction",
         "aggregation_regress.tests.AggregationTests.test_decimal_aggregate_annotation_filter",
-        # Wrong result for GenericRelation annotation.
-        "generic_relations_regress.tests.GenericRelationTests.test_annotate",
         # subclasses of BaseDatabaseWrapper may require an is_usable() method
         "backends.tests.BackendTestCase.test_is_usable_after_database_disconnects",
         # Connection creation doesn't follow the usual Django API.
