@@ -46,9 +46,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Pattern lookups that use regexMatch don't work on JSONField:
         # Unsupported conversion from array to string in $convert
         "model_fields.test_jsonfield.TestQuerying.test_icontains",
-        # MongoDB gives the wrong result of log(number, base) when base is a
-        # fractional Decimal: https://jira.mongodb.org/browse/SERVER-91223
-        "db_functions.math.test_log.LogTests.test_decimal",
         # MongoDB gives ROUND(365, -1)=360 instead of 370 like other databases.
         "db_functions.math.test_round.RoundTests.test_integer_with_negative_precision",
         # Truncating in another timezone doesn't work becauase MongoDB converts
