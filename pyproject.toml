@@ -133,3 +133,9 @@ partial_branches = ["if (.*and +)*not _use_c( and.*)*:"]
 
 [tool.coverage.html]
 directory = "htmlcov"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["django_mongodb"]
+exclude = ["docs", "project_template", "app_template"]
+namespaces = false
