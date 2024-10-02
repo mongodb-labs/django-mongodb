@@ -10,6 +10,23 @@ The development version of this package supports Django 5.0.x. To install it:
 
 `pip install git+https://github.com/mongodb-labs/django-mongodb`
 
+### Via templates
+
+To create a new Django project that uses MongoDB, you can use the templates in this repository. For example:
+
+```console
+$ django-admin startproject --template=project_template mysite
+$ django-admin startapp --template=app_template polls
+```
+
+Then
+```console
+$ python manage.py makemigrations admin auth contenttypes
+$ python manage.py migrate
+```
+
+### Manual steps
+
 Configure the Django `DATABASES` setting similar to this:
 
 ```python
