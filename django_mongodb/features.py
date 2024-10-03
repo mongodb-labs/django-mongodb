@@ -54,8 +54,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_timezone_applied_before_truncation",
         # Length of null considered zero rather than null.
         "db_functions.text.test_length.LengthTests.test_basic",
-        # range lookup includes incorrect values.
-        "expressions.tests.IterableLookupInnerExpressionsTests.test_expressions_in_lookups_join_choice",
         # Unexpected alias_refcount in alias_map.
         "queries.tests.Queries1Tests.test_order_by_tables",
         # The $sum aggregation returns 0 instead of None for null.

@@ -102,7 +102,12 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "lte": lambda a, b: {"$lte": [a, b]},
         "in": lambda a, b: {"$in": [a, b]},
         "isnull": _isnull_operator,
-        "range": lambda a, b: {"$and": [{"$gte": [a, b[0]]}, {"$lte": [a, b[1]]}]},
+        "range": lambda a, b: {
+            "$and": [
+                {"$or": [DatabaseWrapper._isnull_operator(b[0], True), {"$gte": [a, b[0]]}]},
+                {"$or": [DatabaseWrapper._isnull_operator(b[1], True), {"$lte": [a, b[1]]}]},
+            ]
+        },
         "iexact": lambda a, b: regex_match(a, ("^", b, {"$literal": "$"}), insensitive=True),
         "startswith": lambda a, b: regex_match(a, ("^", b)),
         "istartswith": lambda a, b: regex_match(a, ("^", b), insensitive=True),
