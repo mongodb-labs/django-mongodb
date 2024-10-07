@@ -4,6 +4,9 @@ from .query import wrap_database_errors
 
 
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
+    def get_collection(self, name):
+        return self.connection.get_collection(name)
+
     @wrap_database_errors
     def create_model(self, model):
         self.connection.database.create_collection(model._meta.db_table)
@@ -17,7 +20,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         for field in model._meta.local_many_to_many:
             if field.remote_field.through._meta.auto_created:
                 self.delete_model(field.remote_field.through)
-        self.connection.database[model._meta.db_table].drop()
+        self.get_collection(model._meta.db_table).drop()
 
     def add_field(self, model, field):
         # Create implicit M2M tables.
@@ -26,7 +29,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             return
         # Set default value on existing documents.
         if column := field.column:
-            self.connection.database[model._meta.db_table].update_many(
+            self.get_collection(model._meta.db_table).update_many(
                 {}, [{"$set": {column: self.effective_default(field)}}]
             )
 
@@ -41,7 +44,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         new_db_params,
         strict=False,
     ):
-        collection = self.connection.database[model._meta.db_table]
+        collection = self.get_collection(model._meta.db_table)
         # Have they renamed the column?
         if old_field.column != new_field.column:
             collection.update_many({}, {"$rename": {old_field.column: new_field.column}})
@@ -59,7 +62,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             return
         # Unset field on existing documents.
         if column := field.column:
-            self.connection.database[model._meta.db_table].update_many({}, {"$unset": {column: ""}})
+            self.get_collection(model._meta.db_table).update_many({}, {"$unset": {column: ""}})
 
     def alter_index_together(self, model, old_index_together, new_index_together):
         pass
@@ -85,4 +88,4 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     def alter_db_table(self, model, old_db_table, new_db_table):
         if old_db_table == new_db_table:
             return
-        self.connection.database[old_db_table].rename(new_db_table)
+        self.get_collection(old_db_table).rename(new_db_table)

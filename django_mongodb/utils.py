@@ -78,8 +78,10 @@ class CollectionDebugWrapper:
 
     # These are the operations that this backend uses.
     aggregate = logging_wrapper("aggregate")
+    drop = logging_wrapper("drop")
     insert_many = logging_wrapper("insert_many")
     delete_many = logging_wrapper("delete_many")
+    rename = logging_wrapper("rename")
     update_many = logging_wrapper("update_many")
 
     del logging_wrapper
