@@ -46,7 +46,7 @@ class OperationDebugWrapper:
         # If kwargs are used by any operations in the future, they must be
         # added to this logging.
         msg = "(%.3f) %s"
-        args = ", ".join(str(arg) for arg in args)
+        args = ", ".join(repr(arg) for arg in args)
         operation = f"db.{self.collection_name}{op}({args})"
         if len(settings.DATABASES) > 1:
             msg += f"; alias={self.db.alias}"
