@@ -25,7 +25,28 @@ def check_django_compatability():
         )
 
 
+def set_wrapped_methods(cls):
+    """Initialize the wrapped methods on cls."""
+    if hasattr(cls, "logging_wrapper"):
+        for attr in cls.wrapped_methods:
+            setattr(cls, attr, cls.logging_wrapper(attr))
+        del cls.logging_wrapper
+    return cls
+
+
+@set_wrapped_methods
 class OperationDebugWrapper:
+    # The PyMongo database and collection methods that this backend uses.
+    wrapped_methods = {
+        "aggregate",
+        "create_collection",
+        "drop",
+        "insert_many",
+        "delete_many",
+        "rename",
+        "update_many",
+    }
+
     def __init__(self, db, collection=None):
         self.collection = collection
         self.db = db
@@ -79,13 +100,20 @@ class OperationDebugWrapper:
 
         return wrapper
 
-    # These are the operations that this backend uses.
-    aggregate = logging_wrapper("aggregate")
-    create_collection = logging_wrapper("create_collection")
-    drop = logging_wrapper("drop")
-    insert_many = logging_wrapper("insert_many")
-    delete_many = logging_wrapper("delete_many")
-    rename = logging_wrapper("rename")
-    update_many = logging_wrapper("update_many")
 
-    del logging_wrapper
+@set_wrapped_methods
+class OperationCollector(OperationDebugWrapper):
+    def __init__(self, collected_sql=None, *, collection=None, db=None):
+        super().__init__(db, collection)
+        self.collected_sql = collected_sql
+
+    def log(self, op, args, kwargs=None):
+        args = ", ".join(repr(arg) for arg in args)
+        operation = f"db.{self.collection_name}{op}({args})"
+        self.collected_sql.append(operation)
+
+    def logging_wrapper(method):
+        def wrapper(self, *args, **kwargs):
+            self.log(method, args, kwargs)
+
+        return wrapper

@@ -1,13 +1,18 @@
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 
 from .query import wrap_database_errors
+from .utils import OperationCollector
 
 
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     def get_collection(self, name):
+        if self.collect_sql:
+            return OperationCollector(self.collected_sql, collection=self.connection.database[name])
         return self.connection.get_collection(name)
 
     def get_database(self):
+        if self.collect_sql:
+            return OperationCollector(self.collected_sql, db=self.connection.database)
         return self.connection.get_database()
 
     @wrap_database_errors

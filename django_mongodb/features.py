@@ -670,15 +670,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "migrations.test_commands.MigrateTests.test_migrate_fake_split_initial",
             "migrations.test_executor.ExecutorTests.test_soft_apply",
         },
-        "SchemaEditor doesn't log or collect queries.": {
-            # https://github.com/mongodb-labs/django-mongodb/issues/141
-            "migrations.test_commands.MigrateTests.test_sqlmigrate_backwards",
-            "migrations.test_commands.MigrateTests.test_sqlmigrate_for_non_atomic_migration",
-            "migrations.test_commands.MigrateTests.test_sqlmigrate_for_non_transactional_databases",
-            "migrations.test_commands.MigrateTests.test_sqlmigrate_forwards",
-            "migrations.test_commands.MigrateTests.test_sqlmigrate_replaced_migration",
-            "migrations.test_commands.MigrateTests.test_sqlmigrate_squashed_migration",
-        },
     }
 
     @cached_property
