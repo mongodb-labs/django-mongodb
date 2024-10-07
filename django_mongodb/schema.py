@@ -7,9 +7,12 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     def get_collection(self, name):
         return self.connection.get_collection(name)
 
+    def get_database(self):
+        return self.connection.get_database()
+
     @wrap_database_errors
     def create_model(self, model):
-        self.connection.database.create_collection(model._meta.db_table)
+        self.get_database().create_collection(model._meta.db_table)
         # Make implicit M2M tables.
         for field in model._meta.local_many_to_many:
             if field.remote_field.through._meta.auto_created:

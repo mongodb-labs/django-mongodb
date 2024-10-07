@@ -25,13 +25,16 @@ def check_django_compatability():
         )
 
 
-class CollectionDebugWrapper:
-    def __init__(self, collection, db):
+class OperationDebugWrapper:
+    def __init__(self, db, collection=None):
         self.collection = collection
         self.db = db
+        use_collection = collection is not None
+        self.collection_name = f"{collection.name}." if use_collection else ""
+        self.wrapped = self.collection if use_collection else self.db.database
 
     def __getattr__(self, attr):
-        return getattr(self.collection, attr)
+        return getattr(self.wrapped, attr)
 
     def profile_call(self, func, args=(), kwargs=None):
         start = time.monotonic()
@@ -44,7 +47,7 @@ class CollectionDebugWrapper:
         # added to this logging.
         msg = "(%.3f) %s"
         args = ", ".join(str(arg) for arg in args)
-        operation = f"{self.collection.name}.{op}({args})"
+        operation = f"db.{self.collection_name}{op}({args})"
         if len(settings.DATABASES) > 1:
             msg += f"; alias={self.db.alias}"
         self.db.queries_log.append(
@@ -66,7 +69,7 @@ class CollectionDebugWrapper:
 
     def logging_wrapper(method):
         def wrapper(self, *args, **kwargs):
-            func = getattr(self.collection, method)
+            func = getattr(self.wrapped, method)
             # Collection.insert_many() mutates args (the documents) by adding
             #  _id. deepcopy() to avoid logging that version.
             original_args = copy.deepcopy(args)
@@ -78,6 +81,7 @@ class CollectionDebugWrapper:
 
     # These are the operations that this backend uses.
     aggregate = logging_wrapper("aggregate")
+    create_collection = logging_wrapper("create_collection")
     drop = logging_wrapper("drop")
     insert_many = logging_wrapper("insert_many")
     delete_many = logging_wrapper("delete_many")

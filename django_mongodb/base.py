@@ -12,7 +12,7 @@ from .introspection import DatabaseIntrospection
 from .operations import DatabaseOperations
 from .query_utils import regex_match
 from .schema import DatabaseSchemaEditor
-from .utils import CollectionDebugWrapper
+from .utils import OperationDebugWrapper
 
 
 class Cursor:
@@ -137,8 +137,13 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     def get_collection(self, name, **kwargs):
         collection = Collection(self.database, name, **kwargs)
         if self.queries_logged:
-            collection = CollectionDebugWrapper(collection, self)
+            collection = OperationDebugWrapper(self, collection)
         return collection
+
+    def get_database(self):
+        if self.queries_logged:
+            return OperationDebugWrapper(self)
+        return self.database
 
     def __getattr__(self, attr):
         """
