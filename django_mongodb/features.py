@@ -495,6 +495,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "delete.tests.DeletionTests.test_only_referenced_fields_selected",
             "lookup.tests.LookupTests.test_in_ignore_none",
             "lookup.tests.LookupTests.test_textfield_exact_null",
+            "migrations.test_commands.MigrateTests.test_migrate_syncdb_app_label",
+            "migrations.test_commands.MigrateTests.test_migrate_syncdb_deferred_sql_executed_with_schemaeditor",
             "queries.tests.ExistsSql.test_exists",
             "queries.tests.Queries6Tests.test_col_alias_quoted",
             "schema.tests.SchemaTests.test_rename_column_renames_deferred_sql_references",
@@ -670,8 +672,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "SchemaEditor doesn't log or collect queries.": {
             # https://github.com/mongodb-labs/django-mongodb/issues/141
-            "migrations.test_commands.MigrateTests.test_migrate_syncdb_app_label",
-            "migrations.test_commands.MigrateTests.test_migrate_syncdb_deferred_sql_executed_with_schemaeditor",
             "migrations.test_commands.MigrateTests.test_sqlmigrate_backwards",
             "migrations.test_commands.MigrateTests.test_sqlmigrate_for_non_atomic_migration",
             "migrations.test_commands.MigrateTests.test_sqlmigrate_for_non_transactional_databases",
