@@ -687,12 +687,12 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
             elif hasattr(value, "prepare_database_save"):
                 if field.remote_field:
                     value = value.prepare_database_save(field)
-                else:
-                    raise TypeError(
-                        f"Tried to update field {field} with a model "
-                        f"instance, {value!r}. Use a value compatible with "
-                        f"{field.__class__.__name__}."
-                    )
+                # else:
+                #     raise TypeError(
+                #         f"Tried to update field {field} with a model "
+                #         f"instance, {value!r}. Use a value compatible with "
+                #         f"{field.__class__.__name__}."
+                #     )
             prepared = field.get_db_prep_save(value, connection=self.connection)
             if hasattr(value, "as_mql"):
                 prepared = prepared.as_mql(self, self.connection)

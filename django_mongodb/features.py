@@ -117,6 +117,19 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # subclasses of BaseDatabaseIntrospection may require a get_constraints() method
         "migrations.test_operations.OperationTests.test_add_func_unique_constraint",
         "migrations.test_operations.OperationTests.test_remove_func_unique_constraint",
+        # Unsupported conversion from array to string in $convert with no onError value
+        "mongo_fields.test_listfield.IterableFieldsTests.test_options",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_startswith",
+        # No results:
+        "mongo_fields.test_listfield.IterableFieldsTests.test_chained_filter",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_equals",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_exclude",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_gt",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_gte",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_list_with_foreignkeys",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_lt",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_lte",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_Q_objects",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
