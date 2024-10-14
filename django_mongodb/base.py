@@ -1,4 +1,3 @@
-from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.signals import connection_created
 from pymongo.collection import Collection
@@ -161,16 +160,13 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         self.connection = MongoClient(
             host=settings_dict["HOST"] or None,
             port=int(settings_dict["PORT"] or 27017),
+            username=settings_dict.get("USER"),
+            password=settings_dict.get("PASSWORD"),
             **settings_dict["OPTIONS"],
         )
         db_name = settings_dict["NAME"]
         if db_name:
             self.database = self.connection[db_name]
-
-        user = settings_dict["USER"]
-        password = settings_dict["PASSWORD"]
-        if user and password and not self.database.authenticate(user, password):
-            raise ImproperlyConfigured("Invalid username or password.")
 
         self.connected = True
         connection_created.send(sender=self.__class__, connection=self)
