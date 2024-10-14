@@ -23,8 +23,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     # BSON Date type doesn't support microsecond precision.
     supports_microsecond_precision = False
     supports_paramstyle_pyformat = False
-    # Not implemented.
-    supports_partial_indexes = False
     supports_select_difference = False
     supports_select_intersection = False
     supports_sequence_reset = False
@@ -72,6 +70,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_closing_non_shared_connections",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
+        # TODO:
+        "indexes.tests.PartialIndexTests.test_is_null_condition",
+        "indexes.tests.PartialIndexTests.test_multiple_conditions",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {

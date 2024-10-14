@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 from django.db.models import Index, UniqueConstraint
 from pymongo import ASCENDING, DESCENDING
@@ -166,17 +168,23 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         if index.contains_expressions:
             return
         kwargs = {}
+        filter_expression = defaultdict(dict)
+        if index.condition:
+            filter_expression.update(index._get_condition_mql(model, self))
         if unique:
-            filter_expression = {}
+            kwargs["unique"] = True
             if field:
-                filter_expression[field.column] = {"$type": field.db_type(self.connection)}
+                filter_expression[field.column].update({"$type": field.db_type(self.connection)})
             else:
                 for field_name, _ in index.fields_orders:
                     field_ = model._meta.get_field(field_name)
-                    filter_expression[field_.column] = {"$type": field_.db_type(self.connection)}
+                    filter_expression[field_.column].update(
+                        {"$type": field_.db_type(self.connection)}
+                    )
             # Use partialFilterExpression to allow multiple null values for a
             # unique constraint.
-            kwargs = {"partialFilterExpression": filter_expression, "unique": True}
+        if filter_expression:
+            kwargs["partialFilterExpression"] = filter_expression
         index_orders = (
             [(field.column, ASCENDING)]
             if field
@@ -260,7 +268,11 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             expressions=constraint.expressions,
             nulls_distinct=constraint.nulls_distinct,
         ):
-            idx = Index(fields=constraint.fields, name=constraint.name)
+            idx = Index(
+                fields=constraint.fields,
+                condition=constraint.condition,
+                name=constraint.name,
+            )
             self.add_index(model, idx, field=field, unique=True)
 
     def _add_field_unique(self, model, field):
@@ -276,7 +288,11 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             expressions=constraint.expressions,
             nulls_distinct=constraint.nulls_distinct,
         ):
-            idx = Index(fields=constraint.fields, name=constraint.name)
+            idx = Index(
+                fields=constraint.fields,
+                condition=constraint.condition,
+                name=constraint.name,
+            )
             self.remove_index(model, idx)
 
     def _remove_field_unique(self, model, field):
