@@ -2,10 +2,14 @@ name: Python Tests
 
 on:
   pull_request:
+      paths:
+      - '**.py'
+      - '!setup.py'
+      - '.github/workflows/test-python.yml'
   workflow_dispatch:
 
 concurrency:
-  group: tests-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -13,23 +17,6 @@ defaults:
     shell: bash -eux {0}
 
 jobs:
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
-          cache-dependency-path: 'pyproject.toml'
-      - name: Install Python dependencies
-        run: |
-          python -m pip install -U pip pre-commit
-      - name: Run linters
-        run: |
-          pre-commit run --hook-stage=manual --all-files
-
   build:
     name: Django Test Suite
     runs-on: ubuntu-latest
@@ -121,22 +108,3 @@ jobs:
           timezones
           update
           xor_lookups
-
-  docs:
-    name: Docs Checks
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          cache: 'pip'
-          cache-dependency-path: 'pyproject.toml'
-          python-version: '3.10'
-      - name: Install dependencies
-        run: |
-          pip install -U pip
-          pip install -e ".[docs]"
-      - name: Build docs
-        run: |
-          cd docs
-          make html
