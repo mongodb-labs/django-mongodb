@@ -10,35 +10,30 @@ The development version of this package supports Django 5.0.x. To install it:
 
 `pip install git+https://github.com/mongodb-labs/django-mongodb`
 
-Configure the Django `DATABASES` setting similar to this:
-
-```python
-DATABASES = {
-    "default": {
-        "ENGINE": "django_mongodb",
-        "NAME": "my_database",
-        "USER": "my_user",
-        "PASSWORD": "my_password",
-        "OPTIONS": {...},
-    },
-}
-```
-
-`OPTIONS` is an optional dictionary of parameters that will be passed to
-[`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
+### Specifying the default primary key field
 
 In your Django settings, you must specify that all models should use
 `ObjectIdAutoField`.
+
+You can create a new project that's configured based on these steps using a
+project template:
+
+```bash
+$ django-admin startproject mysite --template https://github.com/aclark4life/django-mongodb-project/archive/refs/heads/5.0.x.zip
+```
+(where "5.0" matches the version of Django that you're using.)
+
+This template includes the following line in `settings.py`:
 
 ```python
 DEFAULT_AUTO_FIELD = "django_mongodb.fields.ObjectIdAutoField"
 ```
 
-This won't override any apps that have an `AppConfig` that specifies
-`default_auto_field`. For those apps, you'll need to create a custom
+But this setting won't override any apps that have an `AppConfig` that
+specifies `default_auto_field`. For those apps, you'll need to create a custom
 `AppConfig`.
 
-For example, you might create `mysite/apps.py` like this:
+For example, the project template includes `<project_name>/apps.py`:
 
 ```python
 from django.contrib.admin.apps import AdminConfig
@@ -58,14 +53,16 @@ class MongoContentTypesConfig(ContentTypesConfig):
     default_auto_field = "django_mongodb.fields.ObjectIdAutoField"
 ```
 
-Then replace each app reference in the `INSTALLED_APPS` setting with the new
-``AppConfig``. For example, replace  `'django.contrib.admin'` with
-`'mysite.apps.MongoAdminConfig'`.
+Each app reference in the `INSTALLED_APPS` setting must point to the
+corresponding ``AppConfig``. For example, instead of `'django.contrib.admin'`,
+the template uses `'<project_name>.apps.MongoAdminConfig'`.
+
+### Configuring migrations
 
 Because all models must use `ObjectIdAutoField`, each third-party and contrib app
 you use needs to have its own migrations specific to MongoDB.
 
-For example, you might configure your settings like this:
+For example, `settings.py` in the project template specifies:
 
 ```python
 MIGRATION_MODULES = {
@@ -75,7 +72,9 @@ MIGRATION_MODULES = {
 }
 ```
 
-After creating a `mongo_migrations` directory, you can then run:
+The project template includes these migrations, but you can generate them if
+you're setting things up manually or if you need to create migrations for
+third-party apps. For example:
 
 ```console
 $ python manage.py makemigrations admin auth contenttypes
@@ -85,11 +84,44 @@ Migrations for 'admin':
 ...
 ```
 
-And whenever you run `python manage.py startapp`, you must remove the line:
+### Creating Django applications
+
+Whenever you run `python manage.py startapp`, you must remove the line:
 
 `default_auto_field = 'django.db.models.BigAutoField'`
 
-from the new application's `apps.py` file.
+from the new application's `apps.py` file (or change it to reference
+ `"django_mongodb.fields.ObjectIdAutoField"`).
+
+Alternatively, you can use the following `startapp` template which includes
+this change:
+
+```bash
+$ python manage.py startapp myapp --template https://github.com/aclark4life/django-mongodb-app/archive/refs/heads/5.0.x.zip
+```
+(where "5.0" matches the version of Django that you're using.)
+
+### Configuring the `DATABASES` setting
+
+After you've set up a project, configure Django's `DATABASES` setting similar
+to this:
+
+```python
+DATABASES = {
+    "default": {
+        "ENGINE": "django_mongodb",
+        "NAME": "my_database",
+        "USER": "my_user",
+        "PASSWORD": "my_password",
+        "OPTIONS": {...},
+    },
+}
+```
+
+`OPTIONS` is an optional dictionary of parameters that will be passed to
+[`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
+
+Congratulations, your project is ready to go!
 
 ## Notes on Django QuerySets
 
