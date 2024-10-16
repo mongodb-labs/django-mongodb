@@ -10,6 +10,7 @@ from .aggregates import register_aggregates  # noqa: E402
 from .expressions import register_expressions  # noqa: E402
 from .fields import register_fields  # noqa: E402
 from .functions import register_functions  # noqa: E402
+from .indexes import register_indexes  # noqa: E402
 from .lookups import register_lookups  # noqa: E402
 from .query import register_nodes  # noqa: E402
 
@@ -17,5 +18,6 @@ register_aggregates()
 register_expressions()
 register_fields()
 register_functions()
+register_indexes()
 register_lookups()
 register_nodes()
