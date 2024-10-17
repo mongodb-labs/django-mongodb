@@ -105,6 +105,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # https://github.com/mongodb-labs/django-mongodb/issues/161
         "queries.tests.RelatedLookupTypeTests.test_values_queryset_lookup",
         "queries.tests.ValuesSubqueryTests.test_values_in_subquery",
+        # SQLCompiler.collection_name raises StopIteration
+        "model_inheritance_regress.tests.ModelInheritanceTest.test_mti_update_grand_parent_through_child",
+        "model_inheritance_regress.tests.ModelInheritanceTest.test_mti_update_parent_through_child",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -266,6 +269,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "datetimes.tests.DateTimesTests.test_datetimes_has_lazy_iterator",
             "datetimes.tests.DateTimesTests.test_datetimes_returns_available_dates_for_given_scope_and_given_field",
             "datetimes.tests.DateTimesTests.test_related_model_traverse",
+            "model_inheritance_regress.tests.ModelInheritanceTest.test_issue_7105",
             "queries.tests.Queries1Tests.test_ticket7155",
             "queries.tests.Queries1Tests.test_tickets_7087_12242",
             "timezones.tests.LegacyDatabaseTests.test_query_datetimes",
