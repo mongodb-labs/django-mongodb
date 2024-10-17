@@ -36,6 +36,12 @@ def field_resolve_expression_parameter(self, compiler, connection, sql, param):
 def in_(self, compiler, connection):
     if isinstance(self.lhs, MultiColSource):
         raise NotImplementedError("MultiColSource is not supported.")
+    db_rhs = getattr(self.rhs, "_db", None)
+    if db_rhs is not None and db_rhs != connection.alias:
+        raise ValueError(
+            "Subqueries aren't allowed across different databases. Force "
+            "the inner query to be evaluated using `list(inner_query)`."
+        )
     return builtin_lookup(self, compiler, connection)
 
 

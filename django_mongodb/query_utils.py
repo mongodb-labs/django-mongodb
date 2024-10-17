@@ -28,7 +28,10 @@ def process_lhs(node, compiler, connection):
 def process_rhs(node, compiler, connection):
     rhs = node.rhs
     if hasattr(rhs, "as_mql"):
-        value = rhs.as_mql(compiler, connection)
+        if getattr(rhs, "subquery", False):
+            value = rhs.as_mql(compiler, connection, lookup_name=node.lookup_name)
+        else:
+            value = rhs.as_mql(compiler, connection)
     else:
         _, value = node.process_rhs(compiler, connection)
         lookup_name = node.lookup_name

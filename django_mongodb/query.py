@@ -50,12 +50,15 @@ class MongoQuery:
         self.collection = self.compiler.collection
         self.collection_name = self.compiler.collection_name
         self.mongo_query = getattr(compiler.query, "raw_query", {})
-        self.subquery = None
+        self.subqueries = None
         self.lookup_pipeline = None
         self.project_fields = None
         self.aggregation_pipeline = compiler.aggregation_pipeline
         self.extra_fields = None
         self.combinator_pipeline = None
+        # $lookup stage that encapsulates the pipeline for performing a nested
+        # subquery.
+        self.subquery_lookup = None
 
     def __repr__(self):
         return f"<MongoQuery: {self.mongo_query!r} ORDER {self.ordering!r}>"
@@ -63,6 +66,8 @@ class MongoQuery:
     @wrap_database_errors
     def delete(self):
         """Execute a delete query."""
+        if self.compiler.subqueries:
+            raise NotSupportedError("Cannot use QuerySet.delete() when a subquery is required.")
         return self.collection.delete_many(self.mongo_query).deleted_count
 
     @wrap_database_errors
@@ -74,9 +79,11 @@ class MongoQuery:
         return self.collection.aggregate(self.get_pipeline())
 
     def get_pipeline(self):
-        pipeline = self.subquery.get_pipeline() if self.subquery else []
+        pipeline = []
         if self.lookup_pipeline:
             pipeline.extend(self.lookup_pipeline)
+        for query in self.subqueries or ():
+            pipeline.extend(query.get_pipeline())
         if self.mongo_query:
             pipeline.append({"$match": self.mongo_query})
         if self.aggregation_pipeline:
@@ -93,6 +100,27 @@ class MongoQuery:
             pipeline.append({"$skip": self.query.low_mark})
         if self.query.high_mark is not None:
             pipeline.append({"$limit": self.query.high_mark - self.query.low_mark})
+        if self.subquery_lookup:
+            table_output = self.subquery_lookup["as"]
+            pipeline = [
+                {"$lookup": {**self.subquery_lookup, "pipeline": pipeline}},
+                {
+                    "$set": {
+                        table_output: {
+                            "$cond": {
+                                "if": {
+                                    "$or": [
+                                        {"$eq": [{"$type": f"${table_output}"}, "missing"]},
+                                        {"$eq": [{"$size": f"${table_output}"}, 0]},
+                                    ]
+                                },
+                                "then": {},
+                                "else": {"$arrayElemAt": [f"${table_output}", 0]},
+                            }
+                        }
+                    }
+                },
+            ]
         return pipeline
 
 

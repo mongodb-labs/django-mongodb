@@ -146,9 +146,6 @@ Congratulations, your project is ready to go!
 - `QuerySet.delete()` and `update()` do not support queries that span multiple
   collections.
 
-- `Subquery`, `Exists`, and using a `QuerySet` in `QuerySet.annotate()` aren't
-  supported.
-
 - `DateTimeField` doesn't support microsecond precision, and correspondingly,
   `DurationField` stores milliseconds rather than microseconds.
 
