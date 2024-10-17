@@ -269,7 +269,7 @@ def where_node(self, compiler, connection):
         raise FullResultSet
 
     if self.negated and mql:
-        mql = {"$eq": [mql, {"$literal": False}]}
+        mql = {"$not": mql}
 
     return mql
 
