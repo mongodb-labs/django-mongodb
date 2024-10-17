@@ -14,6 +14,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_collation_on_charfield = False
     supports_column_check_constraints = False
     supports_date_lookup_using_string = False
+    supports_deferrable_unique_constraints = False
     supports_explaining_query_execution = True
     supports_expression_defaults = False
     supports_expression_indexes = False
@@ -23,6 +24,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     # BSON Date type doesn't support microsecond precision.
     supports_microsecond_precision = False
     supports_paramstyle_pyformat = False
+    # Not implemented.
+    supports_partial_indexes = False
     supports_select_difference = False
     supports_select_intersection = False
     supports_sequence_reset = False
@@ -66,32 +69,13 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "aggregation_regress.tests.AggregationTests.test_decimal_aggregate_annotation_filter",
         # subclasses of BaseDatabaseWrapper may require an is_usable() method
         "backends.tests.BackendTestCase.test_is_usable_after_database_disconnects",
+        # subclasses of BaseDatabaseWrapper may require a get_connection_params() method
+        "servers.test_liveserverthread.LiveServerThreadTest.test_closes_connections",
+        "servers.tests.LiveServerTestCloseConnectionTest.test_closes_connections",
         # Connection creation doesn't follow the usual Django API.
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_closing_non_shared_connections",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
-        # AddField
-        "schema.tests.SchemaTests.test_add_unique_charfield",
-        # AlterField
-        "schema.tests.SchemaTests.test_alter_field_fk_to_o2o",
-        "schema.tests.SchemaTests.test_alter_field_o2o_keeps_unique",
-        "schema.tests.SchemaTests.test_alter_field_o2o_to_fk",
-        "schema.tests.SchemaTests.test_alter_int_pk_to_int_unique",
-        # AlterField (unique)
-        "schema.tests.SchemaTests.test_indexes",
-        "schema.tests.SchemaTests.test_unique",
-        "schema.tests.SchemaTests.test_unique_and_reverse_m2m",
-        # alter_unique_together
-        "migrations.test_operations.OperationTests.test_alter_unique_together",
-        "schema.tests.SchemaTests.test_unique_together",
-        # add/remove_constraint
-        "introspection.tests.IntrospectionTests.test_get_constraints",
-        "migrations.test_operations.OperationTests.test_add_partial_unique_constraint",
-        "migrations.test_operations.OperationTests.test_create_model_with_partial_unique_constraint",
-        "migrations.test_operations.OperationTests.test_remove_partial_unique_constraint",
-        "schema.tests.SchemaTests.test_composed_constraint_with_fk",
-        "schema.tests.SchemaTests.test_remove_ignored_unique_constraint_not_create_fk_index",
-        "schema.tests.SchemaTests.test_unique_constraint",
         # Column default values aren't handled when a field raises
         # EmptyResultSet: https://github.com/mongodb-labs/django-mongodb/issues/155
         "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
@@ -105,6 +89,24 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # https://github.com/mongodb-labs/django-mongodb/issues/161
         "queries.tests.RelatedLookupTypeTests.test_values_queryset_lookup",
         "queries.tests.ValuesSubqueryTests.test_values_in_subquery",
+        # RuntimeWarning not triggered due to atypical connection creation.
+        "apps.tests.QueryPerformingAppTests.test_query_default_database_using_model",
+        "apps.tests.QueryPerformingAppTests.test_query_other_database_using_model",
+        # Object of type ObjectId is not JSON serializable
+        "auth_tests.test_views.LoginTest.test_login_session_without_hash_session_key",
+        # To investigate:
+        "admin_inlines.tests.TestInlinePermissions.test_inline_change_m2m_change_perm",
+        "admin_inlines.tests.TestInlinePermissions.test_inline_change_m2m_view_only_perm",
+        "admin_inlines.tests.TestInline.test_localize_pk_shortcut",
+        "admin_inlines.tests.TestInlinePermissions.test_inline_change_m2m_add_perm",
+        "admin_inlines.tests.TestInlinePermissions.test_inline_change_m2m_noperm",
+        "contenttypes_tests.test_fields.GenericRelationTests.test_value_to_string",
+        "custom_managers.tests.CustomManagersRegressTestCase.test_save_clears_annotations_from_base_manager",
+        "model_formsets.tests.ModelFormsetTest.test_inline_formsets_with_custom_save_method",
+        "queryset_pickle.tests.PickleabilityTestCase.test_pickle_filteredrelation",
+        # SQLCompiler.collection_name raises StopIteration
+        "model_inheritance_regress.tests.ModelInheritanceTest.test_mti_update_grand_parent_through_child",
+        "model_inheritance_regress.tests.ModelInheritanceTest.test_mti_update_parent_through_child",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -129,6 +131,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # bson.errors.InvalidDocument: cannot encode object:
             # <django.db.models.expressions.DatabaseDefault
             "basic.tests.ModelInstanceCreationTests.test_save_primary_with_db_default",
+            "constraints.tests.UniqueConstraintTests.test_database_default",
+            "field_defaults.tests.DefaultTests",
             "migrations.test_operations.OperationTests.test_add_field_both_defaults",
             "migrations.test_operations.OperationTests.test_add_field_database_default",
             "migrations.test_operations.OperationTests.test_add_field_database_default_special_char_escaping",
@@ -139,6 +143,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "migrations.test_operations.OperationTests.test_alter_field_change_nullable_to_decimal_database_default_not_null",
             "schema.tests.SchemaTests.test_db_default_output_field_resolving",
             "schema.tests.SchemaTests.test_rename_keep_db_default",
+            "validation.test_unique.PerformUniqueChecksTest.test_unique_db_default",
         },
         "Insert expressions aren't supported.": {
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_now",
@@ -151,6 +156,19 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # PI()
             "db_functions.math.test_round.RoundTests.test_decimal_with_precision",
             "db_functions.math.test_round.RoundTests.test_float_with_precision",
+        },
+        "Check constraints not supported.": {
+            # Constraint.validate() crashes:
+            # AttributeError: 'NoneType' object has no attribute 'db_table'
+            "constraints.tests.CheckConstraintTests.test_database_default",
+            "constraints.tests.CheckConstraintTests.test_validate",
+            "constraints.tests.CheckConstraintTests.test_validate_boolean_expressions",
+            "constraints.tests.CheckConstraintTests.test_validate_custom_error",
+            "constraints.tests.CheckConstraintTests.test_validate_jsonfield_exact",
+            "constraints.tests.CheckConstraintTests.test_validate_nullable_field_with_none",
+            "constraints.tests.CheckConstraintTests.test_validate_nullable_jsonfield",
+            "constraints.tests.CheckConstraintTests.test_validate_pk_field",
+            "constraints.tests.CheckConstraintTests.test_validate_rawsql_expressions_noop",
         },
         "MongoDB doesn't rename an index when a field is renamed.": {
             "migrations.test_operations.OperationTests.test_rename_field_index_together",
@@ -177,6 +195,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "many_to_many.tests.ManyToManyTests.test_remove_after_prefetch",
             "many_to_many.tests.ManyToManyTests.test_set_after_prefetch",
             "model_forms.tests.OtherModelFormTests.test_prefetch_related_queryset",
+            "queryset_pickle.tests.PickleabilityTestCase.test_pickle_prefetch_related_with_m2m_and_objects_deletion",
         },
         "AutoField not supported.": {
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_nullable_fields",
@@ -194,24 +213,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_autofield.BigAutoFieldTests",
             "model_fields.test_autofield.SmallAutoFieldTests",
             "queries.tests.TestInvalidValuesRelation.test_invalid_values",
-        },
-        "MongoDB does not enforce UNIQUE constraints.": {
-            "auth_tests.test_basic.BasicTestCase.test_unicode_username",
-            "auth_tests.test_migrations.ProxyModelWithSameAppLabelTests.test_migrate_with_existing_target_permission",
-            "constraints.tests.UniqueConstraintTests.test_database_constraint",
-            "contenttypes_tests.test_operations.ContentTypeOperationsTests.test_content_type_rename_conflict",
-            "contenttypes_tests.test_operations.ContentTypeOperationsTests.test_existing_content_type_rename",
-            "custom_pk.tests.CustomPKTests.test_unique_pk",
-            "force_insert_update.tests.ForceInsertInheritanceTests.test_force_insert_with_existing_grandparent",
-            "get_or_create.tests.GetOrCreateTestsWithManualPKs.test_create_with_duplicate_primary_key",
-            "get_or_create.tests.GetOrCreateTestsWithManualPKs.test_savepoint_rollback",
-            "get_or_create.tests.GetOrCreateThroughManyToMany.test_something",
-            "get_or_create.tests.UpdateOrCreateTests.test_manual_primary_key_test",
-            "get_or_create.tests.UpdateOrCreateTestsWithManualPKs.test_create_with_duplicate_primary_key",
-            "introspection.tests.IntrospectionTests.test_get_constraints_unique_indexes_orders",
-            "model_fields.test_filefield.FileFieldTests.test_unique_when_same_filename",
-            "one_to_one.tests.OneToOneTests.test_multiple_o2o",
-            "queries.test_bulk_update.BulkUpdateTests.test_database_routing_batch_atomicity",
         },
         "MongoDB does not enforce PositiveIntegerField constraint.": {
             "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
@@ -234,6 +235,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "one_to_one.tests.OneToOneTests.test_o2o_primary_key_delete",
         },
         "Cannot use QuerySet.delete() when a subquery is required.": {
+            "custom_managers.tests.CustomManagerTests.test_removal_through_default_m2m_related_manager",
+            "custom_managers.tests.CustomManagerTests.test_removal_through_specified_m2m_related_manager",
             "delete_regress.tests.DeleteTests.test_self_reference_with_through_m2m_at_second_level",
             "many_to_many.tests.ManyToManyTests.test_assign",
             "many_to_many.tests.ManyToManyTests.test_assign_ids",
@@ -244,7 +247,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "many_to_many.tests.ManyToManyTests.test_set_existing_different_type",
         },
         "Cannot use QuerySet.update() when querying across multiple collections on MongoDB.": {
+            "custom_managers.tests.CustomManagersRegressTestCase.test_refresh_from_db_when_default_manager_filters",
             "expressions.tests.BasicExpressionsTests.test_filter_with_join",
+            "model_inheritance.tests.ModelInheritanceDataTests.test_update_works_on_parent_and_child_models_at_once",
             "queries.tests.Queries4Tests.test_ticket7095",
             "queries.tests.Queries5Tests.test_ticket9848",
             "update.tests.AdvancedTests.test_update_annotated_multi_table_queryset",
@@ -258,7 +263,40 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "backends.tests.DateQuotingTest.test_django_date_trunc",
             "dates.tests.DatesTests.test_dates_trunc_datetime_fields",
             "dates.tests.DatesTests.test_related_model_traverse",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_allow_empty_archive_view",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_archive_view",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_archive_view_by_month",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_archive_view_context_object_name",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_archive_view_custom_sorting",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_archive_view_custom_sorting_dec",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_archive_view_template",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_archive_view_template_suffix",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_date_list_order",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_no_duplicate_query",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_paginated_archive_view",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_paginated_archive_view_does_not_load_entire_table",
+            "generic_views.test_dates.MonthArchiveViewTests.test_custom_month_format",
+            "generic_views.test_dates.MonthArchiveViewTests.test_date_list_order",
+            "generic_views.test_dates.MonthArchiveViewTests.test_month_view",
+            "generic_views.test_dates.MonthArchiveViewTests.test_month_view_allow_empty",
+            "generic_views.test_dates.MonthArchiveViewTests.test_month_view_allow_future",
+            "generic_views.test_dates.MonthArchiveViewTests.test_month_view_get_month_from_request",
+            "generic_views.test_dates.MonthArchiveViewTests.test_month_view_paginated",
+            "generic_views.test_dates.MonthArchiveViewTests.test_previous_month_without_content",
+            "generic_views.test_dates.YearArchiveViewTests.test_date_list_order",
+            "generic_views.test_dates.YearArchiveViewTests.test_get_context_data_receives_extra_context",
+            "generic_views.test_dates.YearArchiveViewTests.test_no_duplicate_query",
+            "generic_views.test_dates.YearArchiveViewTests.test_year_view",
+            "generic_views.test_dates.YearArchiveViewTests.test_year_view_allow_future",
+            "generic_views.test_dates.YearArchiveViewTests.test_year_view_custom_sort_order",
+            "generic_views.test_dates.YearArchiveViewTests.test_year_view_empty",
+            "generic_views.test_dates.YearArchiveViewTests.test_year_view_make_object_list",
+            "generic_views.test_dates.YearArchiveViewTests.test_year_view_paginated",
+            "generic_views.test_dates.YearArchiveViewTests.test_year_view_two_custom_sort_orders",
             "many_to_one.tests.ManyToOneTests.test_select_related",
+            "model_regress.tests.ModelTests.test_date_filter_null",
+            "reserved_names.tests.ReservedNameTests.test_dates",
+            "queryset_pickle.tests.PickleabilityTestCase.test_specialized_queryset",
         },
         "QuerySet.datetimes() is not supported on MongoDB.": {
             "annotations.tests.AliasTests.test_datetimes_alias",
@@ -266,6 +304,13 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "datetimes.tests.DateTimesTests.test_datetimes_has_lazy_iterator",
             "datetimes.tests.DateTimesTests.test_datetimes_returns_available_dates_for_given_scope_and_given_field",
             "datetimes.tests.DateTimesTests.test_related_model_traverse",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_aware_datetime_archive_view",
+            "generic_views.test_dates.ArchiveIndexViewTests.test_datetime_archive_view",
+            "generic_views.test_dates.MonthArchiveViewTests.test_aware_datetime_month_view",
+            "generic_views.test_dates.MonthArchiveViewTests.test_datetime_month_view",
+            "generic_views.test_dates.YearArchiveViewTests.test_aware_datetime_year_view",
+            "generic_views.test_dates.YearArchiveViewTests.test_datetime_year_view",
+            "model_inheritance_regress.tests.ModelInheritanceTest.test_issue_7105",
             "queries.tests.Queries1Tests.test_ticket7155",
             "queries.tests.Queries1Tests.test_tickets_7087_12242",
             "timezones.tests.LegacyDatabaseTests.test_query_datetimes",
@@ -273,6 +318,30 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_query_datetimes_in_other_timezone",
         },
         "QuerySet.distinct() is not supported.": {
+            "admin_filters.tests.ListFiltersTests.test_allvaluesfieldlistfilter",
+            "admin_filters.tests.ListFiltersTests.test_allvaluesfieldlistfilter_custom_qs",
+            "admin_filters.tests.ListFiltersTests.test_emptylistfieldfilter_genericrelation",
+            "admin_filters.tests.ListFiltersTests.test_emptylistfieldfilter_reverse_relationships",
+            "admin_filters.tests.ListFiltersTests.test_facets_always",
+            "admin_filters.tests.ListFiltersTests.test_facets_disallowed",
+            "admin_filters.tests.ListFiltersTests.test_facets_filter",
+            "admin_filters.tests.ListFiltersTests.test_facets_no_filter",
+            "admin_filters.tests.ListFiltersTests.test_listfilter_genericrelation",
+            "admin_filters.tests.ListFiltersTests.test_multi_all_values_field_filter",
+            "admin_filters.tests.ListFiltersTests.test_multi_choice_field_filter",
+            "admin_filters.tests.ListFiltersTests.test_multi_related_field_filter",
+            "admin_filters.tests.ListFiltersTests.test_relatedfieldlistfilter_foreignkey",
+            "admin_filters.tests.ListFiltersTests.test_relatedfieldlistfilter_manytomany",
+            "admin_filters.tests.ListFiltersTests.test_relatedfieldlistfilter_reverse_relationships",
+            "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_foreignkey",
+            "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_foreignkey_default_ordering",
+            "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_foreignkey_ordering",
+            "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_foreignkey_reverse_relationships",
+            "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_manytomany",
+            "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_manytomany_reverse_relationships",
+            "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_underscorelookup_foreignkey",
+            "admin_filters.tests.ListFiltersTests.test_simplelistfilter",
+            "admin_filters.tests.ListFiltersTests.test_two_characters_long_field",
             "aggregation.tests.AggregateTestCase.test_sum_distinct_aggregate",
             "aggregation_regress.tests.AggregationTests.test_annotate_distinct_aggregate",
             "aggregation_regress.tests.AggregationTests.test_conditional_aggregate_on_complex_condition",
@@ -281,6 +350,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "many_to_many.tests.ManyToManyTests.test_reverse_selects",
             "many_to_many.tests.ManyToManyTests.test_selects",
             "many_to_one.tests.ManyToOneTests.test_reverse_selects",
+            "modeladmin.tests.ModelAdminTests.test_lookup_allowed_without_request_deprecation",
             "ordering.tests.OrderingTests.test_orders_nulls_first_on_filtered_subquery",
             "queries.tests.ExcludeTest17600.test_exclude_plain_distinct",
             "queries.tests.ExcludeTest17600.test_exclude_with_q_is_equal_to_plain_exclude",
@@ -308,6 +378,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "basic.tests.ModelTest.test_extra_method_select_argument_with_dashes_and_values",
             "defer.tests.DeferTests.test_defer_extra",
             "delete_regress.tests.Ticket19102Tests.test_ticket_19102_extra",
+            "extra_regress.tests.ExtraRegressTests",
             "lookup.tests.LookupTests.test_values",
             "lookup.tests.LookupTests.test_values_list",
             "many_to_one.tests.ManyToOneTests.test_selects",
@@ -354,6 +425,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "aggregation_regress.tests.AggregationTests.test_more_more3",
             "aggregation_regress.tests.AggregationTests.test_more_more_more3",
             "annotations.tests.NonAggregateAnnotationTestCase.test_raw_sql_with_inherited_field",
+            "apps.tests.QueryPerformingAppTests.test_query_default_database_using_cursor",
+            "apps.tests.QueryPerformingAppTests.test_query_many_default_database_using_cursor",
+            "apps.tests.QueryPerformingAppTests.test_query_many_other_database_using_cursor",
+            "apps.tests.QueryPerformingAppTests.test_query_other_database_using_cursor",
+            "async.test_async_queryset.AsyncQuerySetTest.test_raw",
             "backends.base.test_base.ExecuteWrapperTests",
             "backends.tests.BackendTestCase.test_cursor_contextmanager",
             "backends.tests.BackendTestCase.test_cursor_executemany",
@@ -367,6 +443,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "backends.tests.BackendTestCase.test_unicode_fetches",
             "backends.tests.EscapingChecks",
             "backends.test_utils.CursorWrapperTests",
+            "custom_methods.tests.MethodsTests.test_custom_methods",
             "delete_regress.tests.DeleteLockingTest.test_concurrent_delete",
             "expressions.tests.BasicExpressionsTests.test_annotate_values_filter",
             "expressions.tests.BasicExpressionsTests.test_filtering_on_rawsql_that_is_boolean",
@@ -379,7 +456,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_jsonfield.TestQuerying.test_key_sql_injection_escape",
             "model_fields.test_jsonfield.TestQuerying.test_key_transform_raw_expression",
             "model_fields.test_jsonfield.TestQuerying.test_nested_key_transform_raw_expression",
+            "multiple_database.tests.QueryTestCase.test_raw",
             "queries.tests.Queries1Tests.test_order_by_rawsql",
+            "raw_query.tests.RawQueryTests",
             "schema.test_logging.SchemaLoggerTests.test_extra_args",
             "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",
@@ -389,6 +468,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "timezones.tests.NewDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.NewDatabaseTests.test_cursor_explicit_time_zone",
             "timezones.tests.NewDatabaseTests.test_raw_sql",
+            "view_tests.tests.test_debug.DebugViewQueriesAllowedTests.test_handle_db_exception",
         },
         "Custom aggregations/functions with SQL don't work on MongoDB.": {
             "aggregation.tests.AggregateTestCase.test_add_implementation",
@@ -450,6 +530,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.comparison.test_cast.CastTests.test_cast_from_python_to_datetime",
             "db_functions.comparison.test_cast.CastTests.test_cast_to_duration",
         },
+        "inspectdb not supported.": {
+            "inspectdb.tests.InspectDBTestCase",
+            "inspectdb.tests.InspectDBTransactionalTests",
+        },
         "DatabaseIntrospection.get_table_description() not supported.": {
             "introspection.tests.IntrospectionTests.test_bigautofield",
             "introspection.tests.IntrospectionTests.test_get_table_description_col_lengths",
@@ -504,10 +588,36 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "migrations.test_executor.ExecutorTests.test_atomic_operation_in_non_atomic_migration",
             "migrations.test_operations.OperationTests.test_run_python_atomic",
         },
+        "transaction.rollback() is not supported.": {
+            "transactions.tests.AtomicMiscTests.test_mark_for_rollback_on_error_in_autocommit",
+            "transactions.tests.AtomicMiscTests.test_mark_for_rollback_on_error_in_transaction",
+            "transactions.tests.NonAutocommitTests.test_orm_query_after_error_and_rollback",
+        },
+        "MongoDB doesn't provide a way to disable autocommit.": {
+            # subclasses of BaseDatabaseWrapper may require a _set_autocommit() method
+            "transactions.tests.NonAutocommitTests.test_orm_query_without_autocommit",
+        },
         "migrate --fake-initial is not supported.": {
             "migrations.test_commands.MigrateTests.test_migrate_fake_initial",
             "migrations.test_commands.MigrateTests.test_migrate_fake_split_initial",
             "migrations.test_executor.ExecutorTests.test_soft_apply",
+        },
+        "Disallowed queries feature doesn't work.": {
+            # https://github.com/django/django/commit/f5b635086a07c9df5897e69685ebdc3a04049ec6
+            "test_utils.test_testcase.TestTestCase.test_disallowed_database_queries",
+            "test_utils.test_transactiontestcase.DisallowedDatabaseQueriesTests",
+            "test_utils.tests.DisallowedDatabaseQueriesTests",
+        },
+        "Test works in isolation but fails on CI.": {
+            # Probably something to do with lack of transaction support.
+            "migration_test_data_persistence.tests.MigrationDataNormalPersistenceTestCase.test_persistence",
+        },
+        "Connection creation doe not follow the usual Django API.": {
+            # Skipped because @unittest.expectedFailure doesn't work on async def?
+            "async.tests.DatabaseConnectionTest.test_get_async_connection",
+        },
+        "Partial indexes to be supported.": {
+            "indexes.tests.PartialIndexConditionIgnoredTests.test_condition_ignored",
         },
     }
 
