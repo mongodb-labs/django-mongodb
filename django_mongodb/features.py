@@ -266,6 +266,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "datetimes.tests.DateTimesTests.test_datetimes_has_lazy_iterator",
             "datetimes.tests.DateTimesTests.test_datetimes_returns_available_dates_for_given_scope_and_given_field",
             "datetimes.tests.DateTimesTests.test_related_model_traverse",
+            "model_inheritance_regress.tests.ModelInheritanceTest.test_issue_7105",
             "queries.tests.Queries1Tests.test_ticket7155",
             "queries.tests.Queries1Tests.test_tickets_7087_12242",
             "timezones.tests.LegacyDatabaseTests.test_query_datetimes",
