@@ -673,6 +673,10 @@ class SQLInsertCompiler(SQLCompiler):
         inserted_ids = self.collection.insert_many(docs).inserted_ids
         return inserted_ids if returning_fields else []
 
+    @cached_property
+    def collection_name(self):
+        return self.query.get_meta().db_table
+
 
 class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
     def execute_sql(self, result_type=MULTI):
@@ -689,6 +693,10 @@ class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
 
     def get_where(self):
         return self.query.where
+
+    @cached_property
+    def collection_name(self):
+        return self.query.base_table
 
 
 class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
@@ -753,6 +761,10 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
 
     def get_where(self):
         return self.query.where
+
+    @cached_property
+    def collection_name(self):
+        return self.query.base_table
 
 
 class SQLAggregateCompiler(SQLCompiler):

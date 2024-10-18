@@ -105,9 +105,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # https://github.com/mongodb-labs/django-mongodb/issues/161
         "queries.tests.RelatedLookupTypeTests.test_values_queryset_lookup",
         "queries.tests.ValuesSubqueryTests.test_values_in_subquery",
-        # SQLCompiler.collection_name raises StopIteration
-        "model_inheritance_regress.tests.ModelInheritanceTest.test_mti_update_grand_parent_through_child",
-        "model_inheritance_regress.tests.ModelInheritanceTest.test_mti_update_parent_through_child",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
