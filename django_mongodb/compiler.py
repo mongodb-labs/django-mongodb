@@ -490,15 +490,16 @@ class SQLCompiler(compiler.SQLCompiler):
             else:
                 combinator_pipeline = inner_pipeline
         if not self.query.combinator_all:
-            ids = {}
+            ids = defaultdict(dict)
             for alias, expr in main_query_columns:
                 # Unfold foreign fields.
                 if isinstance(expr, Col) and expr.alias != self.collection_name:
-                    if expr.alias not in ids:
-                        ids[expr.alias] = {}
                     ids[expr.alias][expr.target.column] = expr.as_mql(self, self.connection)
                 else:
                     ids[alias] = f"${alias}"
+            # Convert defaultdict to dict so it doesn't appear as
+            # "defaultdict(<CLASS 'dict'>, ..." in query logging.
+            ids = dict(ids)
             combinator_pipeline.append({"$group": {"_id": ids}})
             projected_fields = {key: f"$_id.{key}" for key in ids}
             combinator_pipeline.append({"$addFields": projected_fields})
