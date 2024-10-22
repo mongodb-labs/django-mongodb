@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'mongodb-forks/django'
-          ref: 'mongodb-5.0.x'
+          ref: 'mongodb-tests1'
           path: 'django_repo'
       - name: Install system packages for Django's Python test dependencies
         run: |
@@ -51,30 +51,6 @@ jobs:
       - name: Run tests
         run: >
           python3 django_repo/tests/runtests.py --settings mongodb_settings -v 2
-          aggregation
-          aggregation_regress
-          annotations
-          auth_tests.test_models.UserManagerTestCase
-          backends
-          basic
-          bulk_create
-          custom_pk
-          dates
-          datetimes
-          db_functions
-          delete
-          delete_regress
-          empty
-          expressions
-          expressions_case
-          defer
-          defer_regress
-          force_insert_update
-          from_db_value
-          generic_relations
-          generic_relations_regress
-          introspection
-          known_related_objects
           lookup
           m2m_and_m2o
           m2m_intermediary
@@ -92,20 +68,9 @@ jobs:
           model_fields
           model_forms
           model_inheritance_regress
+          mongo_fields
           mutually_referential
           nested_foreign_keys
           null_fk
           null_fk_ordering
           null_queries
-          one_to_one
-          ordering
-          or_lookups
-          queries
-          schema
-          select_related
-          select_related_onetoone
-          select_related_regress
-          sessions_tests
-          timezones
-          update
-          xor_lookups

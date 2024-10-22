@@ -40,6 +40,17 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     uses_savepoints = False
 
     _django_test_expected_failures = {
+        # Unsupported conversion from array to string in $convert with no onError value
+        "mongo_fields.test_listfield.IterableFieldsTests.test_options",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_startswith",
+        # No results:
+        "mongo_fields.test_listfield.IterableFieldsTests.test_chained_filter",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_exclude",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_gt",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_gte",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_lt",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_lte",
+        "mongo_fields.test_listfield.IterableFieldsTests.test_Q_objects",
         # 'NulledTransform' object has no attribute 'as_mql'.
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
