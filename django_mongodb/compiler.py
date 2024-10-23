@@ -245,7 +245,9 @@ class SQLCompiler(compiler.SQLCompiler):
         try:
             query = self.build_query(
                 # Avoid $project (columns=None) if unneeded.
-                columns if self.query.annotations or not self.query.default_cols else None
+                columns
+                if self.query.annotations or not self.query.default_cols or self.query.distinct
+                else None
             )
         except EmptyResultSet:
             return iter([]) if result_type == MULTI else None
@@ -331,13 +333,7 @@ class SQLCompiler(compiler.SQLCompiler):
 
     def check_query(self):
         """Check if the current query is supported by the database."""
-        if self.query.distinct or getattr(
-            # In the case of Query.distinct().count(), the distinct attribute
-            # will be set on the inner_query.
-            getattr(self.query, "inner_query", None),
-            "distinct",
-            None,
-        ):
+        if self.query.distinct:
             # This is a heuristic to detect QuerySet.datetimes() and dates().
             # "datetimefield" and "datefield" are the names of the annotations
             # the methods use. A user could annotate with the same names which
@@ -346,7 +342,6 @@ class SQLCompiler(compiler.SQLCompiler):
                 raise NotSupportedError("QuerySet.datetimes() is not supported on MongoDB.")
             if "datefield" in self.query.annotations:
                 raise NotSupportedError("QuerySet.dates() is not supported on MongoDB.")
-            raise NotSupportedError("QuerySet.distinct() is not supported on MongoDB.")
         if self.query.extra:
             if any(key.startswith("_prefetch_related_") for key in self.query.extra):
                 raise NotSupportedError("QuerySet.prefetch_related() is not supported on MongoDB.")
@@ -365,7 +360,23 @@ class SQLCompiler(compiler.SQLCompiler):
                 )
             query.combinator_pipeline = self.get_combinator_queries()
         else:
-            query.project_fields = self.get_project_fields(columns, ordering_fields)
+            if self.query.distinct:
+                # If query is distinct, build a $group stage for distinct
+                # fields, then set project fields based on the grouped _id.
+                distinct_fields = self.get_project_fields(
+                    columns, ordering_fields, force_expression=True
+                )
+                if not query.aggregation_pipeline:
+                    query.aggregation_pipeline = []
+                query.aggregation_pipeline.extend(
+                    [
+                        {"$group": {"_id": distinct_fields}},
+                        {"$project": {key: f"$_id.{key}" for key in distinct_fields}},
+                    ]
+                )
+            else:
+                # Otherwise, project fields without grouping.
+                query.project_fields = self.get_project_fields(columns, ordering_fields)
             # If columns is None, then get_project_fields() won't add
             # ordering_fields to $project. Use $addFields (extra_fields) instead.
             if columns is None:
@@ -539,7 +550,11 @@ class SQLCompiler(compiler.SQLCompiler):
                     else expr.as_mql(self, self.connection)
                 )
             except EmptyResultSet:
-                fields[collection][name] = Value(False).as_mql(self, self.connection)
+                empty_result_set_value = getattr(expr, "empty_result_set_value", NotImplemented)
+                value = (
+                    False if empty_result_set_value is NotImplemented else empty_result_set_value
+                )
+                fields[collection][name] = Value(value).as_mql(self, self.connection)
             except FullResultSet:
                 fields[collection][name] = Value(True).as_mql(self, self.connection)
         # Annotations (stored in None) and the main collection's fields
@@ -750,7 +765,7 @@ class SQLAggregateCompiler(SQLCompiler):
         # Avoid $project (columns=None) if unneeded.
         columns = (
             compiler.get_columns()
-            if compiler.query.annotations or not compiler.query.default_cols
+            if self.query.annotations or not self.query.default_cols or self.query.distinct
             else None
         )
         subquery = compiler.build_query(columns)
