@@ -368,8 +368,12 @@ class SQLCompiler(compiler.SQLCompiler):
                 )
                 if not query.aggregation_pipeline:
                     query.aggregation_pipeline = []
-                query.aggregation_pipeline.append({"$group": {"_id": distinct_fields}})
-                query.project_fields = {key: f"$_id.{key}" for key in distinct_fields}
+                query.aggregation_pipeline.extend(
+                    [
+                        {"$group": {"_id": distinct_fields}},
+                        {"$project": {key: f"$_id.{key}" for key in distinct_fields}},
+                    ]
+                )
             else:
                 # Otherwise, project fields without grouping.
                 query.project_fields = self.get_project_fields(columns, ordering_fields)

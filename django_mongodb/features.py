@@ -88,17 +88,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "queries.tests.ValuesSubqueryTests.test_values_in_subquery",
         # Wrong results for distinct() queries.
         "admin_filters.tests.ListFiltersTests.test_emptylistfieldfilter_genericrelation",
-        "admin_filters.tests.ListFiltersTests.test_facets_always",
-        "admin_filters.tests.ListFiltersTests.test_facets_disallowed",
         "admin_filters.tests.ListFiltersTests.test_facets_filter",
-        "admin_filters.tests.ListFiltersTests.test_facets_no_filter",
-        "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_foreignkey",
-        "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_foreignkey_default_ordering",
-        "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_foreignkey_ordering",
-        "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_foreignkey_reverse_relationships",
-        "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_manytomany",
-        "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_manytomany_reverse_relationships",
-        "admin_filters.tests.ListFiltersTests.test_relatedonlyfieldlistfilter_underscorelookup_foreignkey",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
