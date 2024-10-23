@@ -154,7 +154,7 @@ def join(self, compiler, connection):
                 if isinstance(hand_side_value, Col):
                     # If the column is not part of the joined table, add it to
                     # lhs_fields.
-                    if hand_side_value.alias != self.table_name:
+                    if hand_side_value.alias != self.table_alias:
                         pos = len(lhs_fields)
                         lhs_fields.append(expr.lhs.as_mql(compiler, connection))
                     else:
