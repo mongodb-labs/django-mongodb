@@ -1,9 +1,6 @@
-from copy import deepcopy
-
 from django.db.models.aggregates import Aggregate, Count, StdDev, Variance
 from django.db.models.expressions import Case, Value, When
 from django.db.models.lookups import IsNull
-from django.db.models.sql.where import WhereNode
 
 from .query_utils import process_lhs
 
@@ -45,12 +42,9 @@ def count(self, compiler, connection, resolve_inner_expression=False, **extra_co
             node = self.copy()
             node.filter = None
             source_expressions = node.get_source_expressions()
-            filter_ = deepcopy(self.filter)
-            filter_.add(
-                WhereNode([IsNull(source_expressions[0], True)], negated=True),
-                filter_.default,
+            condition = When(
+                self.filter, then=Case(When(IsNull(source_expressions[0], False), then=Value(1)))
             )
-            condition = When(filter_, then=Value(1))
             node.set_source_expressions([Case(condition)] + source_expressions[1:])
             inner_expression = process_lhs(node, compiler, connection)
         else:
