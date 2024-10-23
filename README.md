@@ -19,7 +19,7 @@ You can create a new project that's configured based on these steps using a
 project template:
 
 ```bash
-$ django-admin startproject mysite --template https://github.com/aclark4life/django-mongodb-project/archive/refs/heads/5.0.x.zip
+$ django-admin startproject mysite --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/5.0.x.zip
 ```
 (where "5.0" matches the version of Django that you're using.)
 
@@ -97,7 +97,7 @@ Alternatively, you can use the following `startapp` template which includes
 this change:
 
 ```bash
-$ python manage.py startapp myapp --template https://github.com/aclark4life/django-mongodb-app/archive/refs/heads/5.0.x.zip
+$ python manage.py startapp myapp --template https://github.com/mongodb-labs/django-mongodb-app/archive/refs/heads/5.0.x.zip
 ```
 (where "5.0" matches the version of Django that you're using.)
 
