@@ -73,10 +73,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_closing_non_shared_connections",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
-        # Column default values aren't handled when a field raises
-        # EmptyResultSet: https://github.com/mongodb-labs/django-mongodb/issues/155
-        "annotations.tests.NonAggregateAnnotationTestCase.test_empty_queryset_annotation",
-        "db_functions.comparison.test_coalesce.CoalesceTests.test_empty_queryset",
         # Union as subquery is not mapping the parent parameter and collections:
         # https://github.com/mongodb-labs/django-mongodb/issues/156
         "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_in_subquery_related_outerref",

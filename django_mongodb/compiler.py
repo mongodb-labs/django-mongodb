@@ -550,7 +550,11 @@ class SQLCompiler(compiler.SQLCompiler):
                     else expr.as_mql(self, self.connection)
                 )
             except EmptyResultSet:
-                fields[collection][name] = Value(False).as_mql(self, self.connection)
+                empty_result_set_value = getattr(expr, "empty_result_set_value", NotImplemented)
+                value = (
+                    False if empty_result_set_value is NotImplemented else empty_result_set_value
+                )
+                fields[collection][name] = Value(value).as_mql(self, self.connection)
             except FullResultSet:
                 fields[collection][name] = Value(True).as_mql(self, self.connection)
         # Annotations (stored in None) and the main collection's fields
