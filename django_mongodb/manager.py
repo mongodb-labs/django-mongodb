@@ -3,4 +3,5 @@ from .query import MongoQuerySet
 
 
 class MongoManager(BaseManager.from_queryset(MongoQuerySet)):
-    pass
+    def get_query_set(self):
+        return MongoQuerySet(self.model, using=self._db)
