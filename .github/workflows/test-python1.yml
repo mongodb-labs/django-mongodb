@@ -1,0 +1,129 @@
+name: Python Tests II
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests1-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -eux {0}
+
+jobs:
+
+  build:
+    name: Django Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout django-mongodb
+        uses: actions/checkout@v4
+      - name: install the django-mongodb backend
+        run: |
+          pip3 install --upgrade pip
+          pip3 install -e .
+      - name: Checkout Django
+        uses: actions/checkout@v4
+        with:
+          repository: 'mongodb-forks/django'
+          ref: 'mongodb-5.0.x'
+          path: 'django_repo'
+      - name: Install system packages for Django's Python test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install libmemcached-dev
+      - name: Install Django and its Python test dependencies
+        run: |
+          cd django_repo/tests/
+          pip3 install -e ..
+          pip3 install -r requirements/py3.txt
+      - name: Copy the test settings file
+        run: cp .github/workflows/mongodb_settings.py django_repo/tests/
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.11.0
+        with:
+          mongodb-version: 5.0
+      - name: Run tests
+        run: >
+          python3 django_repo/tests/runtests.py --settings mongodb_settings -v 2
+          admin_checks
+          admin_custom_urls
+          admin_docs
+          admin_inlines
+          admin_ordering
+          admin_scripts
+          admin_utils
+          admin_views
+          admin_widgets
+          apps
+          async
+          check_framework
+          constraints
+          contenttypes_tests
+          context_processors
+          custom_columns
+          custom_managers
+          datatypes
+          empty_models
+          field_defaults
+          file_storage
+          file_uploads
+          fixtures_model_package
+          flatpages_tests
+          forms_tests
+          generic_inline_admin
+          generic_views
+          get_earliest_or_latest
+          get_object_or_404
+          get_or_create
+          i18n
+          indexes
+          inline_formsets
+          invalid_models_tests
+          managers_regress
+          managers_regress
+          max_lengths
+          messages_tests
+          migrate_signals
+          migration_test_data_persistence
+          modeladmin
+          model_formsets
+          model_formsets_regress
+          model_indexes
+          model_inheritance
+          model_options
+          model_package
+          model_regress
+          model_utils
+          multiple_database
+          order_with_respect_to
+          pagination
+          properties
+          proxy_model_inheritance
+          proxy_models
+          queryset_pickle
+          redirects_tests
+          reserved_names
+          reverse_lookup
+          save_delete_hooks
+          servers
+          signals
+          sitemaps_tests
+          sites_framework
+          sites_tests
+          str
+          string_lookup
+          swappable_models
+          syndication_tests
+          test_client
+          test_client_regress
+          test_runner
+          test_utils
+          transactions
+          unmanaged_models
+          update_only_fields
+          user_commands
+          validation
+          view_tests
