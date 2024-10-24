@@ -64,7 +64,8 @@ def col(self, compiler, connection):  # noqa: ARG001
             compiler.column_indices[self] = index
         return f"$${compiler.PARENT_FIELD_TEMPLATE.format(index)}"
     # Add the column's collection's alias for columns in joined collections.
-    prefix = f"{self.alias}." if self.alias != compiler.collection_name else ""
+    has_alias = self.alias and self.alias != compiler.collection_name
+    prefix = f"{self.alias}." if has_alias else ""
     return f"${prefix}{self.target.column}"
 
 

@@ -75,6 +75,7 @@ jobs:
           from_db_value
           generic_relations
           generic_relations_regress
+          indexes
           introspection
           known_related_objects
           lookup
