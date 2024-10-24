@@ -1,14 +1,19 @@
 from functools import reduce, wraps
 from operator import add as add_operator
+from collections.abc import Mapping
 
 from django.core.exceptions import EmptyResultSet, FullResultSet
-from django.db import DatabaseError, IntegrityError, NotSupportedError
+from django.db import DatabaseError, IntegrityError, NotSupportedError, connections
+from django.db.models import QuerySet
 from django.db.models.expressions import Case, Col, When
 from django.db.models.functions import Mod
 from django.db.models.lookups import Exact
-from django.db.models.sql.constants import INNER
+from django.db.models.query import BaseIterable
+from django.db.models.sql.constants import INNER, GET_ITERATOR_CHUNK_SIZE
 from django.db.models.sql.datastructures import Join
 from django.db.models.sql.where import AND, OR, XOR, ExtraWhere, NothingNode, WhereNode
+from django.db.models.sql import Query
+from django.utils.functional import cached_property
 from pymongo.errors import BulkWriteError, DuplicateKeyError, PyMongoError
 
 
@@ -307,3 +312,15 @@ def register_nodes():
     Join.as_mql = join
     NothingNode.as_mql = NothingNode.as_sql
     WhereNode.as_mql = where_node
+
+
+class MongoQuerySet(QuerySet):
+    def raw_mql(self, raw_query):
+        return QuerySet(self.model, RawQuery(self.model, raw_query))
+
+
+class RawQuery(Query):
+
+    def __init__(self, model, raw_query):
+        super(RawQuery, self).__init__(model)
+        self.raw_query = raw_query
