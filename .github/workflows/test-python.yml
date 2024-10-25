@@ -93,6 +93,7 @@ jobs:
           migrations
           model_fields
           model_forms
+          model_formsets
           model_inheritance_regress
           mutually_referential
           nested_foreign_keys
