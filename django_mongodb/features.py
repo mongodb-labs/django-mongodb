@@ -82,8 +82,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # https://github.com/mongodb-labs/django-mongodb/issues/161
         "queries.tests.RelatedLookupTypeTests.test_values_queryset_lookup",
         "queries.tests.ValuesSubqueryTests.test_values_in_subquery",
-        # ObjectIdAutoField.to_python() doesn't accept integers as strings.
-        "model_formsets.tests.ModelFormsetTest.test_inline_formsets_with_custom_save_method",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {

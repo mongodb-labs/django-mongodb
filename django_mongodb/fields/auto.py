@@ -43,11 +43,14 @@ class ObjectIdAutoField(AutoField):
         try:
             return ObjectId(value)
         except errors.InvalidId:
-            raise exceptions.ValidationError(
-                self.error_messages["invalid"],
-                code="invalid",
-                params={"value": value},
-            ) from None
+            try:
+                return int(value)
+            except ValueError:
+                raise exceptions.ValidationError(
+                    self.error_messages["invalid"],
+                    code="invalid",
+                    params={"value": value},
+                ) from None
 
     @cached_property
     def validators(self):
