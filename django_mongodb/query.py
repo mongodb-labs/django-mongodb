@@ -315,7 +315,7 @@ def register_nodes():
 
 
 class MongoQuerySet(QuerySet):
-    def raw_mql(self, raw_query):
+    def raw_mql(self, raw_query, params=(), translations=None, using=None):
         return QuerySet(self.model, RawQuery(self.model, raw_query))
 
 
