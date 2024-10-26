@@ -18,9 +18,9 @@ class MQLTests(TestCase):
             query,
             "db.queries__book.aggregate(["
             "{'$lookup': {'from': 'queries__author', "
-            "'let': {'parent__field__0': {'$convert': {'input': '$author_id', 'to': 'string'}}}, "
-            "'pipeline': [{'$match': {'$expr': {'$and': [{'$eq': ['$$parent__field__0', "
-            "{'$convert': {'input': '$_id', 'to': 'string'}}]}]}}}], 'as': 'queries__author'}}, "
+            "'let': {'parent__field__0': '$author_id'}, "
+            "'pipeline': [{'$match': {'$expr': "
+            "{'$and': [{'$eq': ['$$parent__field__0', '$_id']}]}}}], 'as': 'queries__author'}}, "
             "{'$unwind': '$queries__author'}, "
             "{'$match': {'$expr': {'$eq': ['$queries__author.name', 'Bob']}}}])",
         )
