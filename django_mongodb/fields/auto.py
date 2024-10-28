@@ -34,6 +34,9 @@ class ObjectIdAutoField(AutoField):
     def db_type(self, connection):
         return "objectId"
 
+    def rel_db_type(self, connection):
+        return "objectId"
+
     def to_python(self, value):
         if value is None or isinstance(value, int):
             return value

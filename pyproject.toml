@@ -37,7 +37,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=7"]
 docs = [ "sphinx>=7"]
 
 [project.urls]
@@ -48,18 +47,6 @@ Tracker = "https://github.com/mongodb-labs/django-mongodb/issues"
 
 [tool.setuptools.dynamic]
 version = {attr = "django_mongodb.__version__"}
-
-[tool.pytest.ini_options]
-minversion = "7"
-addopts = ["-ra", "--strict-config", "--strict-markers", "--junitxml=xunit-results/TEST-results.xml"]
-testpaths = ["test"]
-log_cli_level = "INFO"
-norecursedirs = ["test/*"]
-faulthandler_timeout = 1500
-xfail_strict = true
-filterwarnings = [
-    "error"
-]
 
 [tool.mypy]
 strict = true
@@ -87,7 +74,6 @@ select = [
   "PGH",         # pygrep-hooks
   "PIE",         # flake8-pie
   "PL",          # pylint
-  "PT",          # flake8-pytest-style
   "PTH",         # flake8-use-pathlib
   "RET",         # flake8-return
   "RUF",         # Ruff-specific
