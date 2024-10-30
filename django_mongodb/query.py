@@ -42,13 +42,9 @@ class MongoQuery:
 
     def __init__(self, compiler):
         self.compiler = compiler
-        self.connection = compiler.connection
-        self.ops = compiler.connection.ops
         self.query = compiler.query
-        self._negated = False
         self.ordering = []
-        self.collection_name = self.compiler.collection_name
-        self.mongo_query = getattr(compiler.query, "raw_query", {})
+        self.mongo_query = {}
         self.subqueries = None
         self.lookup_pipeline = None
         self.project_fields = None
