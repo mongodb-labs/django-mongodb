@@ -44,7 +44,7 @@ class MongoQuery:
         self.compiler = compiler
         self.query = compiler.query
         self.ordering = []
-        self.mongo_query = {}
+        self.match_mql = {}
         self.subqueries = None
         self.lookup_pipeline = None
         self.project_fields = None
@@ -56,14 +56,14 @@ class MongoQuery:
         self.subquery_lookup = None
 
     def __repr__(self):
-        return f"<MongoQuery: {self.mongo_query!r} ORDER {self.ordering!r}>"
+        return f"<MongoQuery: {self.match_mql!r} ORDER {self.ordering!r}>"
 
     @wrap_database_errors
     def delete(self):
         """Execute a delete query."""
         if self.compiler.subqueries:
             raise NotSupportedError("Cannot use QuerySet.delete() when a subquery is required.")
-        return self.compiler.collection.delete_many(self.mongo_query).deleted_count
+        return self.compiler.collection.delete_many(self.match_mql).deleted_count
 
     @wrap_database_errors
     def get_cursor(self):
@@ -79,8 +79,8 @@ class MongoQuery:
             pipeline.extend(self.lookup_pipeline)
         for query in self.subqueries or ():
             pipeline.extend(query.get_pipeline())
-        if self.mongo_query:
-            pipeline.append({"$match": self.mongo_query})
+        if self.match_mql:
+            pipeline.append({"$match": self.match_mql})
         if self.aggregation_pipeline:
             pipeline.extend(self.aggregation_pipeline)
         if self.project_fields:

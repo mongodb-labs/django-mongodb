@@ -386,9 +386,9 @@ class SQLCompiler(compiler.SQLCompiler):
             try:
                 expr = where.as_mql(self, self.connection) if where else {}
             except FullResultSet:
-                query.mongo_query = {}
+                query.match_mql = {}
             else:
-                query.mongo_query = {"$expr": expr}
+                query.match_mql = {"$expr": expr}
         if extra_fields:
             query.extra_fields = self.get_project_fields(extra_fields, force_expression=True)
         query.subqueries = self.subqueries
@@ -722,7 +722,7 @@ class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
                 prepared = prepared.as_mql(self, self.connection)
             values[field.column] = prepared
         try:
-            criteria = self.build_query().mongo_query
+            criteria = self.build_query().match_mql
         except EmptyResultSet:
             return 0
         is_empty = not bool(values)
