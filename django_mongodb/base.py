@@ -1,5 +1,6 @@
+import contextlib
+
 from django.db.backends.base.base import BaseDatabaseWrapper
-from django.db.backends.signals import connection_created
 from pymongo.collection import Collection
 from pymongo.mongo_client import MongoClient
 
@@ -128,11 +129,6 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     introspection_class = DatabaseIntrospection
     ops_class = DatabaseOperations
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.connected = False
-        del self.connection
-
     def get_collection(self, name, **kwargs):
         collection = Collection(self.database, name, **kwargs)
         if self.queries_logged:
@@ -145,31 +141,31 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         return self.database
 
     def __getattr__(self, attr):
-        """
-        Connect to the database the first time `connection` or `database` are
-        accessed.
-        """
-        if attr in ["connection", "database"]:
-            assert not self.connected
-            self._connect()
+        """Connect to the database the first time `database` is accessed."""
+        if attr == "database":
+            if self.connection is None:
+                self.connect()
             return getattr(self, attr)
         raise AttributeError(attr)
 
-    def _connect(self):
-        settings_dict = self.settings_dict
-        self.connection = MongoClient(
-            host=settings_dict["HOST"] or None,
-            port=int(settings_dict["PORT"] or 27017),
-            username=settings_dict.get("USER"),
-            password=settings_dict.get("PASSWORD"),
-            **settings_dict["OPTIONS"],
-        )
-        db_name = settings_dict["NAME"]
+    def init_connection_state(self):
+        db_name = self.settings_dict["NAME"]
         if db_name:
             self.database = self.connection[db_name]
+        super().init_connection_state()
 
-        self.connected = True
-        connection_created.send(sender=self.__class__, connection=self)
+    def get_connection_params(self):
+        settings_dict = self.settings_dict
+        return {
+            "host": settings_dict["HOST"] or None,
+            "port": int(settings_dict["PORT"] or 27017),
+            "username": settings_dict.get("USER"),
+            "password": settings_dict.get("PASSWORD"),
+            **settings_dict["OPTIONS"],
+        }
+
+    def get_new_connection(self, conn_params):
+        return MongoClient(**conn_params)
 
     def _commit(self):
         pass
@@ -177,12 +173,13 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     def _rollback(self):
         pass
 
+    def set_autocommit(self, autocommit, force_begin_transaction_with_broken_autocommit=False):
+        pass
+
     def close(self):
-        if self.connected:
-            self.connection.close()
-            del self.connection
+        super().close()
+        with contextlib.suppress(AttributeError):
             del self.database
-            self.connected = False
 
     def cursor(self):
         return Cursor()
