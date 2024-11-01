@@ -47,14 +47,9 @@ class MongoQuery:
 
     def __init__(self, compiler):
         self.compiler = compiler
-        self.connection = compiler.connection
-        self.ops = compiler.connection.ops
         self.query = compiler.query
-        self._negated = False
         self.ordering = []
-        self.collection = self.compiler.collection
-        self.collection_name = self.compiler.collection_name
-        self.mongo_query = getattr(compiler.query, "raw_query", {})
+        self.match_mql = {}
         self.subqueries = None
         self.lookup_pipeline = None
         self.project_fields = None
@@ -66,14 +61,14 @@ class MongoQuery:
         self.subquery_lookup = None
 
     def __repr__(self):
-        return f"<MongoQuery: {self.mongo_query!r} ORDER {self.ordering!r}>"
+        return f"<MongoQuery: {self.match_mql!r} ORDER {self.ordering!r}>"
 
     @wrap_database_errors
     def delete(self):
         """Execute a delete query."""
         if self.compiler.subqueries:
             raise NotSupportedError("Cannot use QuerySet.delete() when a subquery is required.")
-        return self.collection.delete_many(self.mongo_query).deleted_count
+        return self.compiler.collection.delete_many(self.match_mql).deleted_count
 
     @wrap_database_errors
     def get_cursor(self):
@@ -81,7 +76,7 @@ class MongoQuery:
         Return a pymongo CommandCursor that can be iterated on to give the
         results of the query.
         """
-        return self.collection.aggregate(self.get_pipeline())
+        return self.compiler.collection.aggregate(self.get_pipeline())
 
     def get_pipeline(self):
         pipeline = []
@@ -89,8 +84,8 @@ class MongoQuery:
             pipeline.extend(self.lookup_pipeline)
         for query in self.subqueries or ():
             pipeline.extend(query.get_pipeline())
-        if self.mongo_query:
-            pipeline.append({"$match": self.mongo_query})
+        if self.match_mql:
+            pipeline.append({"$match": self.match_mql})
         if self.aggregation_pipeline:
             pipeline.extend(self.aggregation_pipeline)
         if self.project_fields:
@@ -294,7 +289,7 @@ def where_node(self, compiler, connection):
     if len(children_mql) == 1:
         mql = children_mql[0]
     elif len(children_mql) > 1:
-        mql = {operator: children_mql} if children_mql else {}
+        mql = {operator: children_mql}
     else:
         mql = {}
 

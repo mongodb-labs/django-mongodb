@@ -15,6 +15,14 @@ class ObjectIdAutoField(AutoField):
         kwargs["db_column"] = "_id"
         super().__init__(*args, **kwargs)
 
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        if self.db_column == "_id":
+            del kwargs["db_column"]
+        if path.startswith("django_mongodb.fields.auto"):
+            path = path.replace("django_mongodb.fields.auto", "django_mongodb.fields")
+        return name, path, args, kwargs
+
     def get_prep_value(self, value):
         if value is None:
             return None
@@ -43,11 +51,14 @@ class ObjectIdAutoField(AutoField):
         try:
             return ObjectId(value)
         except errors.InvalidId:
-            raise exceptions.ValidationError(
-                self.error_messages["invalid"],
-                code="invalid",
-                params={"value": value},
-            ) from None
+            try:
+                return int(value)
+            except ValueError:
+                raise exceptions.ValidationError(
+                    self.error_messages["invalid"],
+                    code="invalid",
+                    params={"value": value},
+                ) from None
 
     @cached_property
     def validators(self):

@@ -3,6 +3,7 @@ from django.utils.functional import cached_property
 
 
 class DatabaseFeatures(BaseDatabaseFeatures):
+    minimum_database_version = (5, 0)
     allow_sliced_subqueries_with_in = False
     allows_multiple_constraints_on_same_fields = False
     can_create_inline_fk = False
@@ -71,7 +72,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "backends.tests.BackendTestCase.test_is_usable_after_database_disconnects",
         # Connection creation doesn't follow the usual Django API.
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
-        "backends.tests.ThreadTests.test_closing_non_shared_connections",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
         # Union as subquery is not mapping the parent parameter and collections:
         # https://github.com/mongodb-labs/django-mongodb/issues/156

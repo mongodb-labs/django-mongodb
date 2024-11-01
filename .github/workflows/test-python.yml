@@ -44,70 +44,11 @@ jobs:
           pip3 install -r requirements/py3.txt
       - name: Copy the test settings file
         run: cp .github/workflows/mongodb_settings.py django_repo/tests/
+      - name: Copy the test runner file
+        run: cp .github/workflows/runtests.py django_repo/tests/runtests_.py
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.11.0
         with:
           mongodb-version: 5.0
       - name: Run tests
-        run: >
-          python3 django_repo/tests/runtests.py --settings mongodb_settings -v 2
-          admin_filters
-          aggregation
-          aggregation_regress
-          annotations
-          auth_tests.test_models.UserManagerTestCase
-          backends
-          basic
-          bulk_create
-          custom_pk
-          dates
-          datetimes
-          db_functions
-          dbshell_
-          delete
-          delete_regress
-          empty
-          expressions
-          expressions_case
-          defer
-          defer_regress
-          force_insert_update
-          from_db_value
-          generic_relations
-          generic_relations_regress
-          introspection
-          known_related_objects
-          lookup
-          m2m_and_m2o
-          m2m_intermediary
-          m2m_multiple
-          m2m_recursive
-          m2m_regress
-          m2m_signals
-          m2m_through
-          m2m_through_regress
-          m2o_recursive
-          many_to_many
-          many_to_one
-          many_to_one_null
-          migrations
-          model_fields
-          model_forms
-          model_inheritance_regress
-          mutually_referential
-          nested_foreign_keys
-          null_fk
-          null_fk_ordering
-          null_queries
-          one_to_one
-          ordering
-          or_lookups
-          queries
-          schema
-          select_related
-          select_related_onetoone
-          select_related_regress
-          sessions_tests
-          timezones
-          update
-          xor_lookups
+        run: python3 django_repo/tests/runtests_.py
