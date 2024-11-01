@@ -289,7 +289,7 @@ def where_node(self, compiler, connection):
     if len(children_mql) == 1:
         mql = children_mql[0]
     elif len(children_mql) > 1:
-        mql = {operator: children_mql} if children_mql else {}
+        mql = {operator: children_mql}
     else:
         mql = {}
 
