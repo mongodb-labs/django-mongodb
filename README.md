@@ -4,11 +4,13 @@ This backend is in currently in development and is not advised for Production wo
 changes may be made without notice. We welcome your feedback as we continue to
 explore and build. The best way to share this is via our [MongoDB Community Forum](https://www.mongodb.com/community/forums/tag/python)
 
-## Install and usage
+## Installation and usage
 
 The development version of this package supports Django 5.0.x. To install it:
 
-`pip install git+https://github.com/mongodb-labs/django-mongodb`
+```bash
+$ pip install git+https://github.com/mongodb-labs/django-mongodb`
+```
 
 ### Specifying the default primary key field
 
@@ -28,6 +30,8 @@ This template includes the following line in `settings.py`:
 ```python
 DEFAULT_AUTO_FIELD = "django_mongodb.fields.ObjectIdAutoField"
 ```
+
+### Creating a custom AppConfig
 
 But this setting won't override any apps that have an `AppConfig` that
 specifies `default_auto_field`. For those apps, you'll need to create a custom
@@ -183,4 +187,14 @@ Congratulations, your project is ready to go!
 
 ## Troubleshooting
 
-TODO
+You may encounter the following errors while using the `django_mongodb` backend:
+
+### `ValueError: Cannot force an update in save() with no primary key.`
+
+You may encounter this error if you're attempting to authenticate in the Django admin with the `django_mongodb` database backend configured but without the remaining [installation and usage](#installation-and-usage) steps completed. To fix this, ensure that you've completed all the steps in the [installation and usage](#installation-and-usage) section.
+
+### `TypeError: int() argument must be a string, a bytes-like object or a real number, not 'ObjectId'.`
+
+You may encounter this error while running `python manage.py migrate` if you're using an app that has not been configured to work with django-mongodb. To fix this, [create a custom AppConfig for the app](#creating-a-custom-appconfig).
+
+If you encounter any other issues, please report them [here](https://github.com/mongodb-labs/django-mongodb/issues).
