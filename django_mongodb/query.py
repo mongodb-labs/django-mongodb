@@ -320,25 +320,24 @@ class MongoQuerySet(QuerySet):
         )                    
 
 class MongoRawQuery(RawQuery):
-    pass
-    #def _execute_query(self):
-    #    connection = connections[self.using]
+    def _execute_query(self):
+        connection = connections[self.using]
 
-    #    # Adapt parameters to the database, as much as possible considering
-    #    # that the target type isn't known. See #17755.
-    #    params_type = self.params_type
-    #    adapter = connection.ops.adapt_unknown_value
-    #    if params_type is tuple:
-    #        params = tuple(adapter(val) for val in self.params)
-    #    elif params_type is dict:
-    #        params = {key: adapter(val) for key, val in self.params.items()}
-    #    elif params_type is None:
-    #        params = None
-    #    else:
-    #        raise RuntimeError("Unexpected params type: %s" % params_type)
+        # Adapt parameters to the database, as much as possible considering
+        # that the target type isn't known. See #17755.
+        params_type = self.params_type
+        adapter = connection.ops.adapt_unknown_value
+        if params_type is tuple:
+            params = tuple(adapter(val) for val in self.params)
+        elif params_type is dict:
+            params = {key: adapter(val) for key, val in self.params.items()}
+        elif params_type is None:
+            params = None
+        else:
+            raise RuntimeError("Unexpected params type: %s" % params_type)
 
-    #    self.cursor = connection.cursor()
-    #    self.cursor.execute(self.sql, params)
+        self.cursor = connection.cursor()
+        self.cursor.execute(self.sql, params)
 
 
 class MongoRawQuerySet(RawQuerySet):
@@ -357,15 +356,13 @@ class MongoRawQuerySet(RawQuerySet):
         using=None,                              
         hints=None,           
     ):                                
-        pass
-        # self.raw_query = raw_query
-        # self.model = model                                   
-        # self._db = using                                      
-        # self._hints = hints or {}   
-        # self.query = query or sql.RawQuery(sql=raw_query, using=self.db, params=params)
+        self.model = model                                   
+        self._db = using                                      
+        self._hints = hints or {}   
+        self.query = query or MongoRawQuery(sql=raw_query, using=self.db, params=params)
         # self.params = params
         # self.translations = translations or {}
-        # self._result_cache = None
+        self._result_cache = None
         # self._prefetch_related_lookups = ()
         # self._prefetch_done = False
 
