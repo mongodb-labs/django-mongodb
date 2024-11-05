@@ -35,7 +35,7 @@ functions:
           MONGODB_VERSION: "5.0"
           TOPOLOGY: server
           AUTH: "noauth"
-          SSL: "ssl"
+          SSL: "nossl"
         args:
           - ${DRIVERS_TOOLS}/.evergreen/run-orchestration.sh
 
