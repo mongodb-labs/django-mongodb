@@ -13,6 +13,7 @@ from .operations import DatabaseOperations
 from .query_utils import regex_match
 from .schema import DatabaseSchemaEditor
 from .utils import OperationDebugWrapper
+from .validation import DatabaseValidation
 
 
 class Cursor:
@@ -128,6 +129,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     features_class = DatabaseFeatures
     introspection_class = DatabaseIntrospection
     ops_class = DatabaseOperations
+    validation_class = DatabaseValidation
 
     def get_collection(self, name, **kwargs):
         collection = Collection(self.database, name, **kwargs)
