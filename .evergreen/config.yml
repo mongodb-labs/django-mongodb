@@ -1,0 +1,73 @@
+exec_timeout_secs: 3600
+
+# Mark a failure as a system/bootstrap failure (purple box) rather then a task
+# failure by default.
+# Actual testing tasks are marked with `type: test`
+command_type: system
+
+functions:
+  "setup":
+    - command: git.get_project
+      params:
+        directory: src
+    - command: subprocess.exec
+      params:
+        binary: bash
+        working_dir: "src"
+        add_expansions_to_env: true
+        args:
+          - ./.evergreen/setup.sh
+    - command: expansions.update
+      params:
+        file: src/expansion.yml
+
+  "bootstrap mongo-orchestration":
+    - command: subprocess.exec
+      params:
+        binary: bash
+        env:
+          MONGODB_VERSION: 5.0
+          TOPOLOGY: server
+          AUTH: "auth"
+          SSL: "ssl"
+        args:
+          - ${DRIVERS_TOOLS}/.evergreen/run-orchestration.sh
+
+  "run unit tests":
+    - command: subprocess.exec
+      type: test
+      params:
+        binary: bash
+        working_dir: "src"
+        include_expansions_in_env: ["DRIVERS_TOOLS"]
+        args:
+          - ./.evergreen/run-tests.sh
+
+  "teardown":
+    - command: subprocess.exec
+      params:
+        binary: bash
+        args:
+          - ${DRIVERS_TOOLS}/.evergreen/teardown.sh
+
+pre:
+  - func: setup
+  - func: bootstrap mongo-orchestration
+
+post:
+  - func: teardown
+  - command: attach.xunit_results
+    params:
+      file:  "mongo-python-driver/xunit-results/TEST-*.xml"
+
+tasks:
+- name: run-tests
+  commands:
+    - func: "run unit tests"
+
+buildvariants:
+- name: tests
+  display_name: Run Tests
+  run_on: rhel87-small
+  tasks:
+  - name: run-tests
