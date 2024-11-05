@@ -3,7 +3,7 @@
 set -eux
 
 # Install the django-mongodb backend
-/opt/mongodbtoolchain/v4/bin/python3 -m venv venv
+/opt/python/3.10/bin/python3 -m venv venv
 . venv/bin/activate
 python -m pip install -U pip
 pip install -e .
