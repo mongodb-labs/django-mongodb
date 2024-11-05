@@ -10,15 +10,16 @@ pip install -e .
 
 # Install django and test dependencies
 git clone --branch mongodb-5.0.x https://github.com/mongodb-forks/django django_repo
-cd django_repo/tests/
+pushd django_repo/tests/
 pip install -e ..
 pip install -r requirements/py3.txt
+popd
 
 # Copy the test settings file
-cp .github/workflows/mongodb_settings.py django_repo/tests/
+cp ./.github/workflows/mongodb_settings.py django_repo/tests/
 
 # Copy the test runner file
-cp .github/workflows/runtests.py django_repo/tests/runtests_.py
+cp ./.github/workflows/runtests.py django_repo/tests/runtests_.py
 
 # Run tests
 python django_repo/tests/runtests_.py
