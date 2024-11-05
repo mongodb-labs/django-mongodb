@@ -6,7 +6,7 @@ set -eux
 # shellcheck disable=SC2154
 if [ "${is_patch}" = "true" ]; then
     # shellcheck disable=SC2154
-    CURRENT_VERSION=$(git describe)-patch-${version_id}
+    CURRENT_VERSION=$(git describe || echo "null")-patch-${version_id}
 else
     CURRENT_VERSION=latest
 fi
