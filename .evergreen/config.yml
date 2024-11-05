@@ -26,7 +26,7 @@ functions:
       params:
         binary: bash
         env:
-          MONGODB_VERSION: 5.0
+          MONGODB_VERSION: "5.0"
           TOPOLOGY: server
           AUTH: "auth"
           SSL: "ssl"
