@@ -214,6 +214,17 @@ class DatabaseOperations(BaseDatabaseOperations):
         super().explain_query_prefix(format, **options)
         return validated_options
 
+    def integer_field_range(self, internal_type):
+        # MongODB doesn't enforce any integer constraints, but it supports
+        # integers up to 64 bits.
+        if internal_type in {
+            "PositiveBigIntegerField",
+            "PositiveIntegerField",
+            "PositiveSmallIntegerField",
+        }:
+            return (0, 9223372036854775807)
+        return (-9223372036854775808, 9223372036854775807)
+
     def prepare_join_on_clause(self, lhs_table, lhs_field, rhs_table, rhs_field):
         lhs_expr, rhs_expr = super().prepare_join_on_clause(
             lhs_table, lhs_field, rhs_table, rhs_field
