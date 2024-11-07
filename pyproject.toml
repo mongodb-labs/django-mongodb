@@ -119,5 +119,3 @@ partial_branches = ["if (.*and +)*not _use_c( and.*)*:"]
 
 [tool.coverage.html]
 directory = "htmlcov"
-
-[tool.hatch]
