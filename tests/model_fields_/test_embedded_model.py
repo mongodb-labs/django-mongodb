@@ -1,4 +1,3 @@
-import time
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
@@ -32,12 +31,9 @@ class MethodTests(SimpleTestCase):
 
 
 class QueryingTests(TestCase):
-    def assertEqualDatetime(self, d1, d2):
-        """Compare d1 and d2, ignoring microseconds."""
-        self.assertEqual(d1.replace(microsecond=0), d2.replace(microsecond=0))
-
-    def assertNotEqualDatetime(self, d1, d2):
-        self.assertNotEqual(d1.replace(microsecond=0), d2.replace(microsecond=0))
+    def truncate_ms(self, value):
+        """Truncate microsends to millisecond precision as supported by MongoDB."""
+        return value.replace(microsecond=(value.microsecond // 1000) * 1000)
 
     def test_save_load(self):
         EmbeddedModelFieldModel.objects.create(simple=EmbeddedModel(someint="5"))
@@ -60,23 +56,20 @@ class QueryingTests(TestCase):
 
     def test_pre_save(self):
         """Field.pre_save() is called on embedded model fields."""
-        obj = EmbeddedModelFieldModel(simple=EmbeddedModel())
-
+        obj = EmbeddedModelFieldModel.objects.create(simple=EmbeddedModel())
+        auto_now = self.truncate_ms(obj.simple.auto_now)
+        auto_now_add = self.truncate_ms(obj.simple.auto_now_add)
+        self.assertEqual(auto_now, auto_now_add)
+        # save() updates auto_now but not auto_now_add.
         obj.save()
-        auto_now = obj.simple.auto_now
-        auto_now_add = obj.simple.auto_now_add
-        self.assertNotEqual(auto_now, None)
-        self.assertNotEqual(auto_now_add, None)
-
-        time.sleep(1)  # FIXME
-        obj.save()
-        self.assertNotEqualDatetime(obj.simple.auto_now, obj.simple.auto_now_add)
-
+        self.assertEqual(self.truncate_ms(obj.simple.auto_now_add), auto_now_add)
+        auto_now_two = obj.simple.auto_now
+        self.assertGreater(auto_now_two, obj.simple.auto_now_add)
+        # And again, save() updates auto_now but not auto_now_add.
         obj = EmbeddedModelFieldModel.objects.get()
         obj.save()
-        # auto_now_add shouldn't have changed now, but auto_now should.
-        self.assertEqualDatetime(obj.simple.auto_now_add, auto_now_add)
-        self.assertGreater(obj.simple.auto_now, auto_now)
+        self.assertEqual(obj.simple.auto_now_add, auto_now_add)
+        self.assertGreater(obj.simple.auto_now, auto_now_two)
 
     def test_error_messages(self):
         msg = (
