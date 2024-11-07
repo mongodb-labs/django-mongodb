@@ -22,6 +22,14 @@ class MethodTests(SimpleTestCase):
         self.assertEqual(args, [])
         self.assertEqual(kwargs, {"embedded_model": "EmbeddedModel", "null": True})
 
+    def test_get_db_prep_save_invalid(self):
+        msg = (
+            "Expected instance of type <class 'model_fields_.models.EmbeddedModel'>, "
+            "not <class 'int'>."
+        )
+        with self.assertRaisesMessage(TypeError, msg):
+            EmbeddedModelFieldModel(simple=42).save()
+
     def test_validate(self):
         obj = EmbeddedModelFieldModel(simple=EmbeddedModel(someint=None))
         # This isn't quite right because "someint" is the field that's non-null.
@@ -30,7 +38,7 @@ class MethodTests(SimpleTestCase):
             obj.full_clean()
 
 
-class QueryingTests(TestCase):
+class ModelTests(TestCase):
     def truncate_ms(self, value):
         """Truncate microsends to millisecond precision as supported by MongoDB."""
         return value.replace(microsecond=(value.microsecond // 1000) * 1000)
@@ -70,14 +78,6 @@ class QueryingTests(TestCase):
         obj.save()
         self.assertEqual(obj.simple.auto_now_add, auto_now_add)
         self.assertGreater(obj.simple.auto_now, auto_now_two)
-
-    def test_error_messages(self):
-        msg = (
-            "Expected instance of type <class 'model_fields_.models.EmbeddedModel'>, "
-            "not <class 'int'>."
-        )
-        with self.assertRaisesMessage(TypeError, msg):
-            EmbeddedModelFieldModel(simple=42).save()
 
     def test_foreign_key_in_embedded_object(self):
         simple = EmbeddedModel(some_relation=Target.objects.create(index=1))
