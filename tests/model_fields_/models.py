@@ -35,7 +35,6 @@ class DecimalParent(models.Model):
 
 class EmbeddedModelFieldModel(models.Model):
     simple = EmbeddedModelField("EmbeddedModel", null=True, blank=True)
-    untyped = EmbeddedModelField(null=True, blank=True)
     decimal_parent = EmbeddedModelField(DecimalParent, null=True, blank=True)
 
 
