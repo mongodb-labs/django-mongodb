@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The new version to set"
+        required: true
+      following_version:
+        description: "The post (dev) version to set"
+        required: true
+      dry_run:
+        description: "Dry Run?"
+        default: false
+        type: boolean
+
+env:
+  # Changes per repo
+  PRODUCT_NAME: django-mongodb
+  # Changes per branch
+  SILK_ASSET_GROUP: django-mongodb-main
+  EVERGREEN_PROJECT: django-mongodb
+
+defaults:
+  run:
+    shell: bash -eux {0}
+
+jobs:
+  pre-publish:
+    environment: release
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    outputs:
+      version: ${{ steps.pre-publish.outputs.version }}
+    steps:
+      - uses: mongodb-labs/drivers-github-tools/secure-checkout@v2
+        with:
+          app_id: ${{ vars.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: mongodb-labs/drivers-github-tools/setup@v2
+        with:
+          aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+          aws_region_name: ${{ vars.AWS_REGION_NAME }}
+          aws_secret_id: ${{ secrets.AWS_SECRET_ID }}
+          artifactory_username: ${{ vars.ARTIFACTORY_USERNAME }}
+      - uses: mongodb-labs/drivers-github-tools/python/pre-publish@v2
+        id: pre-publish
+        with:
+          version: ${{ inputs.version }}
+          dry_run: ${{ inputs.dry_run }}
+
+  build-dist:
+    needs: [pre-publish]
+    uses: ./.github/workflows/dist.yml
+    with:
+      ref: ${{ needs.pre-publish.outputs.version }}
+
+  static-scan:
+    needs: [pre-publish]
+    uses: ./.github/workflows/codeql.yml
+    with:
+      ref: ${{ needs.pre-publish.outputs.version }}
+
+  publish:
+    needs: [build-dist, static-scan]
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+      security-events: write
+    steps:
+      - uses: mongodb-labs/drivers-github-tools/secure-checkout@v2
+        with:
+          app_id: ${{ vars.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: mongodb-labs/drivers-github-tools/setup@v2
+        with:
+          aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+          aws_region_name: ${{ vars.AWS_REGION_NAME }}
+          aws_secret_id: ${{ secrets.AWS_SECRET_ID }}
+          artifactory_username: ${{ vars.ARTIFACTORY_USERNAME }}
+      - uses: blink1073/drivers-github-tools/python/publish@INTPYTHON-406
+        with:
+          version: ${{ inputs.version }}
+          following_version: ${{ inputs.following_version }}
+          product_name: ${{ env.PRODUCT_NAME }}
+          silk_asset_group: ${{ env.SILK_ASSET_GROUP }}
+          evergreen_project: ${{ env.EVERGREEN_PROJECT }}
+          token: ${{ github.token }}
+          repository_url: https://test.pypi.org/legacy/
+          dry_run: ${{ inputs.dry_run }}
