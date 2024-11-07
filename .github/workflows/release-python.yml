@@ -49,7 +49,6 @@ jobs:
         id: pre-publish
         with:
           version: ${{ inputs.version }}
-          version_bump_script: ./.github/scripts/bump-version.sh
           dry_run: ${{ inputs.dry_run }}
 
   build-dist:
@@ -91,7 +90,6 @@ jobs:
           product_name: ${{ env.PRODUCT_NAME }}
           silk_asset_group: ${{ env.SILK_ASSET_GROUP }}
           evergreen_project: ${{ env.EVERGREEN_PROJECT }}
-          version_bump_script: ./.github/scripts/bump-version.sh
           token: ${{ github.token }}
           repository_url: https://test.pypi.org/legacy/
           dry_run: ${{ inputs.dry_run }}
