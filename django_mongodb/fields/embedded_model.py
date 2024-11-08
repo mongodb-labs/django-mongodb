@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models.fields.related import lazy_related_operation
+from django.db.models.lookups import Transform
 
 
 class EmbeddedModelField(models.Field):
@@ -108,6 +109,12 @@ class EmbeddedModelField(models.Field):
         embedded_instance._state.adding = False
         return field_values
 
+    def get_transform(self, name):
+        transform = super().get_transform(name)
+        if transform:
+            return transform
+        return KeyTransformFactory(name)
+
     def validate(self, value, model_instance):
         super().validate(value, model_instance)
         if self.embedded_model is None:
@@ -115,3 +122,35 @@ class EmbeddedModelField(models.Field):
         for field in self.embedded_model._meta.fields:
             attname = field.attname
             field.validate(getattr(value, attname), model_instance)
+
+
+class KeyTransform(Transform):
+    def __init__(self, key_name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.key_name = str(key_name)
+
+    def preprocess_lhs(self, compiler, connection):
+        key_transforms = [self.key_name]
+        previous = self.lhs
+        while isinstance(previous, KeyTransform):
+            key_transforms.insert(0, previous.key_name)
+            previous = previous.lhs
+        mql = previous.as_mql(compiler, connection)
+        return mql, key_transforms
+
+
+def key_transform(self, compiler, connection):
+    mql, key_transforms = self.preprocess_lhs(compiler, connection)
+    return f"{mql}.{key_transforms[0]}"
+
+
+class KeyTransformFactory:
+    def __init__(self, key_name):
+        self.key_name = key_name
+
+    def __call__(self, *args, **kwargs):
+        return KeyTransform(self.key_name, *args, **kwargs)
+
+
+def register_embedded_model_field():
+    KeyTransform.as_mql = key_transform
