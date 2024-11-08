@@ -91,3 +91,37 @@ class ModelTests(TestCase):
         decimal = DecimalKey.objects.create(decimal=Decimal("1.5"))
         decimal_parent = DecimalParent.objects.create(child=decimal)
         EmbeddedModelFieldModel.objects.create(decimal_parent=decimal_parent)
+
+
+class QueryingTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.objs = [
+            EmbeddedModelFieldModel.objects.create(simple=EmbeddedModel(someint=x))
+            for x in range(6)
+        ]
+
+    def test_exact(self):
+        self.assertCountEqual(
+            EmbeddedModelFieldModel.objects.filter(simple__someint=3), [self.objs[3]]
+        )
+
+    def test_lt(self):
+        self.assertCountEqual(
+            EmbeddedModelFieldModel.objects.filter(simple__someint__lt=3), self.objs[:3]
+        )
+
+    def test_lte(self):
+        self.assertCountEqual(
+            EmbeddedModelFieldModel.objects.filter(simple__someint__lte=3), self.objs[:4]
+        )
+
+    def test_gt(self):
+        self.assertCountEqual(
+            EmbeddedModelFieldModel.objects.filter(simple__someint__gt=3), self.objs[4:]
+        )
+
+    def test_gte(self):
+        self.assertCountEqual(
+            EmbeddedModelFieldModel.objects.filter(simple__someint__gte=3), self.objs[3:]
+        )
