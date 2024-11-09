@@ -141,7 +141,8 @@ class KeyTransform(Transform):
 
 def key_transform(self, compiler, connection):
     mql, key_transforms = self.preprocess_lhs(compiler, connection)
-    return f"{mql}.{key_transforms[0]}"
+    transforms = ".".join(key_transforms)
+    return f"{mql}.{transforms}"
 
 
 class KeyTransformFactory:

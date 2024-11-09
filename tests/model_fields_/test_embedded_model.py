@@ -6,6 +6,9 @@ from django.test import SimpleTestCase, TestCase
 from django_mongodb.fields import EmbeddedModelField
 
 from .models import (
+    Address,
+    Author,
+    Book,
     DecimalKey,
     DecimalParent,
     EmbeddedModel,
@@ -125,3 +128,9 @@ class QueryingTests(TestCase):
         self.assertCountEqual(
             EmbeddedModelFieldModel.objects.filter(simple__someint__gte=3), self.objs[3:]
         )
+
+    def test_nested(self):
+        obj = Book.objects.create(
+            author=Author(name="Shakespeare", age=55, address=Address(city="NYC", state="NY"))
+        )
+        self.assertCountEqual(Book.objects.filter(author__address__city="NYC"), [obj])

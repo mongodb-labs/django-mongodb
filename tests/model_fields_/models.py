@@ -43,3 +43,19 @@ class EmbeddedModel(models.Model):
     someint = models.IntegerField(db_column="custom_column")
     auto_now = models.DateTimeField(auto_now=True)
     auto_now_add = models.DateTimeField(auto_now_add=True)
+
+
+class Address(models.Model):
+    city = models.CharField(max_length=20)
+    state = models.CharField(max_length=2)
+
+
+class Author(models.Model):
+    name = models.CharField(max_length=10)
+    age = models.IntegerField()
+    address = EmbeddedModelField(Address)
+
+
+class Book(models.Model):
+    name = models.CharField(max_length=100)
+    author = EmbeddedModelField(Author)
