@@ -48,6 +48,7 @@ class EmbeddedModel(models.Model):
 class Address(models.Model):
     city = models.CharField(max_length=20)
     state = models.CharField(max_length=2)
+    zip_code = models.IntegerField(db_index=True)
 
 
 class Author(models.Model):
