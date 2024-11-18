@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=65.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling", "hatch-requirements-txt>=0.4.1"]
+build-backend = "hatchling.build"
 
 [project]
 name = "django-mongodb"
-dynamic = ["version"]
+dynamic = ["version", "dependencies"]
 description = "MongoDB backend for Django"
 readme = "README.md"
 license = {file="LICENSE"}
@@ -31,10 +31,6 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = [
-    "django>=5.0,<5.1",
-    "pymongo>=4.6,<5.0",
-]
 
 [project.optional-dependencies]
 docs = [ "sphinx>=7"]
@@ -45,8 +41,12 @@ Documentation = "https://django-mongodb.readthedocs.io"
 Source = "https://github.com/mongodb-labs/django-mongodb"
 Tracker = "https://github.com/mongodb-labs/django-mongodb/issues"
 
-[tool.setuptools.dynamic]
-version = {attr = "django_mongodb.__version__"}
+[tool.hatch.version]
+path = "django_mongodb/__init__.py"
+validate-bump = false
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements.txt"]
 
 [tool.mypy]
 strict = true

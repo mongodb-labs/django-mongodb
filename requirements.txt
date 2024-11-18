@@ -1,0 +1,3 @@
+# NOTE: this needs to change per branch to track the django version.
+django>=5.0,<5.1
+pymongo>=4.6,<5.0
