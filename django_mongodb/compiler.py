@@ -434,13 +434,16 @@ class SQLCompiler(compiler.SQLCompiler):
         )
 
     @cached_property
-    def collection_name(self):
-        base_table = next(
+    def base_table(self):
+        return next(
             v
             for k, v in self.query.alias_map.items()
             if isinstance(v, BaseTable) and self.query.alias_refcount[k]
         )
-        return base_table.table_alias or base_table.table_name
+
+    @cached_property
+    def collection_name(self):
+        return self.base_table.table_alias or self.base_table.table_name
 
     @cached_property
     def collection(self):
@@ -469,6 +472,7 @@ class SQLCompiler(compiler.SQLCompiler):
                         )
                     )
                 compiler_.pre_sql_setup()
+                compiler_.column_indices = self.column_indices
                 columns = compiler_.get_columns()
                 parts.append((compiler_.build_query(columns), compiler_, columns))
             except EmptyResultSet:
@@ -496,7 +500,12 @@ class SQLCompiler(compiler.SQLCompiler):
             # Combine query with the current combinator pipeline.
             if combinator_pipeline:
                 combinator_pipeline.append(
-                    {"$unionWith": {"coll": compiler_.collection_name, "pipeline": inner_pipeline}}
+                    {
+                        "$unionWith": {
+                            "coll": compiler_.base_table.table_name,
+                            "pipeline": inner_pipeline,
+                        }
+                    }
                 )
             else:
                 combinator_pipeline = inner_pipeline

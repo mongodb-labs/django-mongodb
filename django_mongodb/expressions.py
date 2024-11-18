@@ -122,39 +122,44 @@ def query(self, compiler, connection, lookup_name=None):
     if lookup_name in ("in", "range"):
         if subquery.aggregation_pipeline is None:
             subquery.aggregation_pipeline = []
-        subquery.aggregation_pipeline.extend(
-            [
-                {
-                    "$facet": {
-                        "group": [
-                            {
-                                "$group": {
-                                    "_id": None,
-                                    "tmp_name": {
-                                        "$addToSet": expr.as_mql(subquery_compiler, connection)
-                                    },
-                                }
+        wrapping_result_pipeline = [
+            {
+                "$facet": {
+                    "group": [
+                        {
+                            "$group": {
+                                "_id": None,
+                                "tmp_name": {
+                                    "$addToSet": expr.as_mql(subquery_compiler, connection)
+                                },
                             }
+                        }
+                    ]
+                }
+            },
+            {
+                "$project": {
+                    field_name: {
+                        "$ifNull": [
+                            {
+                                "$getField": {
+                                    "input": {"$arrayElemAt": ["$group", 0]},
+                                    "field": "tmp_name",
+                                }
+                            },
+                            [],
                         ]
                     }
-                },
-                {
-                    "$project": {
-                        field_name: {
-                            "$ifNull": [
-                                {
-                                    "$getField": {
-                                        "input": {"$arrayElemAt": ["$group", 0]},
-                                        "field": "tmp_name",
-                                    }
-                                },
-                                [],
-                            ]
-                        }
-                    }
-                },
-            ]
-        )
+                }
+            },
+        ]
+        # If the subquery is a combinator, wrap the result at the end of the
+        # combinator pipeline...
+        if subquery.query.combinator:
+            subquery.combinator_pipeline.extend(wrapping_result_pipeline)
+        # ... otherwise put at the end of subquery's pipeline.
+        else:
+            subquery.aggregation_pipeline.extend(wrapping_result_pipeline)
         # Erase project_fields since the required value is projected above.
         subquery.project_fields = None
     compiler.subqueries.append(subquery)

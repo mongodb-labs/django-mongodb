@@ -73,11 +73,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Connection creation doesn't follow the usual Django API.
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
-        # Union as subquery is not mapping the parent parameter and collections:
-        # https://github.com/mongodb-labs/django-mongodb/issues/156
-        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_in_subquery_related_outerref",
-        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_in_subquery",
-        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_in_with_ordering",
         # ObjectId type mismatch in a subquery:
         # https://github.com/mongodb-labs/django-mongodb/issues/161
         "queries.tests.RelatedLookupTypeTests.test_values_queryset_lookup",
