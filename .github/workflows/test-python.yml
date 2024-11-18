@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout django-mongodb
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: install the django-mongodb backend
         run: |
           pip3 install --upgrade pip
@@ -33,6 +35,7 @@ jobs:
           repository: 'mongodb-forks/django'
           ref: 'mongodb-5.0.x'
           path: 'django_repo'
+          persist-credentials: false
       - name: Install system packages for Django's Python test dependencies
         run: |
           sudo apt-get update
