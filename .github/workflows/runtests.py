@@ -66,6 +66,7 @@ test_apps = [
     "get_or_create",
     "i18n",
     "indexes",
+    "indexes_",
     "inline_formsets",
     "introspection",
     "invalid_models_tests",

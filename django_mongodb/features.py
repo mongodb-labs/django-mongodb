@@ -1,3 +1,5 @@
+import operator
+
 from django.db.backends.base.features import BaseDatabaseFeatures
 from django.utils.functional import cached_property
 
@@ -21,12 +23,14 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_expression_indexes = False
     supports_foreign_keys = False
     supports_ignore_conflicts = False
+    # Before MongoDB 6.0, $in cannot be used in partialFilterExpression.
+    supports_in_index_operator = property(operator.attrgetter("is_mongodb_6_0"))
+    # Before MongoDB 6.0, $or cannot be used in partialFilterExpression.
+    supports_or_index_operator = property(operator.attrgetter("is_mongodb_6_0"))
     supports_json_field_contains = False
     # BSON Date type doesn't support microsecond precision.
     supports_microsecond_precision = False
     supports_paramstyle_pyformat = False
-    # Not implemented.
-    supports_partial_indexes = False
     supports_select_difference = False
     supports_select_intersection = False
     supports_sequence_reset = False
@@ -91,11 +95,16 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "expressions.tests.ExpressionOperatorTests.test_lefthand_bitwise_xor_right_null",
         "expressions.tests.ExpressionOperatorTests.test_lefthand_transformed_field_bitwise_or",
     }
+    _django_test_expected_failures_partial_expression_in = {
+        "schema.tests.SchemaTests.test_remove_ignored_unique_constraint_not_create_fk_index",
+    }
 
     @cached_property
     def django_test_expected_failures(self):
         expected_failures = super().django_test_expected_failures
         expected_failures.update(self._django_test_expected_failures)
+        if not self.supports_in_index_operator:
+            expected_failures.update(self._django_test_expected_failures_partial_expression_in)
         if not self.is_mongodb_6_3:
             expected_failures.update(self._django_test_expected_failures_bitwise)
         return expected_failures
@@ -560,9 +569,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             # Probably something to do with lack of transaction support.
             "migration_test_data_persistence.tests.MigrationDataNormalPersistenceTestCase.test_persistence",
         },
-        "Partial indexes to be supported.": {
-            "indexes.tests.PartialIndexConditionIgnoredTests.test_condition_ignored",
-        },
         "Database caching not implemented.": {
             "cache.tests.CreateCacheTableForDBCacheTests",
             "cache.tests.DBCacheTests",
@@ -596,6 +602,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "custom_lookups.tests.SubqueryTransformTests.test_subquery_usage",
         },
     }
+
+    @cached_property
+    def is_mongodb_6_0(self):
+        return self.connection.get_database_version() >= (6, 0)
 
     @cached_property
     def is_mongodb_6_3(self):

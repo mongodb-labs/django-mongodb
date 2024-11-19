@@ -436,14 +436,31 @@ class SQLCompiler(compiler.SQLCompiler):
     @cached_property
     def base_table(self):
         return next(
-            v
-            for k, v in self.query.alias_map.items()
-            if isinstance(v, BaseTable) and self.query.alias_refcount[k]
+            (
+                v
+                for k, v in self.query.alias_map.items()
+                if isinstance(v, BaseTable) and self.query.alias_refcount[k]
+            ),
+            None,
         )
 
     @cached_property
     def collection_name(self):
-        return self.base_table.table_alias or self.base_table.table_name
+        if self.base_table:
+            return self.base_table.table_alias or self.base_table.table_name
+        # Use a dummy collection if the query doesn't specify a table.
+        # For Constraint.validate():
+        # SELECT 1 WHERE EXISTS(subquery checking if a constraint is violated)
+        # is translated as:
+        # [{"$facet": {"__null": []}},
+        #  {"$lookup": {"the subquery"}},
+        #  {"$match": {"condition to check from the subquery"}}]
+        query = self.query_class(self)
+        # The "__null" document is a placeholder so that the subquery has
+        # somewhere to return its results.
+        query.aggregation_pipeline = [{"$facet": {"__null": []}}]
+        self.subqueries.insert(0, query)
+        return "__null"
 
     @cached_property
     def collection(self):
