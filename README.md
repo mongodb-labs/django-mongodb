@@ -183,4 +183,28 @@ Congratulations, your project is ready to go!
 
 ## Troubleshooting
 
-TODO
+### Debug logging
+
+To troubleshoot MongoDB connectivity issues, you can enable [PyMongo's logging](
+https://pymongo.readthedocs.io/en/stable/examples/logging.html) using
+[Django's `LOGGING` setting](https://docs.djangoproject.com/en/stable/topics/logging/).
+
+This is a minimal `LOGGING` setting that enables PyMongo's `DEBUG` logging:
+
+```python
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "pymongo": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+    },
+}
+```
