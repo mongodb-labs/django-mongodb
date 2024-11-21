@@ -17,11 +17,25 @@ release = _version("django_mongodb")
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+# If true, the current module name will be prepended to all description
+# unit titles (such as .. function::).
+add_module_names = False
+
+extensions = [
+    "sphinx.ext.intersphinx",
+]
 
 # templates_path = ["_templates"]
 exclude_patterns = []
 
+intersphinx_mapping = {
+    "django": (
+        "https://docs.djangoproject.com/en/5.0/",
+        "http://docs.djangoproject.com/en/5.0/_objects/",
+    ),
+    "pymongo": ("https://pymongo.readthedocs.io/en/stable/", None),
+    "python": ("https://docs.python.org/3/", None),
+}
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
