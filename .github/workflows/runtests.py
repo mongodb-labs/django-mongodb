@@ -120,6 +120,7 @@ test_apps = [
     "queries",
     "queries_",
     "queryset_pickle",
+    "raw_query_",
     "redirects_tests",
     "reserved_names",
     "reverse_lookup",
