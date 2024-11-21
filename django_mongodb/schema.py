@@ -69,7 +69,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             self.add_constraint(model, constraint)
         # Meta.indexes
         for index in model._meta.indexes:
-            self.add_index(model, index)
+            self.add_index(model, index, column_prefix=column_prefix, parent_model=parent_model)
 
     def delete_model(self, model):
         # Delete implicit M2m tables.

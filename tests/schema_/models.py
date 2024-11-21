@@ -17,9 +17,11 @@ class Address(models.Model):
     uid = models.IntegerField(unique=True)
     unique_together_one = models.CharField(max_length=10)
     unique_together_two = models.CharField(max_length=10)
+    indexed_by_index_one = models.CharField(max_length=10)
 
     class Meta:
         apps = new_apps
+        indexes = [models.Index(fields=["indexed_by_index_one"])]
         unique_together = [("unique_together_one", "unique_together_two")]
 
 
@@ -30,9 +32,11 @@ class Author(models.Model):
     employee_id = models.IntegerField(unique=True)
     unique_together_three = models.CharField(max_length=10)
     unique_together_four = models.CharField(max_length=10)
+    indexed_by_index_two = models.CharField(max_length=10)
 
     class Meta:
         apps = new_apps
+        indexes = [models.Index(fields=["indexed_by_index_two"])]
         unique_together = [("unique_together_three", "unique_together_four")]
 
 

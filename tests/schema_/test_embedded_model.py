@@ -224,3 +224,23 @@ class SchemaTests(TransactionTestCase):
             )
             editor.delete_model(Author)
         self.assertTableNotExists(Author)
+
+    def test_index(self):
+        """Meta.indexes on an embedded model."""
+        with connection.schema_editor() as editor:
+            editor.create_model(Book)
+            self.assertTableExists(Book)
+            # Embedded uniques are created.
+            self.assertEqual(
+                self.get_constraints_for_columns(Book, ["author.indexed_by_index_two"]),
+                ["schema__aut_indexed_7e3a5c_idx"],
+            )
+            self.assertEqual(
+                self.get_constraints_for_columns(
+                    Book,
+                    ["author.address.indexed_by_index_one"],
+                ),
+                ["schema__add_indexed_ef5dd6_idx"],
+            )
+            editor.delete_model(Author)
+        self.assertTableNotExists(Author)
