@@ -157,14 +157,18 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         super().init_connection_state()
 
     def get_connection_params(self):
-        settings_dict = self.settings_dict
-        return {
-            "host": settings_dict["HOST"] or None,
-            "port": int(settings_dict["PORT"] or 27017),
-            "username": settings_dict.get("USER"),
-            "password": settings_dict.get("PASSWORD"),
-            **settings_dict["OPTIONS"],
+        settings_dict = {
+            "host": self.settings_dict["HOST"] or None,
+            "port": int(self.settings_dict["PORT"] or None),
+            **self.settings_dict["OPTIONS"],
         }
+
+        if username := settings_dict.get("USER"):
+            settings_dict["username"] = username
+        if password := settings_dict.get("PASSWORD"):
+            settings_dict["password"] = password
+
+        return settings_dict
 
     def get_new_connection(self, conn_params):
         return MongoClient(**conn_params)
