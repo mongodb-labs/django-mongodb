@@ -1,7 +1,11 @@
 import itertools
 
-from django.db import connection
-from django.test import TransactionTestCase
+from django.db import connection, models
+from django.test import TransactionTestCase, ignore_warnings
+from django.test.utils import isolate_apps
+from django.utils.deprecation import RemovedInDjango51Warning
+
+from django_mongodb.fields import EmbeddedModelField
 
 from .models import Address, Author, Book, new_apps
 
@@ -199,6 +203,54 @@ class SchemaTests(TransactionTestCase):
             editor.delete_model(Book)
         self.assertTableNotExists(Author)
 
+    @ignore_warnings(category=RemovedInDjango51Warning)
+    @isolate_apps("schema_")
+    def test_index_together(self):
+        """Meta.index_together on an embedded model."""
+
+        class Address(models.Model):
+            index_together_one = models.CharField(max_length=10)
+            index_together_two = models.CharField(max_length=10)
+
+            class Meta:
+                app_label = "schema"
+                index_together = [("index_together_one", "index_together_two")]
+
+        class Author(models.Model):
+            address = EmbeddedModelField(Address)
+            index_together_three = models.CharField(max_length=10)
+            index_together_four = models.CharField(max_length=10)
+
+            class Meta:
+                app_label = "schema"
+                index_together = [("index_together_three", "index_together_four")]
+
+        class Book(models.Model):
+            author = EmbeddedModelField(Author)
+
+            class Meta:
+                app_label = "schema"
+
+        with connection.schema_editor() as editor:
+            editor.create_model(Book)
+            self.assertTableExists(Book)
+            # Embedded uniques are created.
+            self.assertEqual(
+                self.get_constraints_for_columns(
+                    Book, ["author.address.index_together_one", "author.address.index_together_two"]
+                ),
+                ["schema_addr_index_t_a0305a_idx"],
+            )
+            self.assertEqual(
+                self.get_constraints_for_columns(
+                    Book,
+                    ["author.index_together_three", "author.index_together_four"],
+                ),
+                ["schema_auth_index_t_65817b_idx"],
+            )
+            editor.delete_model(Author)
+        self.assertTableNotExists(Author)
+
     def test_unique_together(self):
         """Meta.unique_together on an embedded model."""
         with connection.schema_editor() as editor:
@@ -225,7 +277,7 @@ class SchemaTests(TransactionTestCase):
             editor.delete_model(Author)
         self.assertTableNotExists(Author)
 
-    def test_index(self):
+    def test_indexes(self):
         """Meta.indexes on an embedded model."""
         with connection.schema_editor() as editor:
             editor.create_model(Book)
@@ -241,6 +293,26 @@ class SchemaTests(TransactionTestCase):
                     ["author.address.indexed_by_index_one"],
                 ),
                 ["schema__add_indexed_ef5dd6_idx"],
+            )
+            editor.delete_model(Author)
+        self.assertTableNotExists(Author)
+
+    def test_constraints(self):
+        """Meta.constraints on an embedded model."""
+        with connection.schema_editor() as editor:
+            editor.create_model(Book)
+            self.assertTableExists(Book)
+            # Embedded uniques are created.
+            self.assertEqual(
+                self.get_constraints_for_columns(Book, ["author.unique_constraint_two"]),
+                ["unique_two"],
+            )
+            self.assertEqual(
+                self.get_constraints_for_columns(
+                    Book,
+                    ["author.address.unique_constraint_one"],
+                ),
+                ["unique_one"],
             )
             editor.delete_model(Author)
         self.assertTableNotExists(Author)

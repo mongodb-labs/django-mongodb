@@ -54,7 +54,9 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 self._add_field_unique(parent_model or model, field, column_prefix=column_prefix)
         # Meta.index_together (RemovedInDjango51Warning)
         for field_names in model._meta.index_together:
-            self._add_composed_index(model, field_names)
+            self._add_composed_index(
+                model, field_names, column_prefix=column_prefix, parent_model=parent_model
+            )
         # Meta.unique_together
         if model._meta.unique_together:
             self.alter_unique_together(
@@ -66,7 +68,9 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             )
         # Meta.constraints
         for constraint in model._meta.constraints:
-            self.add_constraint(model, constraint)
+            self.add_constraint(
+                model, constraint, column_prefix=column_prefix, parent_model=parent_model
+            )
         # Meta.indexes
         for index in model._meta.indexes:
             self.add_index(model, index, column_prefix=column_prefix, parent_model=parent_model)
@@ -153,7 +157,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             elif self._field_should_have_unique(field):
                 self._remove_field_unique(model, field)
 
-    def alter_index_together(self, model, old_index_together, new_index_together):
+    def alter_index_together(self, model, old_index_together, new_index_together, column_prefix=""):
         olds = {tuple(fields) for fields in old_index_together}
         news = {tuple(fields) for fields in new_index_together}
         # Deleted indexes
@@ -161,7 +165,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             self._remove_composed_index(model, field_names, {"index": True, "unique": False})
         # Created indexes
         for field_names in news.difference(olds):
-            self._add_composed_index(model, field_names)
+            self._add_composed_index(model, field_names, column_prefix=column_prefix)
 
     def alter_unique_together(
         self, model, old_unique_together, new_unique_together, column_prefix="", parent_model=None
@@ -229,11 +233,11 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         model = parent_model or model
         self.get_collection(model._meta.db_table).create_indexes([idx])
 
-    def _add_composed_index(self, model, field_names):
+    def _add_composed_index(self, model, field_names, column_prefix="", parent_model=None):
         """Add an index on the given list of field_names."""
         idx = Index(fields=field_names)
         idx.set_name_with_model(model)
-        self.add_index(model, idx)
+        self.add_index(model, idx, column_prefix=column_prefix, parent_model=parent_model)
 
     def _add_field_index(self, model, field, *, column_prefix=""):
         """Add an index on a field with db_index=True."""
