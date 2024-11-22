@@ -15,16 +15,9 @@ class Address(models.Model):
     state = models.CharField(max_length=2)
     zip_code = models.IntegerField(db_index=True)
     uid = models.IntegerField(unique=True)
-    unique_together_one = models.CharField(max_length=10)
-    unique_together_two = models.CharField(max_length=10)
-    indexed_by_index_one = models.CharField(max_length=10)
-    unique_constraint_one = models.CharField(max_length=10)
 
     class Meta:
         apps = new_apps
-        constraints = [models.UniqueConstraint(fields=["unique_constraint_one"], name="unique_one")]
-        indexes = [models.Index(fields=["indexed_by_index_one"])]
-        unique_together = [("unique_together_one", "unique_together_two")]
 
 
 class Author(models.Model):
@@ -32,16 +25,9 @@ class Author(models.Model):
     age = models.IntegerField(db_index=True)
     address = EmbeddedModelField(Address)
     employee_id = models.IntegerField(unique=True)
-    unique_together_three = models.CharField(max_length=10)
-    unique_together_four = models.CharField(max_length=10)
-    indexed_by_index_two = models.CharField(max_length=10)
-    unique_constraint_two = models.CharField(max_length=10)
 
     class Meta:
         apps = new_apps
-        constraints = [models.UniqueConstraint(fields=["unique_constraint_two"], name="unique_two")]
-        indexes = [models.Index(fields=["indexed_by_index_two"])]
-        unique_together = [("unique_together_three", "unique_together_four")]
 
 
 class Book(models.Model):

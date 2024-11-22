@@ -213,7 +213,7 @@ class SchemaTests(TransactionTestCase):
             index_together_two = models.CharField(max_length=10)
 
             class Meta:
-                app_label = "schema"
+                app_label = "schema_"
                 index_together = [("index_together_one", "index_together_two")]
 
         class Author(models.Model):
@@ -222,14 +222,14 @@ class SchemaTests(TransactionTestCase):
             index_together_four = models.CharField(max_length=10)
 
             class Meta:
-                app_label = "schema"
+                app_label = "schema_"
                 index_together = [("index_together_three", "index_together_four")]
 
         class Book(models.Model):
             author = EmbeddedModelField(Author)
 
             class Meta:
-                app_label = "schema"
+                app_label = "schema_"
 
         with connection.schema_editor() as editor:
             editor.create_model(Book)
@@ -239,20 +239,45 @@ class SchemaTests(TransactionTestCase):
                 self.get_constraints_for_columns(
                     Book, ["author.address.index_together_one", "author.address.index_together_two"]
                 ),
-                ["schema_addr_index_t_a0305a_idx"],
+                ["schema__add_index_t_efa93e_idx"],
             )
             self.assertEqual(
                 self.get_constraints_for_columns(
                     Book,
                     ["author.index_together_three", "author.index_together_four"],
                 ),
-                ["schema_auth_index_t_65817b_idx"],
+                ["schema__aut_index_t_df32aa_idx"],
             )
-            editor.delete_model(Author)
-        self.assertTableNotExists(Author)
+            editor.delete_model(Book)
+        self.assertTableNotExists(Book)
 
+    @isolate_apps("schema_")
     def test_unique_together(self):
         """Meta.unique_together on an embedded model."""
+
+        class Address(models.Model):
+            unique_together_one = models.CharField(max_length=10)
+            unique_together_two = models.CharField(max_length=10)
+
+            class Meta:
+                app_label = "schema_"
+                unique_together = [("unique_together_one", "unique_together_two")]
+
+        class Author(models.Model):
+            address = EmbeddedModelField(Address)
+            unique_together_three = models.CharField(max_length=10)
+            unique_together_four = models.CharField(max_length=10)
+
+            class Meta:
+                app_label = "schema_"
+                unique_together = [("unique_together_three", "unique_together_four")]
+
+        class Book(models.Model):
+            author = EmbeddedModelField(Author)
+
+            class Meta:
+                app_label = "schema_"
+
         with connection.schema_editor() as editor:
             editor.create_model(Book)
             self.assertTableExists(Book)
@@ -274,31 +299,81 @@ class SchemaTests(TransactionTestCase):
                     "schema__address_author.address.unique_together_one_author.address.unique_together_two_de682e30_uniq"
                 ],
             )
-            editor.delete_model(Author)
-        self.assertTableNotExists(Author)
+            editor.delete_model(Book)
+        self.assertTableNotExists(Book)
 
+    @isolate_apps("schema_")
     def test_indexes(self):
         """Meta.indexes on an embedded model."""
+
+        class Address(models.Model):
+            indexed_one = models.CharField(max_length=10)
+
+            class Meta:
+                app_label = "schema_"
+                indexes = [models.Index(fields=["indexed_one"])]
+
+        class Author(models.Model):
+            address = EmbeddedModelField(Address)
+            indexed_two = models.CharField(max_length=10)
+
+            class Meta:
+                app_label = "schema_"
+                indexes = [models.Index(fields=["indexed_two"])]
+
+        class Book(models.Model):
+            author = EmbeddedModelField(Author)
+
+            class Meta:
+                app_label = "schema_"
+
         with connection.schema_editor() as editor:
             editor.create_model(Book)
             self.assertTableExists(Book)
             # Embedded uniques are created.
             self.assertEqual(
-                self.get_constraints_for_columns(Book, ["author.indexed_by_index_two"]),
-                ["schema__aut_indexed_7e3a5c_idx"],
+                self.get_constraints_for_columns(Book, ["author.indexed_two"]),
+                ["schema__aut_indexed_b19137_idx"],
             )
             self.assertEqual(
                 self.get_constraints_for_columns(
                     Book,
-                    ["author.address.indexed_by_index_one"],
+                    ["author.address.indexed_one"],
                 ),
-                ["schema__add_indexed_ef5dd6_idx"],
+                ["schema__add_indexed_b64972_idx"],
             )
             editor.delete_model(Author)
         self.assertTableNotExists(Author)
 
+    @isolate_apps("schema_")
     def test_constraints(self):
         """Meta.constraints on an embedded model."""
+
+        class Address(models.Model):
+            unique_constraint_one = models.CharField(max_length=10)
+
+            class Meta:
+                app_label = "schema_"
+                constraints = [
+                    models.UniqueConstraint(fields=["unique_constraint_one"], name="unique_one")
+                ]
+
+        class Author(models.Model):
+            address = EmbeddedModelField(Address)
+            unique_constraint_two = models.CharField(max_length=10)
+
+            class Meta:
+                app_label = "schema_"
+                constraints = [
+                    models.UniqueConstraint(fields=["unique_constraint_two"], name="unique_two")
+                ]
+
+        class Book(models.Model):
+            author = EmbeddedModelField(Author)
+
+            class Meta:
+                app_label = "schema_"
+
         with connection.schema_editor() as editor:
             editor.create_model(Book)
             self.assertTableExists(Book)
