@@ -159,7 +159,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     def get_connection_params(self):
         settings_dict = {
             "host": self.settings_dict["HOST"] or None,
-            "port": int(self.settings_dict["PORT"] or None),
+            "port": int(self.settings_dict["PORT"] or 27017),
             **self.settings_dict["OPTIONS"],
         }
 
