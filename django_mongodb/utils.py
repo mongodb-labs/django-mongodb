@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.utils import logger
 from django.utils.version import get_version_tuple
+from pymongo.uri_parser import parse_uri
 
 
 def check_django_compatability():
@@ -23,6 +24,16 @@ def check_django_compatability():
             f"You must use the latest version of django-mongodb {A}.{B}.x "
             f"with Django {A}.{B}.y (found django-mongodb {__version__})."
         )
+
+
+def parse(uri):
+    uri = parse_uri(uri)
+    return {
+        "ENGINE": "django_mongodb",
+        "HOST": uri["fqdn"] or None,
+        "USERNAME": uri.get("username"),
+        "PASSWORD": uri.get("password"),
+    }
 
 
 def set_wrapped_methods(cls):
