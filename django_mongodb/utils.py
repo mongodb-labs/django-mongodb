@@ -28,23 +28,29 @@ def check_django_compatability():
 
 def parse(uri):
     uri = parse_uri(uri)
-
-    # If fqdn is None then this is not a SRV URI, so we need to extract the port
-    # from the first node in the nodelist.
+    name = None
     port = None
+
     if uri["fqdn"] is None:
+        # If fqdn is None then this is not a SRV URI, so we need to extract the
+        # port from the first node in the nodelist.
         if "nodelist" in uri and isinstance(uri["nodelist"], list) and len(uri["nodelist"]) > 0:
             first_node = uri["nodelist"][0]
             if isinstance(first_node, tuple) and len(first_node) > 1 and isinstance(first_node[1], int):
                 port = first_node[1]
+    else:
+        # The fqdn is not none so we need to add the mongodb+srv:// prefix to the host.
+        host = f"mongodb+srv://{uri['fqdn']}"
 
-    return {
+    url = {
         "ENGINE": "django_mongodb",
-        "HOST": uri["fqdn"] or None,
+        "NAME": uri["database"],
+        "HOST": host,
         "PORT": port,
         "USERNAME": uri.get("username"),
         "PASSWORD": uri.get("password"),
     }
+    return(url)
 
 
 def set_wrapped_methods(cls):
