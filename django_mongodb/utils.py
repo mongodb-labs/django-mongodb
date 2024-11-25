@@ -28,9 +28,20 @@ def check_django_compatability():
 
 def parse(uri):
     uri = parse_uri(uri)
+
+    # If fqdn is None then this is not a SRV URI, so we need to extract the port
+    # from the first node in the nodelist.
+    port = None
+    if uri["fqdn"] is None:
+        if "nodelist" in uri and isinstance(uri["nodelist"], list) and len(uri["nodelist"]) > 0:
+            first_node = uri["nodelist"][0]
+            if isinstance(first_node, tuple) and len(first_node) > 1 and isinstance(first_node[1], int):
+                port = first_node[1]
+
     return {
         "ENGINE": "django_mongodb",
         "HOST": uri["fqdn"] or None,
+        "PORT": port,
         "USERNAME": uri.get("username"),
         "PASSWORD": uri.get("password"),
     }
