@@ -26,7 +26,7 @@ def check_django_compatability():
         )
 
 
-def parse(uri):
+def parse(uri, **kwargs):
     uri = parse_uri(uri)
     host = None
     port = None
@@ -50,6 +50,9 @@ def parse(uri):
 
     if port:
         settings_dict["PORT"] = port
+
+    if kwargs:
+        settings_dict.update(kwargs)
 
     return settings_dict
 
