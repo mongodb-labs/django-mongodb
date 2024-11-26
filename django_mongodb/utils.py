@@ -36,10 +36,11 @@ def parse(uri, **kwargs):
         # If the fqdn is present, this is a SRV URI and the host is the fqdn.
         host = f"mongodb+srv://{uri['fqdn']}"
     else:
-        if len(uri("nodelist")) == 1:
-            host, port = uri("nodelist")[0].split(":")
-        elif len(uri("nodelist")) > 1:
-            host = ",".join(uri["nodelist"])
+        nodelist = uri.get("nodelist")
+        if len(nodelist) == 1:
+            host, port = nodelist[0].split(":")
+        elif len(nodelist) > 1:
+            host = ",".join([f"{host}:{port}" for host, port in nodelist])
 
     settings_dict = {
         "ENGINE": "django_mongodb",
