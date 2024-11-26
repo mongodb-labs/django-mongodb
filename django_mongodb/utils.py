@@ -38,7 +38,8 @@ def parse(uri, **kwargs):
     else:
         # If the fqdn is not present, this is a standard URI and the host and
         # port are in the nodelist.
-        host, port = [f"{node[0]}:{node[1]}" for node in uri["nodelist"]][0].split(":")  # noqa: RUF015
+        nodelist = [f"{node[0]}:{node[1]}" for node in uri["nodelist"]]
+        host, port = nodelist[0].split(":")
 
     settings_dict = {
         "ENGINE": "django_mongodb",
