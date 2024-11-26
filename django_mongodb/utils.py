@@ -31,14 +31,13 @@ def parse(uri):
     host = None
     port = None
 
-    if uri["fqdn"] is None:
-        # If fqdn is None this is not a SRV URI so extract host and port from
-        # the first node in nodelist.
-        host, port = [f"{node[0]}:{node[1]}" for node in uri["nodelist"]][0].split(":")
-    else:
-        # The fqdn is not none so we need to add the mongodb+srv:// prefix to
-        # the host.
+    if uri["fqdn"] is not None:
+        # If the fqdn is present, this is a SRV URI and the host is the fqdn.
         host = f"mongodb+srv://{uri['fqdn']}"
+    else:
+        # If the fqdn is not present, this is a standard URI and the host and
+        # port are in the nodelist.
+        host, port = [f"{node[0]}:{node[1]}" for node in uri["nodelist"]].next().split(":")
 
     settings_dict = {
         "ENGINE": "django_mongodb",
