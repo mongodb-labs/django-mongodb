@@ -28,21 +28,16 @@ def check_django_compatability():
 
 def parse(uri):
     uri = parse_uri(uri)
+    host = None
     port = None
 
     if uri["fqdn"] is None:
-        # If fqdn is None this is not a SRV URI so extract port from the first
-        # node in nodelist.
-        if "nodelist" in uri and isinstance(uri["nodelist"], list) and len(uri["nodelist"]) > 0:
-            first_node = uri["nodelist"][0]
-            if (
-                isinstance(first_node, tuple)
-                and len(first_node) > 1
-                and isinstance(first_node[1], int)
-            ):
-                port = first_node[1]
+        # If fqdn is None this is not a SRV URI so extract host and port from
+        # the first node in nodelist.
+        host, port = [f"{node[0]}:{node[1]}" for node in uri["nodelist"]][0].split(":")
     else:
-        # The fqdn is not none so we need to add the mongodb+srv:// prefix to the host.
+        # The fqdn is not none so we need to add the mongodb+srv:// prefix to
+        # the host.
         host = f"mongodb+srv://{uri['fqdn']}"
 
     settings_dict = {
