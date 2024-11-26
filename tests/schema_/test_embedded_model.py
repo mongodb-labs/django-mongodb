@@ -395,7 +395,7 @@ class SchemaTests(TransactionTestCase):
     # SchemaEditor.add_field() / remove_field() tests
     @isolate_apps("schema_")
     def test_add_remove_field_db_index_and_unique(self):
-        """AddField + EmbeddedModelField"""
+        """AddField/RemoveField + EmbeddedModelField + Field(db_index=True) & Field(unique=True)."""
 
         class Book(models.Model):
             name = models.CharField(max_length=100)
@@ -451,7 +451,7 @@ class SchemaTests(TransactionTestCase):
     @ignore_warnings(category=RemovedInDjango51Warning)
     @isolate_apps("schema_")
     def test_add_remove_field_index_together(self):
-        """Meta.index_together on an embedded model."""
+        """AddField/RemoveField + EmbeddedModelField + Meta.index_together."""
 
         class Address(models.Model):
             index_together_one = models.CharField(max_length=10)
@@ -506,6 +506,75 @@ class SchemaTests(TransactionTestCase):
                 self.get_constraints_for_columns(
                     Book,
                     ["author.index_together_three", "author.index_together_four"],
+                ),
+                [],
+            )
+            editor.delete_model(Book)
+        self.assertTableNotExists(Book)
+
+    @isolate_apps("schema_")
+    def test_add_remove_field_unique_together(self):
+        """AddField/RemoveField + EmbeddedModelField + Meta.unique_together."""
+
+        class Address(models.Model):
+            unique_together_one = models.CharField(max_length=10)
+            unique_together_two = models.CharField(max_length=10)
+
+            class Meta:
+                app_label = "schema_"
+                unique_together = [("unique_together_one", "unique_together_two")]
+
+        class Author(models.Model):
+            address = EmbeddedModelField(Address)
+            unique_together_three = models.CharField(max_length=10)
+            unique_together_four = models.CharField(max_length=10)
+
+            class Meta:
+                app_label = "schema_"
+                unique_together = [("unique_together_three", "unique_together_four")]
+
+        class Book(models.Model):
+            author = EmbeddedModelField(Author)
+
+            class Meta:
+                app_label = "schema_"
+
+        new_field = EmbeddedModelField(Author)
+        new_field.set_attributes_from_name("author")
+        with connection.schema_editor() as editor:
+            # Create the table amd add the field.
+            editor.create_model(Book)
+            editor.add_field(Book, new_field)
+            # Embedded uniques are created.
+            self.assertEqual(
+                self.get_constraints_for_columns(
+                    Book, ["author.unique_together_three", "author.unique_together_four"]
+                ),
+                [
+                    "schema__author_author.unique_together_three_author.unique_together_four_39e1cb43_uniq"
+                ],
+            )
+            self.assertEqual(
+                self.get_constraints_for_columns(
+                    Book,
+                    ["author.address.unique_together_one", "author.address.unique_together_two"],
+                ),
+                [
+                    "schema__address_author.address.unique_together_one_author.address.unique_together_two_de682e30_uniq"
+                ],
+            )
+            editor.remove_field(Book, new_field)
+            # Embedded indexes are removed.
+            self.assertEqual(
+                self.get_constraints_for_columns(
+                    Book, ["author.unique_together_three", "author.unique_together_four"]
+                ),
+                [],
+            )
+            self.assertEqual(
+                self.get_constraints_for_columns(
+                    Book,
+                    ["author.address.unique_together_one", "author.address.unique_together_two"],
                 ),
                 [],
             )

@@ -235,6 +235,8 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 model,
                 field_names,
                 {"unique": True, "primary_key": False},
+                column_prefix=column_prefix,
+                parent_model=parent_model,
             )
         # Created uniques
         for field_names in news.difference(olds):
