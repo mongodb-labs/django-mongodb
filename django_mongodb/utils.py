@@ -31,8 +31,8 @@ def parse(uri):
     port = None
 
     if uri["fqdn"] is None:
-        # If fqdn is None then this is not a SRV URI, so we need to extract the
-        # port from the first node in the nodelist.
+        # If fqdn is None this is not a SRV URI so extract port from the first
+        # node in nodelist.
         if "nodelist" in uri and isinstance(uri["nodelist"], list) and len(uri["nodelist"]) > 0:
             first_node = uri["nodelist"][0]
             if (
@@ -45,7 +45,7 @@ def parse(uri):
         # The fqdn is not none so we need to add the mongodb+srv:// prefix to the host.
         host = f"mongodb+srv://{uri['fqdn']}"
 
-    url = {
+    settings_dict = {
         "ENGINE": "django_mongodb",
         "NAME": uri["database"],
         "HOST": host,
@@ -54,9 +54,9 @@ def parse(uri):
     }
 
     if port:
-        url["PORT"] = port
+        settings_dict["PORT"] = port
 
-    return url
+    return settings_dict
 
 
 def set_wrapped_methods(cls):

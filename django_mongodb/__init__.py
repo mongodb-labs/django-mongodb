@@ -14,6 +14,8 @@ from .indexes import register_indexes  # noqa: E402
 from .lookups import register_lookups  # noqa: E402
 from .query import register_nodes  # noqa: E402
 
+__all__ = ['parse']
+
 register_aggregates()
 register_expressions()
 register_fields()
