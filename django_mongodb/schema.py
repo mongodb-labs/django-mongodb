@@ -97,7 +97,6 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             self._create_model_indexes(
                 field.embedded_model, parent_model=model, column_prefix=new_path
             )
-
         # Add an index or unique, if required.
         if self._field_should_be_indexed(model, field):
             self._add_field_index(model, field)
@@ -162,13 +161,65 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 self._remove_field_index(model, field)
             elif self._field_should_have_unique(field):
                 self._remove_field_unique(model, field)
+        if isinstance(field, EmbeddedModelField):
+            new_path = f"{field.column}."
+            self._remove_model_indexes(
+                field.embedded_model, parent_model=model, column_prefix=new_path
+            )
+
+    def _remove_model_indexes(self, model, column_prefix="", parent_model=None):
+        """
+        When removing an EmbeddedModelField, the indexes need to be removed
+        recursively.
+        """
+        if not model._meta.managed or model._meta.proxy or model._meta.swapped:
+            return
+        # Field indexes and uniques
+        for field in model._meta.local_fields:
+            if isinstance(field, EmbeddedModelField):
+                new_path = f"{column_prefix}{field.column}."
+                self._remove_model_indexes(
+                    field.embedded_model, parent_model=parent_model or model, column_prefix=new_path
+                )
+            if self._field_should_be_indexed(model, field):
+                self._remove_field_index(parent_model or model, field, column_prefix=column_prefix)
+            elif self._field_should_have_unique(field):
+                self._remove_field_unique(parent_model or model, field, column_prefix=column_prefix)
+        # Meta.index_together (RemovedInDjango51Warning)
+        for field_names in model._meta.index_together:
+            self._remove_composed_index(
+                model,
+                field_names,
+                {"index": True, "unique": False},
+                column_prefix=column_prefix,
+                parent_model=parent_model,
+            )
+        # Meta.unique_together
+        if model._meta.unique_together:
+            self.alter_unique_together(
+                model,
+                model._meta.unique_together,
+                [],
+                column_prefix=column_prefix,
+                parent_model=parent_model,
+            )
+        # Meta.constraints
+        for constraint in model._meta.constraints:
+            self.remove_constraint(
+                model, constraint, column_prefix=column_prefix, parent_model=parent_model
+            )
+        # Meta.indexes
+        for index in model._meta.indexes:
+            self.remove_index(model, index, column_prefix=column_prefix, parent_model=parent_model)
 
     def alter_index_together(self, model, old_index_together, new_index_together, column_prefix=""):
         olds = {tuple(fields) for fields in old_index_together}
         news = {tuple(fields) for fields in new_index_together}
         # Deleted indexes
         for field_names in olds.difference(news):
-            self._remove_composed_index(model, field_names, {"index": True, "unique": False})
+            self._remove_composed_index(
+                model, field_names, {"index": True, "unique": False}, column_prefix=""
+            )
         # Created indexes
         for field_names in news.difference(olds):
             self._add_composed_index(model, field_names, column_prefix=column_prefix)
@@ -256,16 +307,18 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             return
         self.get_collection(model._meta.db_table).drop_index(index.name)
 
-    def _remove_composed_index(self, model, field_names, constraint_kwargs):
+    def _remove_composed_index(
+        self, model, field_names, constraint_kwargs, column_prefix="", parent_model=None
+    ):
         """
         Remove the index on the given list of field_names created by
         index/unique_together, depending on constraint_kwargs.
         """
         meta_constraint_names = {constraint.name for constraint in model._meta.constraints}
         meta_index_names = {constraint.name for constraint in model._meta.indexes}
-        columns = [model._meta.get_field(field).column for field in field_names]
+        columns = [column_prefix + model._meta.get_field(field).column for field in field_names]
         constraint_names = self._constraint_names(
-            model,
+            parent_model or model,
             columns,
             exclude=meta_constraint_names | meta_index_names,
             **constraint_kwargs,
@@ -277,16 +330,17 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 f"Found wrong number ({num_found}) of constraints for "
                 f"{model._meta.db_table}({columns_str})."
             )
+        model = parent_model or model
         collection = self.get_collection(model._meta.db_table)
         collection.drop_index(constraint_names[0])
 
-    def _remove_field_index(self, model, field):
+    def _remove_field_index(self, model, field, column_prefix=""):
         """Remove a field's db_index=True index."""
         collection = self.get_collection(model._meta.db_table)
         meta_index_names = {index.name for index in model._meta.indexes}
         index_names = self._constraint_names(
             model,
-            [field.column],
+            [column_prefix + field.column],
             index=True,
             # Retrieve only BTREE indexes since this is what's created with
             # db_index=True.
@@ -345,12 +399,12 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             )
             self.remove_index(model, idx)
 
-    def _remove_field_unique(self, model, field):
+    def _remove_field_unique(self, model, field, column_prefix=""):
         # Find the unique constraint for this field
         meta_constraint_names = {constraint.name for constraint in model._meta.constraints}
         constraint_names = self._constraint_names(
             model,
-            [field.column],
+            [column_prefix + field.column],
             unique=True,
             primary_key=False,
             exclude=meta_constraint_names,
