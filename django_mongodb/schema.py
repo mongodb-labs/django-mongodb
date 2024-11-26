@@ -205,12 +205,10 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             )
         # Meta.constraints
         for constraint in model._meta.constraints:
-            self.remove_constraint(
-                model, constraint, column_prefix=column_prefix, parent_model=parent_model
-            )
+            self.remove_constraint(parent_model or model, constraint)
         # Meta.indexes
         for index in model._meta.indexes:
-            self.remove_index(model, index, column_prefix=column_prefix, parent_model=parent_model)
+            self.remove_index(parent_model or model, index)
 
     def alter_index_together(self, model, old_index_together, new_index_together, column_prefix=""):
         olds = {tuple(fields) for fields in old_index_together}
