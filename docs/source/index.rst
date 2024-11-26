@@ -5,6 +5,7 @@ django-mongodb 5.0.x documentation
    :maxdepth: 1
    :caption: Contents:
 
+   databases
    querysets
 
 Indices and tables
