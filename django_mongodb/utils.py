@@ -28,6 +28,7 @@ def check_django_compatability():
 
 def parse(uri, **kwargs):
     uri = parse_uri(uri)
+
     host = None
     port = None
 
@@ -37,19 +38,17 @@ def parse(uri, **kwargs):
     else:
         # If the fqdn is not present, this is a standard URI and the host and
         # port are in the nodelist.
-        host, port = [f"{node[0]}:{node[1]}" for node in uri["nodelist"]].next().split(":")
+        host, port = [f"{node[0]}:{node[1]}" for node in uri["nodelist"]][0].split(":")  # noqa: RUF015
 
     settings_dict = {
         "ENGINE": "django_mongodb",
         "NAME": uri["database"],
         "HOST": host,
+        "PORT": port,
         "USER": uri.get("username"),
         "PASSWORD": uri.get("password"),
         "OPTIONS": uri.get("options"),
     }
-
-    if port:
-        settings_dict["PORT"] = port
 
     if kwargs:
         settings_dict.update(kwargs)
