@@ -163,7 +163,7 @@ class SchemaTests(TransactionTestCase):
     def assertTableNotExists(self, model):
         self.assertNotIn(model._meta.db_table, connection.introspection.table_names())
 
-    # Tests
+    # SchemaEditor.create_model() tests
     def test_db_index(self):
         """Field(db_index=True) on an embedded model."""
         with connection.schema_editor() as editor:
@@ -390,4 +390,34 @@ class SchemaTests(TransactionTestCase):
                 ["unique_one"],
             )
             editor.delete_model(Author)
+        self.assertTableNotExists(Author)
+
+    # SchemaEditor.add_field() tests
+    @isolate_apps("schema_")
+    def test_add_field_db_index(self):
+        """AddField + EmbeddedModelField"""
+
+        class Book(models.Model):
+            name = models.CharField(max_length=100)
+
+            class Meta:
+                app_label = "schema_"
+
+        new_field = EmbeddedModelField(Author)
+        new_field.set_attributes_from_name("author")
+
+        with connection.schema_editor() as editor:
+            # Create the table amd add the field.
+            editor.create_model(Book)
+            editor.add_field(Book, new_field)
+            # Embedded indexes are created.
+            self.assertEqual(
+                self.get_constraints_for_columns(Book, ["author.age"]),
+                ["schema__book_author.age_dc08100b"],
+            )
+            self.assertEqual(
+                self.get_constraints_for_columns(Book, ["author.address.zip_code"]),
+                ["schema__book_author.address.zip_code_7b9a9307"],
+            )
+            editor.delete_model(Book)
         self.assertTableNotExists(Author)

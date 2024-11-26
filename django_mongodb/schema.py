@@ -92,6 +92,12 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             self.get_collection(model._meta.db_table).update_many(
                 {}, [{"$set": {column: self.effective_default(field)}}]
             )
+        if isinstance(field, EmbeddedModelField):
+            new_path = f"{field.column}."
+            self._create_model_indexes(
+                field.embedded_model, parent_model=model, column_prefix=new_path
+            )
+
         # Add an index or unique, if required.
         if self._field_should_be_indexed(model, field):
             self._add_field_index(model, field)
