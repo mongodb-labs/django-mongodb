@@ -45,6 +45,7 @@ def parse(uri):
         "HOST": host,
         "USER": uri.get("username"),
         "PASSWORD": uri.get("password"),
+        "OPTIONS": uri.get("options"),
     }
 
     if port:
