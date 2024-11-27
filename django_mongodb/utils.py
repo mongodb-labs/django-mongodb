@@ -26,7 +26,7 @@ def check_django_compatability():
         )
 
 
-def parse(uri, **kwargs):
+def parse(uri):
     uri = parse_uri(uri)
 
     host = None
@@ -42,7 +42,7 @@ def parse(uri, **kwargs):
         elif len(nodelist) > 1:
             host = ",".join([f"{host}:{port}" for host, port in nodelist])
 
-    settings_dict = {
+    return {
         "ENGINE": "django_mongodb",
         "NAME": uri["database"],
         "HOST": host,
@@ -51,11 +51,6 @@ def parse(uri, **kwargs):
         "PASSWORD": uri.get("password"),
         "OPTIONS": uri.get("options"),
     }
-
-    if kwargs:
-        settings_dict.update(kwargs)
-
-    return settings_dict
 
 
 def set_wrapped_methods(cls):
