@@ -2,6 +2,8 @@ from django.db import models
 from django.db.models.fields.related import lazy_related_operation
 from django.db.models.lookups import Transform
 
+from .. import forms
+
 
 class EmbeddedModelField(models.Field):
     """Field that stores a model instance."""
@@ -122,6 +124,16 @@ class EmbeddedModelField(models.Field):
         for field in self.embedded_model._meta.fields:
             attname = field.attname
             field.validate(getattr(value, attname), model_instance)
+
+    def formfield(self, **kwargs):
+        return super().formfield(
+            **{
+                "form_class": forms.EmbeddedModelFormField,
+                "model": self.embedded_model,
+                "name": self.name,
+                **kwargs,
+            }
+        )
 
 
 class KeyTransform(Transform):
