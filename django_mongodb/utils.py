@@ -27,7 +27,7 @@ def check_django_compatability():
 
 
 def parse(uri):
-    uri = parse_uri(uri)
+    uri = parse_uri(str(uri))
 
     host = None
     port = None
