@@ -22,5 +22,5 @@ class MongoParseURITests(SimpleTestCase):
         self.assertEqual(settings_dict["NAME"], "myDatabase")
         self.assertEqual(settings_dict["HOST"], "mongodb+srv://cluster0.example.mongodb.net")
         self.assertEqual(settings_dict["USER"], "myDatabaseUser")
-        self.assertEqual(settings_dict["PASSWORD"], "D1fficultP%40ssw0rd")
-        self.assertEqual(settings_dict["PORT"], 27017)
+        self.assertEqual(settings_dict["PASSWORD"], "D1fficultP@ssw0rd")
+        self.assertEqual(settings_dict["PORT"], None)
