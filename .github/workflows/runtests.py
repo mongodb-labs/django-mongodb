@@ -151,6 +151,7 @@ test_apps = [
     "update",
     "update_only_fields",
     "user_commands",
+    "utils_",
     "validation",
     "view_tests",
     "xor_lookups",
