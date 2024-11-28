@@ -38,7 +38,7 @@ def parse(uri):
     else:
         nodelist = uri.get("nodelist")
         if len(nodelist) == 1:
-            host, port = nodelist[0].split(":")
+            host, port = nodelist[0]
         elif len(nodelist) > 1:
             host = ",".join([f"{host}:{port}" for host, port in nodelist])
 
