@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+import pymongo
 from django.test import SimpleTestCase
 
 import django_mongodb
@@ -18,6 +19,13 @@ class MongoParseURITests(SimpleTestCase):
         self.patcher = patch("dns.resolver.resolve", return_value=[self.srv_record])
         self.mock_resolver = self.patcher.start()
         self.addCleanup(self.patcher.stop)
+
+    @patch("dns.resolver.resolve")
+    def test_uri(self, mock_resolver):
+        settings_dict = django_mongodb.parse("mongodb://cluster0.example.mongodb.net/myDatabase")
+        self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
+        self.assertEqual(settings_dict["NAME"], "myDatabase")
+        self.assertEqual(settings_dict["HOST"], "cluster0.example.mongodb.net")
 
     @patch("dns.resolver.resolve")
     def test_srv_uri_with_options(self, mock_resolver):
@@ -56,3 +64,8 @@ class MongoParseURITests(SimpleTestCase):
     def test_test_kwarg(self, mock_resolver):
         settings_dict = django_mongodb.parse(URI, test={"NAME": "test_db"})
         self.assertEqual(settings_dict["TEST"]["NAME"], "test_db")
+
+    @patch("dns.resolver.resolve")
+    def test_uri_no_prefix(self, mock_resolver):
+        with self.assertRaises(pymongo.errors.InvalidURI):
+            django_mongodb.parse("cluster0.example.mongodb.net/myDatabase")
