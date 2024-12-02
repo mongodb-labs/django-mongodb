@@ -4,7 +4,7 @@ from django.test import SimpleTestCase
 
 import django_mongodb
 
-URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority"
+URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
 
 
 class MongoParseURITests(SimpleTestCase):
@@ -20,7 +20,7 @@ class MongoParseURITests(SimpleTestCase):
         self.addCleanup(self.patcher.stop)
 
     @patch("dns.resolver.resolve")
-    def test_parse(self, mock_resolver):
+    def test_srv_uri_with_options(self, mock_resolver):
         settings_dict = django_mongodb.parse(URI)
         self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
         self.assertEqual(settings_dict["NAME"], "myDatabase")
@@ -28,6 +28,9 @@ class MongoParseURITests(SimpleTestCase):
         self.assertEqual(settings_dict["USER"], "myDatabaseUser")
         self.assertEqual(settings_dict["PASSWORD"], "D1fficultP@ssw0rd")
         self.assertEqual(settings_dict["PORT"], None)
+        self.assertEqual(
+            settings_dict["OPTIONS"], {"retryWrites": True, "w": "majority", "tls": False}
+        )
 
     @patch("dns.resolver.resolve")
     def test_engine_kwarg(self, mock_resolver):
