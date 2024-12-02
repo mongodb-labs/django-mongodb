@@ -33,3 +33,13 @@ class MongoParseURITests(SimpleTestCase):
     def test_engine_kwarg(self, mock_resolver):
         settings_dict = django_mongodb.parse(URI, engine="some_other_engine")
         self.assertEqual(settings_dict["ENGINE"], "some_other_engine")
+
+    @patch("dns.resolver.resolve")
+    def test_conn_max_age_kwarg(self, mock_resolver):
+        settings_dict = django_mongodb.parse(URI, conn_max_age=600)
+        self.assertEqual(settings_dict["CONN_MAX_AGE"], 600)
+
+    @patch("dns.resolver.resolve")
+    def test_conn_health_checks_kwarg(self, mock_resolver):
+        settings_dict = django_mongodb.parse(URI, conn_health_checks=True)
+        self.assertEqual(settings_dict["CONN_HEALTH_CHECKS"], True)
