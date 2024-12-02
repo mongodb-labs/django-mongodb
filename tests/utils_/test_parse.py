@@ -4,7 +4,7 @@ from django.test import SimpleTestCase
 
 import django_mongodb
 
-MONGODB_URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority"
+URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority"
 
 
 class MongoParseURITests(SimpleTestCase):
@@ -12,15 +12,24 @@ class MongoParseURITests(SimpleTestCase):
     Test django_mongodb.parse(uri) function
     """
 
+    def setUp(self):
+        self.srv_record = MagicMock()
+        self.srv_record.target.to_text.return_value = "cluster0.example.mongodb.net"
+        self.patcher = patch("dns.resolver.resolve", return_value=[self.srv_record])
+        self.mock_resolver = self.patcher.start()
+        self.addCleanup(self.patcher.stop)
+
     @patch("dns.resolver.resolve")
     def test_parse(self, mock_resolver):
-        srv_record = MagicMock()
-        srv_record.target.to_text.return_value = "cluster0.example.mongodb.net"
-        mock_resolver.return_value = [srv_record]
-        settings_dict = django_mongodb.parse(MONGODB_URI)
+        settings_dict = django_mongodb.parse(URI)
         self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
         self.assertEqual(settings_dict["NAME"], "myDatabase")
         self.assertEqual(settings_dict["HOST"], "mongodb+srv://cluster0.example.mongodb.net")
         self.assertEqual(settings_dict["USER"], "myDatabaseUser")
         self.assertEqual(settings_dict["PASSWORD"], "D1fficultP@ssw0rd")
         self.assertEqual(settings_dict["PORT"], None)
+
+    @patch("dns.resolver.resolve")
+    def test_engine_kwarg(self, mock_resolver):
+        settings_dict = django_mongodb.parse(URI, engine="some_other_engine")
+        self.assertEqual(settings_dict["ENGINE"], "some_other_engine")
