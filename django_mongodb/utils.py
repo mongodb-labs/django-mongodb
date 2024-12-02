@@ -27,7 +27,13 @@ def check_django_compatability():
 
 
 def parse(uri):
-    uri = parse_uri(str(uri))
+    """
+    Parse a MongoDB URI and return a dictionary of Django database
+    settings. This function is a wrapper around PyMongo's
+    ``pymongo.uri_parser.parse_uri()`` function that converts PyMongo's
+    settings dictionary into a Django database settings dictionary.
+    """
+    uri = parse_uri(uri)
 
     host = None
     port = None
