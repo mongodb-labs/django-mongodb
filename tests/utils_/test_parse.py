@@ -40,6 +40,16 @@ class MongoParseURITests(SimpleTestCase):
             settings_dict["OPTIONS"], {"retryWrites": True, "w": "majority", "tls": False}
         )
 
+    def test_localhost(self):
+        settings_dict = django_mongodb.parse("mongodb://localhost/myDatabase")
+        self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
+        self.assertEqual(settings_dict["NAME"], "myDatabase")
+        self.assertEqual(settings_dict["HOST"], "localhost")
+
+    def test_localhost_bad_credentials(self):
+        with self.assertRaises(pymongo.errors.InvalidURI):
+            django_mongodb.parse("mongodb://:@localhost/myDatabase")
+
     @patch("dns.resolver.resolve")
     def test_engine_kwarg(self, mock_resolver):
         settings_dict = django_mongodb.parse(URI, engine="some_other_engine")
