@@ -103,16 +103,8 @@ $ python manage.py startapp myapp --template https://github.com/mongodb-labs/dja
 
 ### Configuring the `DATABASES` setting
 
-After you've set up a project, configure Django's `DATABASES` with
-`django_mongodb.parse(uri)`:
-
-```python
-MONGODB_URI = "mongodb://<my_user>:<my_password>@localhost:27017/my_database"
-DATABASES["default"] = django_mongodb.parse(MONGODB_URI)
-```
-
-Alternatively, if you prefer to edit the Python dictionary directly, you can
-configure the nested keys and values of the `DATABASES` setting individually:
+After you've set up a project, configure Django's `DATABASES` setting similar
+to this:
 
 ```python
 DATABASES = {
@@ -128,6 +120,16 @@ DATABASES = {
 
 `OPTIONS` is an optional dictionary of parameters that will be passed to
 [`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
+
+Alternatively, you can configure Django's `DATABASES` with
+`django_mongodb.parse(uri)`:
+
+```python
+import django_mongodb
+
+MONGODB_URI = "mongodb://<my_user>:<my_password>@localhost:27017/my_database"
+DATABASES["default"] = django_mongodb.parse(MONGODB_URI)
+```
 
 Congratulations, your project is ready to go!
 
