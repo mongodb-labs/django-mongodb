@@ -26,7 +26,9 @@ def check_django_compatability():
         )
 
 
-def parse(uri, engine=None, conn_max_age=None, conn_health_checks=None):
+def parse(
+    uri, engine=None, conn_max_age=None, conn_health_checks=None, ssl_require=None, test=None
+):
     """
     Parse a MongoDB URI and return a dictionary of Django database
     settings. This function is a wrapper around PyMongo's
@@ -66,6 +68,12 @@ def parse(uri, engine=None, conn_max_age=None, conn_health_checks=None):
 
     if conn_health_checks is not None:
         settings_dict["CONN_HEALTH_CHECKS"] = conn_health_checks
+
+    if ssl_require is not None:
+        settings_dict["SSL_REQUIRE"] = ssl_require
+
+    if test is not None:
+        settings_dict["TEST"] = test
 
     return settings_dict
 
