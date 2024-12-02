@@ -111,7 +111,8 @@ MONGODB_URI = "mongodb://<my_user>:<my_password>@localhost:27017/my_database"
 DATABASES["default"] = django_mongodb.parse(MONGODB_URI)
 ```
 
-Alternatively, you can configure the DATABASES settings directly:
+Alternatively, if you prefer to edit the Python dictionary directly, you can
+configure the nested keys and values of the `DATABASES` setting individually:
 
 ```python
 DATABASES = {
