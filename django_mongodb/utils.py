@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.utils import logger
 from django.utils.version import get_version_tuple
-from pymongo.uri_parser import parse_uri
+from pymongo.uri_parser import parse_uri as parse_uri_mongo
 
 
 def check_django_compatability():
@@ -26,7 +26,7 @@ def check_django_compatability():
         )
 
 
-def parse(
+def parse_uri(
     uri, engine=None, conn_max_age=None, conn_health_checks=None, ssl_require=None, test=None
 ):
     """
@@ -35,7 +35,7 @@ def parse(
     ``pymongo.uri_parser.parse_uri()`` function that converts PyMongo's
     settings dictionary into a Django database settings dictionary.
     """
-    uri = parse_uri(uri)
+    uri = parse_uri_mongo(uri)
 
     host = None
     port = None
