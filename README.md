@@ -121,14 +121,15 @@ DATABASES = {
 `OPTIONS` is an optional dictionary of parameters that will be passed to
 [`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
 
-Alternatively, you can configure Django's `DATABASES` with
-`django_mongodb.parse(uri)`:
+Alternatively, those that follow the [twelve-factor app methodology](
+https://www.12factor.net/backing-services) can configure Django's `DATABASES`
+with `django_mongodb.parse_uri(MONGODB_URI)`:
 
 ```python
 import django_mongodb
 
-MONGODB_URI = "mongodb://<my_user>:<my_password>@localhost:27017/my_database"
-DATABASES["default"] = django_mongodb.parse(MONGODB_URI)
+MONGODB_URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
+DATABASES["default"] = django_mongodb.parse_uri(MONGODB_URI)
 ```
 
 Congratulations, your project is ready to go!
