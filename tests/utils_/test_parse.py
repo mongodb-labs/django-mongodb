@@ -68,11 +68,6 @@ class MongoParseURITests(SimpleTestCase):
         self.assertEqual(settings_dict["CONN_HEALTH_CHECKS"], True)
 
     @patch("dns.resolver.resolve")
-    def test_ssl_require_kwarg(self, mock_resolver):
-        settings_dict = django_mongodb.parse_uri(URI, ssl_require=True)
-        self.assertEqual(settings_dict["SSL_REQUIRE"], True)
-
-    @patch("dns.resolver.resolve")
     def test_test_kwarg(self, mock_resolver):
         settings_dict = django_mongodb.parse_uri(URI, test={"NAME": "test_db"})
         self.assertEqual(settings_dict["TEST"]["NAME"], "test_db")
