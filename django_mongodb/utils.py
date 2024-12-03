@@ -26,7 +26,7 @@ def check_django_compatability():
         )
 
 
-def parse_uri(uri, engine=None, conn_max_age=None, conn_health_checks=None, test=None):
+def parse_uri(uri, engine="django_mongodb", conn_max_age=None, conn_health_checks=None, test=None):
     """
     Parse a MongoDB URI and return a dictionary of Django database
     settings. This function is a wrapper around PyMongo's
@@ -37,9 +37,6 @@ def parse_uri(uri, engine=None, conn_max_age=None, conn_health_checks=None, test
 
     host = None
     port = None
-
-    if not engine:
-        engine = "django_mongodb"
 
     if uri["fqdn"] is not None:
         # If the fqdn is present, this is a SRV URI and the host is the fqdn.
