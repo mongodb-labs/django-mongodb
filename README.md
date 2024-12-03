@@ -121,9 +121,9 @@ DATABASES = {
 `OPTIONS` is an optional dictionary of parameters that will be passed to
 [`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
 
-Alternatively, those that follow the [twelve-factor app methodology](
-https://www.12factor.net/backing-services) can configure Django's `DATABASES`
-with `django_mongodb.parse_uri(MONGODB_URI)`:
+Alternatively, those that follow the [twelve-factor app](
+https://www.12factor.net/backing-services) methodology can configure Django's
+`DATABASES` with `django_mongodb.parse_uri(MONGODB_URI)`:
 
 ```python
 import django_mongodb
@@ -131,6 +131,22 @@ import django_mongodb
 MONGODB_URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
 DATABASES["default"] = django_mongodb.parse_uri(MONGODB_URI)
 ```
+
+#### Additional options
+
+`parse_uri` also accepts these keyword arguments:
+
+| Argument             | Default               |
+| -------------------- | --------------------- |
+| `conn_max_age`       | `0`                   |
+| `conn_health_checks` | `False`               |
+| `test`               | `{}`                  |
+
+`conn_max_age` and `conn_health_checks` can be used with [persistent database
+connections](https://docs.djangoproject.com/en/latest/ref/databases/#persistent-database-connections)
+
+`test` can be used to provide a dictionary of [settings for test databases](
+https://docs.djangoproject.com/en/latest/ref/settings/#test).
 
 Congratulations, your project is ready to go!
 
