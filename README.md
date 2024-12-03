@@ -132,19 +132,19 @@ MONGODB_URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example
 DATABASES["default"] = django_mongodb.parse_uri(MONGODB_URI)
 ```
 
-#### Additional options
+#### Additional `parse_uri` options
 
-The `parse_uri` function also accepts these keyword arguments:
+The `parse_uri` function accepts these keyword arguments:
 
-| Argument             | Default               |
+| Keyword argument     | Default setting       |
 | -------------------- | --------------------- |
 | `conn_max_age`       | `0`                   |
 | `conn_health_checks` | `False`               |
-| `test`               | None                  |
+| `test`               | `None`                |
 
 - The `conn_max_age` and `conn_health_checks` options can be used with
   [persistent database connections](
-  https://docs.djangoproject.com/en/latest/ref/databases/#persistent-database-connections)
+  https://docs.djangoproject.com/en/latest/ref/databases/#persistent-database-connections).
 
 - The `test` option can be used to provide a dictionary of [settings for test databases](
   https://docs.djangoproject.com/en/latest/ref/settings/#test).
