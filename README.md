@@ -121,9 +121,8 @@ DATABASES = {
 `OPTIONS` is an optional dictionary of parameters that will be passed to
 [`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
 
-Alternatively, those that follow the [twelve-factor app](
-https://www.12factor.net/backing-services) methodology can configure Django's
-`DATABASES` with `django_mongodb.parse_uri(MONGODB_URI)`:
+Alternatively, if you prefer to simply paste in a MongoDB URI rather than
+parsing it into the format above, you can use:
 
 ```python
 import django_mongodb
@@ -132,22 +131,12 @@ MONGODB_URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example
 DATABASES["default"] = django_mongodb.parse_uri(MONGODB_URI)
 ```
 
-#### Additional `parse_uri` options
+#### `django_mongodb.parse_uri(uri, conn_max_age=0, conn_health_checks=False, test=None)`
 
-The `parse_uri` function accepts these keyword arguments:
-
-| Keyword argument     | Default setting       |
-| -------------------- | --------------------- |
-| `conn_max_age`       | `0`                   |
-| `conn_health_checks` | `False`               |
-| `test`               | `None`                |
-
-- The `conn_max_age` and `conn_health_checks` options can be used with
-  [persistent database connections](
-  https://docs.djangoproject.com/en/latest/ref/databases/#persistent-database-connections).
-
-- The `test` option can be used to provide a dictionary of [settings for test databases](
-  https://docs.djangoproject.com/en/latest/ref/settings/#test).
+- Use `conn_max_age` and `conn_health_checks` to configure [persistent database
+  connections](https://docs.djangoproject.com/en/stable/ref/databases/#persistent-database-connections).
+- Use `test` to provide a dictionary of [settings for test databases](
+  https://docs.djangoproject.com/en/stable/ref/settings/#test).
 
 Congratulations, your project is ready to go!
 

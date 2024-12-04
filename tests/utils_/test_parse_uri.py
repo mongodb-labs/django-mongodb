@@ -3,16 +3,12 @@ from unittest.mock import MagicMock, patch
 import pymongo
 from django.test import SimpleTestCase
 
-import django_mongodb
+from django_mongodb import parse_uri
 
 URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
 
 
-class MongoParseURITests(SimpleTestCase):
-    """
-    Test django_mongodb.parse_uri(uri) function
-    """
-
+class ParseURITests(SimpleTestCase):
     def setUp(self):
         self.srv_record = MagicMock()
         self.srv_record.target.to_text.return_value = "cluster0.example.mongodb.net"
@@ -21,53 +17,58 @@ class MongoParseURITests(SimpleTestCase):
         self.addCleanup(self.patcher.stop)
 
     @patch("dns.resolver.resolve")
-    def test_uri(self, mock_resolver):
-        settings_dict = django_mongodb.parse_uri(
-            "mongodb://cluster0.example.mongodb.net/myDatabase"
-        )
+    def test_simple_uri(self, mock_resolver):
+        settings_dict = parse_uri("mongodb://cluster0.example.mongodb.net/myDatabase")
         self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
         self.assertEqual(settings_dict["NAME"], "myDatabase")
         self.assertEqual(settings_dict["HOST"], "cluster0.example.mongodb.net")
 
     @patch("dns.resolver.resolve")
+    def test_no_database(self, mock_resolver):
+        settings_dict = parse_uri("mongodb://cluster0.example.mongodb.net/")
+        self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
+        self.assertIsNone(settings_dict["NAME"])
+        self.assertEqual(settings_dict["HOST"], "cluster0.example.mongodb.net")
+
+    @patch("dns.resolver.resolve")
     def test_srv_uri_with_options(self, mock_resolver):
-        settings_dict = django_mongodb.parse_uri(URI)
+        settings_dict = parse_uri(URI)
         self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
         self.assertEqual(settings_dict["NAME"], "myDatabase")
         self.assertEqual(settings_dict["HOST"], "mongodb+srv://cluster0.example.mongodb.net")
         self.assertEqual(settings_dict["USER"], "myDatabaseUser")
         self.assertEqual(settings_dict["PASSWORD"], "D1fficultP@ssw0rd")
-        self.assertEqual(settings_dict["PORT"], None)
+        self.assertIsNone(settings_dict["PORT"])
         self.assertEqual(
             settings_dict["OPTIONS"], {"retryWrites": True, "w": "majority", "tls": False}
         )
 
     def test_localhost(self):
-        settings_dict = django_mongodb.parse_uri("mongodb://localhost/myDatabase")
+        settings_dict = parse_uri("mongodb://localhost/myDatabase")
         self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
         self.assertEqual(settings_dict["NAME"], "myDatabase")
         self.assertEqual(settings_dict["HOST"], "localhost")
 
-    def test_localhost_bad_credentials(self):
-        with self.assertRaises(pymongo.errors.InvalidURI):
-            django_mongodb.parse_uri("mongodb://:@localhost/myDatabase")
-
     @patch("dns.resolver.resolve")
-    def test_conn_max_age_kwarg(self, mock_resolver):
-        settings_dict = django_mongodb.parse_uri(URI, conn_max_age=600)
+    def test_conn_max_age(self, mock_resolver):
+        settings_dict = parse_uri(URI, conn_max_age=600)
         self.assertEqual(settings_dict["CONN_MAX_AGE"], 600)
 
     @patch("dns.resolver.resolve")
-    def test_conn_health_checks_kwarg(self, mock_resolver):
-        settings_dict = django_mongodb.parse_uri(URI, conn_health_checks=True)
+    def test_conn_health_checks(self, mock_resolver):
+        settings_dict = parse_uri(URI, conn_health_checks=True)
         self.assertEqual(settings_dict["CONN_HEALTH_CHECKS"], True)
 
     @patch("dns.resolver.resolve")
     def test_test_kwarg(self, mock_resolver):
-        settings_dict = django_mongodb.parse_uri(URI, test={"NAME": "test_db"})
+        settings_dict = parse_uri(URI, test={"NAME": "test_db"})
         self.assertEqual(settings_dict["TEST"]["NAME"], "test_db")
 
-    @patch("dns.resolver.resolve")
-    def test_uri_no_prefix(self, mock_resolver):
+    def test_invalid_credentials(self):
         with self.assertRaises(pymongo.errors.InvalidURI):
-            django_mongodb.parse_uri("cluster0.example.mongodb.net/myDatabase")
+            parse_uri("mongodb://:@localhost/myDatabase")
+
+    @patch("dns.resolver.resolve")
+    def test_no_prefix(self, mock_resolver):
+        with self.assertRaises(pymongo.errors.InvalidURI):
+            parse_uri("cluster0.example.mongodb.net/myDatabase")
