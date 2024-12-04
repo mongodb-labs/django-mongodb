@@ -49,6 +49,14 @@ class ParseURITests(SimpleTestCase):
         self.assertEqual(settings_dict["NAME"], "myDatabase")
         self.assertEqual(settings_dict["HOST"], "localhost")
 
+    def test_localhosts_with_ports(self):
+        settings_dict = parse_uri(
+            "mongodb://localhost:27017,localhost:27018,localhost:27019/myDatabase"
+        )
+        self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
+        self.assertEqual(settings_dict["NAME"], "myDatabase")
+        self.assertEqual(settings_dict["HOST"], "localhost:27017,localhost:27018,localhost:27019")
+
     @patch("dns.resolver.resolve")
     def test_conn_max_age(self, mock_resolver):
         settings_dict = parse_uri(URI, conn_max_age=600)
