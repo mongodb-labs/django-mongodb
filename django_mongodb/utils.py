@@ -34,6 +34,8 @@ def parse_uri(uri, conn_max_age=0, conn_health_checks=False, test=None):
     uri = parse_uri_mongo(uri)
     host = None
     port = None
+    name = uri["database"]
+
     if uri["fqdn"] is not None:
         # If the fqdn is present, this is a SRV URI and the host is the fqdn.
         host = f"mongodb+srv://{uri['fqdn']}"
@@ -45,7 +47,6 @@ def parse_uri(uri, conn_max_age=0, conn_health_checks=False, test=None):
             host = ",".join([f"{host}:{port}" for host, port in nodelist])
     settings_dict = {
         "ENGINE": "django_mongodb",
-        "NAME": uri["database"],
         "HOST": host,
         "PORT": port,
         "USER": uri.get("username"),
@@ -54,6 +55,8 @@ def parse_uri(uri, conn_max_age=0, conn_health_checks=False, test=None):
         "CONN_MAX_AGE": conn_max_age,
         "CONN_HEALTH_CHECKS": conn_health_checks,
     }
+    if name:
+        settings_dict["NAME"] = name
     if test:
         settings_dict["TEST"] = test
     return settings_dict
