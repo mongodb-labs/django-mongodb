@@ -1,5 +1,6 @@
 import contextlib
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.base.base import BaseDatabaseWrapper
 from pymongo.collection import Collection
 from pymongo.mongo_client import MongoClient
@@ -151,13 +152,13 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         raise AttributeError(attr)
 
     def init_connection_state(self):
-        db_name = self.settings_dict["NAME"]
-        if db_name:
-            self.database = self.connection[db_name]
+        self.database = self.connection[self.settings_dict["NAME"]]
         super().init_connection_state()
 
     def get_connection_params(self):
         settings_dict = self.settings_dict
+        if not settings_dict["NAME"]:
+            raise ImproperlyConfigured('settings.DATABASES is missing the "NAME" value.')
         return {
             "host": settings_dict["HOST"] or None,
             "port": int(settings_dict["PORT"] or 27017),
