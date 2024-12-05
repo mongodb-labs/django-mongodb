@@ -16,15 +16,13 @@ class ParseURITests(SimpleTestCase):
         self.mock_resolver = self.patcher.start()
         self.addCleanup(self.patcher.stop)
 
-    @patch("dns.resolver.resolve")
-    def test_simple_uri(self, mock_resolver):
+    def test_simple_uri(self):
         settings_dict = parse_uri("mongodb://cluster0.example.mongodb.net/myDatabase")
         self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
         self.assertEqual(settings_dict["NAME"], "myDatabase")
         self.assertEqual(settings_dict["HOST"], "cluster0.example.mongodb.net")
 
-    @patch("dns.resolver.resolve")
-    def test_no_database(self, mock_resolver):
+    def test_no_database(self):
         settings_dict = parse_uri("mongodb://cluster0.example.mongodb.net/")
         self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
         self.assertEqual(settings_dict["HOST"], "cluster0.example.mongodb.net")
@@ -65,18 +63,15 @@ class ParseURITests(SimpleTestCase):
         self.assertEqual(settings_dict["HOST"], "localhost:27017,localhost:27018,localhost:27019")
         self.assertEqual(settings_dict["PORT"], None)
 
-    @patch("dns.resolver.resolve")
-    def test_conn_max_age(self, mock_resolver):
+    def test_conn_max_age(self):
         settings_dict = parse_uri(URI, conn_max_age=600)
         self.assertEqual(settings_dict["CONN_MAX_AGE"], 600)
 
-    @patch("dns.resolver.resolve")
-    def test_conn_health_checks(self, mock_resolver):
+    def test_conn_health_checks(self):
         settings_dict = parse_uri(URI, conn_health_checks=True)
         self.assertEqual(settings_dict["CONN_HEALTH_CHECKS"], True)
 
-    @patch("dns.resolver.resolve")
-    def test_test_kwarg(self, mock_resolver):
+    def test_test_kwarg(self):
         settings_dict = parse_uri(URI, test={"NAME": "test_db"})
         self.assertEqual(settings_dict["TEST"]["NAME"], "test_db")
 
@@ -84,7 +79,6 @@ class ParseURITests(SimpleTestCase):
         with self.assertRaises(pymongo.errors.InvalidURI):
             parse_uri("mongodb://:@localhost/myDatabase")
 
-    @patch("dns.resolver.resolve")
-    def test_no_prefix(self, mock_resolver):
+    def test_no_prefix(self):
         with self.assertRaises(pymongo.errors.InvalidURI):
             parse_uri("cluster0.example.mongodb.net/myDatabase")
