@@ -131,10 +131,8 @@ MONGODB_URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example
 DATABASES["default"] = django_mongodb.parse_uri(MONGODB_URI)
 ```
 
-#### `django_mongodb.parse_uri(uri, conn_max_age=0, conn_health_checks=False, test=None)`
+#### `django_mongodb.parse_uri(uri, test=None)`
 
-- Use `conn_max_age` and `conn_health_checks` to configure [persistent database
-  connections](https://docs.djangoproject.com/en/stable/ref/databases/#persistent-database-connections).
 - Use `test` to provide a dictionary of [settings for test databases](
   https://docs.djangoproject.com/en/stable/ref/settings/#test).
 
