@@ -25,8 +25,8 @@ class ParseURITests(SimpleTestCase):
     def test_no_database(self):
         settings_dict = parse_uri("mongodb://cluster0.example.mongodb.net/")
         self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
+        self.assertIsNone(settings_dict["NAME"])
         self.assertEqual(settings_dict["HOST"], "cluster0.example.mongodb.net")
-        self.assertFalse("NAME" in settings_dict)
 
     @patch("dns.resolver.resolve")
     def test_srv_uri_with_options(self, mock_resolver):
