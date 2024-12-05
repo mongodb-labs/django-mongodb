@@ -28,6 +28,8 @@ class ParseURITests(SimpleTestCase):
         self.assertIsNone(settings_dict["NAME"])
         self.assertEqual(settings_dict["HOST"], "cluster0.example.mongodb.net")
 
+    # PyMongo will try to resolve the SRV record if the URI has the mongodb+srv:// prefix.
+    # https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient
     @patch("dns.resolver.resolve")
     def test_srv_uri_with_options(self, mock_resolver):
         settings_dict = parse_uri(URI)
