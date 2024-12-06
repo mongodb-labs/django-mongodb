@@ -23,18 +23,18 @@ class ParseURITests(SimpleTestCase):
 
     # PyMongo will try to resolve the SRV record if the URI has the mongodb+srv:// prefix.
     # https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient
-    @patch("dns.resolver.resolve")
-    def test_srv_uri_with_options(self, mock_resolver):
-        settings_dict = parse_uri(URI)
-        self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
-        self.assertEqual(settings_dict["NAME"], "myDatabase")
-        self.assertEqual(settings_dict["HOST"], "mongodb+srv://cluster0.example.mongodb.net")
-        self.assertEqual(settings_dict["USER"], "myDatabaseUser")
-        self.assertEqual(settings_dict["PASSWORD"], "D1fficultP@ssw0rd")
-        self.assertIsNone(settings_dict["PORT"])
-        self.assertEqual(
-            settings_dict["OPTIONS"], {"retryWrites": True, "w": "majority", "tls": False}
-        )
+    def test_srv_uri_with_options(self):
+        with patch("dns.resolver.resolve"):
+            settings_dict = parse_uri(URI)
+            self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
+            self.assertEqual(settings_dict["NAME"], "myDatabase")
+            self.assertEqual(settings_dict["HOST"], "mongodb+srv://cluster0.example.mongodb.net")
+            self.assertEqual(settings_dict["USER"], "myDatabaseUser")
+            self.assertEqual(settings_dict["PASSWORD"], "D1fficultP@ssw0rd")
+            self.assertIsNone(settings_dict["PORT"])
+            self.assertEqual(
+                settings_dict["OPTIONS"], {"retryWrites": True, "w": "majority", "tls": False}
+            )
 
     def test_localhost(self):
         settings_dict = parse_uri("mongodb://localhost/myDatabase")
