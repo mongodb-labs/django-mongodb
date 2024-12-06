@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pymongo
 from django.test import SimpleTestCase
@@ -9,13 +9,6 @@ URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb
 
 
 class ParseURITests(SimpleTestCase):
-    def setUp(self):
-        self.srv_record = MagicMock()
-        self.srv_record.target.to_text.return_value = "cluster0.example.mongodb.net"
-        self.patcher = patch("dns.resolver.resolve", return_value=[self.srv_record])
-        self.mock_resolver = self.patcher.start()
-        self.addCleanup(self.patcher.stop)
-
     def test_simple_uri(self):
         settings_dict = parse_uri("mongodb://cluster0.example.mongodb.net/myDatabase")
         self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
@@ -66,15 +59,15 @@ class ParseURITests(SimpleTestCase):
         self.assertEqual(settings_dict["PORT"], None)
 
     def test_conn_max_age(self):
-        settings_dict = parse_uri(URI, conn_max_age=600)
+        settings_dict = parse_uri("mongodb://localhost/myDatabase", conn_max_age=600)
         self.assertEqual(settings_dict["CONN_MAX_AGE"], 600)
 
     def test_conn_health_checks(self):
-        settings_dict = parse_uri(URI, conn_health_checks=True)
+        settings_dict = parse_uri("mongodb://localhost/myDatabase", conn_health_checks=True)
         self.assertEqual(settings_dict["CONN_HEALTH_CHECKS"], True)
 
     def test_test_kwarg(self):
-        settings_dict = parse_uri(URI, test={"NAME": "test_db"})
+        settings_dict = parse_uri("mongodb://localhost/myDatabase", test={"NAME": "test_db"})
         self.assertEqual(settings_dict["TEST"]["NAME"], "test_db")
 
     def test_invalid_credentials(self):
