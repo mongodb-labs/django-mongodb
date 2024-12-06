@@ -65,6 +65,14 @@ class ParseURITests(SimpleTestCase):
         self.assertEqual(settings_dict["HOST"], "localhost:27017,localhost:27018,localhost:27019")
         self.assertEqual(settings_dict["PORT"], None)
 
+    def test_conn_max_age(self):
+        settings_dict = parse_uri(URI, conn_max_age=600)
+        self.assertEqual(settings_dict["CONN_MAX_AGE"], 600)
+
+    def test_conn_health_checks(self):
+        settings_dict = parse_uri(URI, conn_health_checks=True)
+        self.assertEqual(settings_dict["CONN_HEALTH_CHECKS"], True)
+
     def test_test_kwarg(self):
         settings_dict = parse_uri(URI, test={"NAME": "test_db"})
         self.assertEqual(settings_dict["TEST"]["NAME"], "test_db")
