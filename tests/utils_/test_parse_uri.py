@@ -77,3 +77,8 @@ class ParseURITests(SimpleTestCase):
     def test_no_prefix(self):
         with self.assertRaises(pymongo.errors.InvalidURI):
             parse_uri("cluster0.example.mongodb.net/myDatabase")
+
+    def test_hosts_without_ports(self):
+        settings_dict = parse_uri("mongodb://host1.net,host2.net/myDatabase")
+        self.assertEqual(settings_dict["HOST"], "host1.net:27017,host2.net:27017")
+        self.assertEqual(settings_dict["PORT"], None)
