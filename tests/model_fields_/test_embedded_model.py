@@ -1,5 +1,8 @@
+import operator
+
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import ExpressionWrapper, F, Max, Sum
 from django.test import SimpleTestCase, TestCase
 from django.test.utils import isolate_apps
 
@@ -99,6 +102,43 @@ class QueryingTests(TestCase):
     def test_order_by_embedded_field(self):
         qs = Holder.objects.filter(data__integer__gt=3).order_by("-data__integer")
         self.assertSequenceEqual(qs, list(reversed(self.objs[4:])))
+
+    def test_order_and_group_by_embedded_field(self):
+        # Create and sort test data by `data__integer`.
+        expected_objs = sorted(
+            (Holder.objects.create(data=Data(integer=x)) for x in range(6)),
+            key=lambda x: x.data.integer,
+        )
+        # Group by `data__integer + 5` and get the latest `data__auto_now`
+        # datetime.
+        qs = (
+            Holder.objects.annotate(
+                group=ExpressionWrapper(F("data__integer") + 5, output_field=models.IntegerField()),
+            )
+            .values("group")
+            .annotate(max_auto_now=Max("data__auto_now"))
+            .order_by("data__integer")
+        )
+        # Each unique `data__integer` is correctly grouped and annotated.
+        self.assertSequenceEqual(
+            [{**e, "max_auto_now": e["max_auto_now"]} for e in qs],
+            [
+                {"group": e.data.integer + 5, "max_auto_now": truncate_ms(e.data.auto_now)}
+                for e in expected_objs
+            ],
+        )
+
+    def test_order_and_group_by_embedded_field_annotation(self):
+        # Create repeated `data__integer` values.
+        [Holder.objects.create(data=Data(integer=x)) for x in range(6)]
+        # Group by `data__integer` and compute the sum of occurrences.
+        qs = (
+            Holder.objects.values("data__integer")
+            .annotate(sum=Sum("data__integer"))
+            .order_by("sum")
+        )
+        # The sum is twice the integer values since each appears twice.
+        self.assertQuerySetEqual(qs, [0, 2, 4, 6, 8, 10], operator.itemgetter("sum"))
 
     def test_nested(self):
         obj = Book.objects.create(
