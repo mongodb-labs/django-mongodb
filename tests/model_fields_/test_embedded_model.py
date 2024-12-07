@@ -1,6 +1,6 @@
 import operator
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import ExpressionWrapper, F, Max, Sum
 from django.test import SimpleTestCase, TestCase
@@ -145,6 +145,41 @@ class QueryingTests(TestCase):
             author=Author(name="Shakespeare", age=55, address=Address(city="NYC", state="NY"))
         )
         self.assertCountEqual(Book.objects.filter(author__address__city="NYC"), [obj])
+
+
+class InvalidLookupTests(SimpleTestCase):
+    def test_invalid_field(self):
+        msg = "Author has no field named 'first_name'"
+        with self.assertRaisesMessage(FieldDoesNotExist, msg):
+            Book.objects.filter(author__first_name="Bob")
+
+    def test_invalid_field_nested(self):
+        msg = "Address has no field named 'floor'"
+        with self.assertRaisesMessage(FieldDoesNotExist, msg):
+            Book.objects.filter(author__address__floor="NYC")
+
+    def test_invalid_lookup(self):
+        msg = "Unsupported lookup 'foo' for CharField 'city'."
+        with self.assertRaisesMessage(FieldDoesNotExist, msg):
+            Book.objects.filter(author__address__city__foo="NYC")
+
+    def test_invalid_lookup_with_suggestions(self):
+        msg = (
+            "Unsupported lookup '{lookup}' for CharField 'name', "
+            "perhaps you meant {suggested_lookups}?"
+        )
+        with self.assertRaisesMessage(
+            FieldDoesNotExist, msg.format(lookup="exactly", suggested_lookups="exact or iexact")
+        ):
+            Book.objects.filter(author__name__exactly="NYC")
+        with self.assertRaisesMessage(
+            FieldDoesNotExist, msg.format(lookup="gti", suggested_lookups="gt or gte")
+        ):
+            Book.objects.filter(author__name__gti="NYC")
+        with self.assertRaisesMessage(
+            FieldDoesNotExist, msg.format(lookup="is_null", suggested_lookups="isnull")
+        ):
+            Book.objects.filter(author__name__is_null="NYC")
 
 
 @isolate_apps("model_fields_")

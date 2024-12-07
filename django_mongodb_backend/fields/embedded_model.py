@@ -1,4 +1,7 @@
+import difflib
+
 from django.core import checks
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.db.models.fields.related import lazy_related_operation
 from django.db.models.lookups import Transform
@@ -123,7 +126,8 @@ class EmbeddedModelField(models.Field):
         transform = super().get_transform(name)
         if transform:
             return transform
-        return KeyTransformFactory(name)
+        field = self.embedded_model._meta.get_field(name)
+        return KeyTransformFactory(name, field)
 
     def validate(self, value, model_instance):
         super().validate(value, model_instance)
@@ -145,9 +149,36 @@ class EmbeddedModelField(models.Field):
 
 
 class KeyTransform(Transform):
-    def __init__(self, key_name, *args, **kwargs):
+    def __init__(self, key_name, ref_field, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.key_name = str(key_name)
+        self.ref_field = ref_field
+
+    def get_transform(self, name):
+        """
+        Validate that `name` is either a field of an embedded model or a
+        lookup on an embedded model's field.
+        """
+        result = None
+        if isinstance(self.ref_field, EmbeddedModelField):
+            opts = self.ref_field.embedded_model._meta
+            new_field = opts.get_field(name)
+            result = KeyTransformFactory(name, new_field)
+        else:
+            if self.ref_field.get_transform(name) is None:
+                suggested_lookups = difflib.get_close_matches(name, self.ref_field.get_lookups())
+                if suggested_lookups:
+                    suggested_lookups = " or ".join(suggested_lookups)
+                    suggestion = f", perhaps you meant {suggested_lookups}?"
+                else:
+                    suggestion = "."
+                raise FieldDoesNotExist(
+                    f"Unsupported lookup '{name}' for "
+                    f"{self.ref_field.__class__.__name__} '{self.ref_field.name}'"
+                    f"{suggestion}"
+                )
+            result = KeyTransformFactory(name, self.ref_field)
+        return result
 
     def preprocess_lhs(self, compiler, connection):
         key_transforms = [self.key_name]
@@ -165,8 +196,9 @@ class KeyTransform(Transform):
 
 
 class KeyTransformFactory:
-    def __init__(self, key_name):
+    def __init__(self, key_name, ref_field):
         self.key_name = key_name
+        self.ref_field = ref_field
 
     def __call__(self, *args, **kwargs):
-        return KeyTransform(self.key_name, *args, **kwargs)
+        return KeyTransform(self.key_name, self.ref_field, *args, **kwargs)
