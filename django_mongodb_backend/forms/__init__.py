@@ -1,3 +1,8 @@
-from .fields import ObjectIdField
+from .fields import ObjectIdField, SimpleArrayField, SplitArrayField, SplitArrayWidget
 
-__all__ = ["ObjectIdField"]
+__all__ = [
+    "SimpleArrayField",
+    "SplitArrayField",
+    "SplitArrayWidget",
+    "ObjectIdField",
+]

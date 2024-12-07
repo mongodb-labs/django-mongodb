@@ -7,7 +7,14 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 from __future__ import annotations
 
+import sys
 from importlib.metadata import version as _version
+from pathlib import Path
+
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+sys.path.append(str((Path(__file__).parent / "_ext").resolve()))
 
 project = "django_mongodb_backend"
 copyright = "2024, The MongoDB Python Team"
@@ -22,6 +29,7 @@ release = _version("django_mongodb_backend")
 add_module_names = False
 
 extensions = [
+    "djangodocs",
     "sphinx.ext.intersphinx",
 ]
 

@@ -9,7 +9,7 @@ from django.conf import settings
 from django.db import DataError
 from django.db.backends.base.operations import BaseDatabaseOperations
 from django.db.models import TextField
-from django.db.models.expressions import Combinable
+from django.db.models.expressions import Combinable, Expression
 from django.db.models.functions import Cast
 from django.utils import timezone
 from django.utils.regex_helper import _lazy_re_compile
@@ -77,10 +77,26 @@ class DatabaseOperations(BaseDatabaseOperations):
             raise ValueError("MongoDB backend does not support timezone-aware times.")
         return datetime.datetime.combine(datetime.datetime.min.date(), value)
 
+    def _get_arrayfield_converter(self, converter, *args, **kwargs):
+        # Return a database converter that can be applied to a list of values.
+        def convert_value(value, expression, connection):
+            return [converter(x, expression, connection) for x in value]
+
+        return convert_value
+
     def get_db_converters(self, expression):
         converters = super().get_db_converters(expression)
         internal_type = expression.output_field.get_internal_type()
-        if internal_type == "DateField":
+        if internal_type == "ArrayField":
+            converters.extend(
+                [
+                    self._get_arrayfield_converter(converter)
+                    for converter in self.get_db_converters(
+                        Expression(output_field=expression.output_field.base_field)
+                    )
+                ]
+            )
+        elif internal_type == "DateField":
             converters.append(self.convert_datefield_value)
         elif internal_type == "DateTimeField":
             if settings.USE_TZ:
