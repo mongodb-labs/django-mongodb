@@ -120,3 +120,12 @@ class Author(EmbeddedModel):
 class Book(models.Model):
     name = models.CharField(max_length=100)
     author = EmbeddedModelField(Author)
+
+
+class Library(models.Model):
+    name = models.CharField(max_length=100)
+    books = models.ManyToManyField("Book", related_name="libraries")
+    best_seller = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return self.name

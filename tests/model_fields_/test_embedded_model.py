@@ -2,7 +2,14 @@ import operator
 
 from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db import models
-from django.db.models import ExpressionWrapper, F, Max, Sum
+from django.db.models import (
+    Exists,
+    ExpressionWrapper,
+    F,
+    Max,
+    OuterRef,
+    Sum,
+)
 from django.test import SimpleTestCase, TestCase
 from django.test.utils import isolate_apps
 
@@ -15,6 +22,7 @@ from .models import (
     Book,
     Data,
     Holder,
+    Library,
 )
 from .utils import truncate_ms
 
@@ -214,3 +222,41 @@ class CheckTests(SimpleTestCase):
             msg,
             "Embedded models must be a subclass of django_mongodb_backend.models.EmbeddedModel.",
         )
+
+
+class SubqueryExistsTests(TestCase):
+    def setUpTestData(self):
+        address1 = Address(city="New York", state="NY", zip_code=10001)
+        address2 = Address(city="Boston", state="MA", zip_code=20002)
+        author1 = Author(name="Alice", age=30, address=address1)
+        author2 = Author(name="Bob", age=40, address=address2)
+        book1 = Book.objects.create(name="Book 1", author=author1)
+        book2 = Book.objects.create(name="Book 2", author=author2)
+        Book.objects.create(name="Book 3", author=author2)
+        Book.objects.create(name="Book 4", author=author2)
+        Book.objects.create(name="Book 5", author=author1)
+        library1 = Library.objects.create(name="Library 1", best_seller="Book 1")
+        library2 = Library.objects.create(name="Library 2", best_seller="Book 1")
+        library1.books.add(book1, book2)
+        library2.books.add(book2)
+
+    def test_exists_subquery(self):
+        subquery = Book.objects.filter(
+            author__name=OuterRef("author__name"), author__address__city="Boston"
+        )
+        qs = Book.objects.filter(Exists(subquery)).order_by("name")
+        self.assertQuerySetEqual(qs, ["Book 2", "Book 3", "Book 4"], lambda book: book.name)
+
+    def test_in_subquery(self):
+        names = Book.objects.filter(author__age__gt=35).values("author__name")
+        qs = Book.objects.filter(author__name__in=names).order_by("name")
+        self.assertQuerySetEqual(qs, ["Book 2", "Book 3", "Book 4"], lambda book: book.name)
+
+    def test_exists_with_foreign_object(self):
+        subquery = Library.objects.filter(best_seller=OuterRef("name"))
+        qs = Book.objects.filter(Exists(subquery))
+        self.assertEqual(qs.first().name, "Book 1")
+
+    def test_foreign_field_with_range(self):
+        qs = Library.objects.filter(books__author__age__range=(25, 35))
+        self.assertEqual(qs.first().name, "Library 1")
