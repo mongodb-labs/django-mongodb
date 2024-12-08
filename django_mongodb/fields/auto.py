@@ -2,15 +2,11 @@ from bson import ObjectId, errors
 from django.core import exceptions
 from django.db.models.fields import AutoField
 from django.utils.functional import cached_property
-from django.utils.translation import gettext_lazy as _
+
+from .objectid import ObjectIdMixin
 
 
-class ObjectIdAutoField(AutoField):
-    default_error_messages = {
-        "invalid": _("“%(value)s” value must be an Object Id."),
-    }
-    description = _("Object Id")
-
+class ObjectIdAutoField(ObjectIdMixin, AutoField):
     def __init__(self, *args, **kwargs):
         kwargs["db_column"] = "_id"
         super().__init__(*args, **kwargs)
@@ -41,12 +37,6 @@ class ObjectIdAutoField(AutoField):
 
     def get_internal_type(self):
         return "ObjectIdAutoField"
-
-    def db_type(self, connection):
-        return "objectId"
-
-    def rel_db_type(self, connection):
-        return "objectId"
 
     def to_python(self, value):
         if value is None or isinstance(value, int):

@@ -57,6 +57,7 @@ test_apps = [
     "force_insert_update",
     "foreign_object",
     "forms_tests",
+    "forms_tests_",
     "from_db_value",
     "generic_inline_admin",
     "generic_relations",
