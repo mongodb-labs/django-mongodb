@@ -10,17 +10,19 @@ from django.core import checks, exceptions, serializers, validators
 from django.core.exceptions import FieldError
 from django.core.management import call_command
 from django.db import IntegrityError, connection, models
-from django.db.models.expressions import Exists, OuterRef, RawSQL, Value
-from django.db.models.functions import Cast, JSONObject, Upper
-from django.test import (  # , PostgreSQLWidgetTestCase
+from django.db.models.expressions import Exists, OuterRef, Value
+from django.test import (
     SimpleTestCase,
     TestCase,
     TransactionTestCase,
     override_settings,
-    skipUnlessDBFeature,
 )
-from django.test.utils import isolate_apps
+from django.test.utils import isolate_apps, modify_settings
 from django.utils import timezone
+from forms_tests.widget_tests.base import WidgetTest
+
+from django_mongodb.fields import ArrayField
+from django_mongodb.forms import SimpleArrayField, SplitArrayField, SplitArrayWidget
 
 from .models import (
     ArrayEnumModel,
@@ -33,19 +35,6 @@ from .models import (
     OtherTypesArrayModel,
     Tag,
 )
-
-try:
-    from django.contrib.postgres.aggregates import ArrayAgg
-    from django.contrib.postgres.expressions import ArraySubquery
-    from django.contrib.postgres.fields import ArrayField
-    from django.contrib.postgres.fields.array import IndexTransform, SliceTransform
-    from django.contrib.postgres.forms import (
-        SimpleArrayField,
-        SplitArrayField,
-        SplitArrayWidget,
-    )
-except ImportError:
-    pass
 
 
 @isolate_apps("model_fields_")
@@ -318,18 +307,6 @@ class TestQuerying(TestCase):
             self.objs[:4],
         )
 
-    def test_contained_by(self):
-        self.assertSequenceEqual(
-            NullableIntegerArrayModel.objects.filter(field__contained_by=[1, 2]),
-            self.objs[:2],
-        )
-
-    def test_contained_by_including_F_object(self):
-        self.assertSequenceEqual(
-            NullableIntegerArrayModel.objects.filter(field__contained_by=[models.F("order"), 2]),
-            self.objs[:3],
-        )
-
     def test_contains(self):
         self.assertSequenceEqual(
             NullableIntegerArrayModel.objects.filter(field__contains=[2]),
@@ -363,89 +340,7 @@ class TestQuerying(TestCase):
         self.assertSequenceEqual(CharArrayModel.objects.filter(field__icontains="foo"), [instance])
 
     def test_contains_charfield(self):
-        # Regression for #22907
         self.assertSequenceEqual(CharArrayModel.objects.filter(field__contains=["text"]), [])
-
-    def test_contained_by_charfield(self):
-        self.assertSequenceEqual(CharArrayModel.objects.filter(field__contained_by=["text"]), [])
-
-    def test_overlap_charfield(self):
-        self.assertSequenceEqual(CharArrayModel.objects.filter(field__overlap=["text"]), [])
-
-    def test_overlap_charfield_including_expression(self):
-        obj_1 = CharArrayModel.objects.create(field=["TEXT", "lower text"])
-        obj_2 = CharArrayModel.objects.create(field=["lower text", "TEXT"])
-        CharArrayModel.objects.create(field=["lower text", "text"])
-        self.assertSequenceEqual(
-            CharArrayModel.objects.filter(
-                field__overlap=[
-                    Upper(Value("text")),
-                    "other",
-                ]
-            ),
-            [obj_1, obj_2],
-        )
-
-    def test_overlap_values(self):
-        qs = NullableIntegerArrayModel.objects.filter(order__lt=3)
-        self.assertCountEqual(
-            NullableIntegerArrayModel.objects.filter(
-                field__overlap=qs.values_list("field"),
-            ),
-            self.objs[:3],
-        )
-        self.assertCountEqual(
-            NullableIntegerArrayModel.objects.filter(
-                field__overlap=qs.values("field"),
-            ),
-            self.objs[:3],
-        )
-
-    def test_lookups_autofield_array(self):
-        qs = (
-            NullableIntegerArrayModel.objects.filter(
-                field__0__isnull=False,
-            )
-            .values("field__0")
-            .annotate(
-                arrayagg=ArrayAgg("id"),
-            )
-            .order_by("field__0")
-        )
-        tests = (
-            ("contained_by", [self.objs[1].pk, self.objs[2].pk, 0], [2]),
-            ("contains", [self.objs[2].pk], [2]),
-            ("exact", [self.objs[3].pk], [20]),
-            ("overlap", [self.objs[1].pk, self.objs[3].pk], [2, 20]),
-        )
-        for lookup, value, expected in tests:
-            with self.subTest(lookup=lookup):
-                self.assertSequenceEqual(
-                    qs.filter(
-                        **{"arrayagg__" + lookup: value},
-                    ).values_list("field__0", flat=True),
-                    expected,
-                )
-
-    @skipUnlessDBFeature("allows_group_by_select_index")
-    def test_group_by_order_by_select_index(self):
-        with self.assertNumQueries(1) as ctx:
-            self.assertSequenceEqual(
-                NullableIntegerArrayModel.objects.filter(
-                    field__0__isnull=False,
-                )
-                .values("field__0")
-                .annotate(arrayagg=ArrayAgg("id"))
-                .order_by("field__0"),
-                [
-                    {"field__0": 1, "arrayagg": [self.objs[0].pk]},
-                    {"field__0": 2, "arrayagg": [self.objs[1].pk, self.objs[2].pk]},
-                    {"field__0": 20, "arrayagg": [self.objs[3].pk]},
-                ],
-            )
-        sql = ctx[0]["sql"]
-        self.assertIn("GROUP BY 2", sql)
-        self.assertIn("ORDER BY 2", sql)
 
     def test_index(self):
         self.assertSequenceEqual(
@@ -468,29 +363,11 @@ class TestQuerying(TestCase):
             NestedIntegerArrayModel.objects.filter(field__0=[1, 2]), [instance]
         )
 
-    def test_index_transform_expression(self):
-        expr = RawSQL("string_to_array(%s, ';')", ["1;2"])
-        self.assertSequenceEqual(
-            NullableIntegerArrayModel.objects.filter(
-                field__0=Cast(
-                    IndexTransform(1, models.IntegerField, expr),
-                    output_field=models.IntegerField(),
-                ),
-            ),
-            self.objs[:1],
-        )
-
     def test_index_annotation(self):
         qs = NullableIntegerArrayModel.objects.annotate(second=models.F("field__1"))
         self.assertCountEqual(
             qs.values_list("second", flat=True),
             [None, None, None, 3, 30],
-        )
-
-    def test_overlap(self):
-        self.assertSequenceEqual(
-            NullableIntegerArrayModel.objects.filter(field__overlap=[1, 2]),
-            self.objs[0:3],
         )
 
     def test_len(self):
@@ -538,13 +415,6 @@ class TestQuerying(TestCase):
         instance = NestedIntegerArrayModel.objects.create(field=[[1, 2], [3, 4]])
         self.assertSequenceEqual(
             NestedIntegerArrayModel.objects.filter(field__0__0_1=[1]), [instance]
-        )
-
-    def test_slice_transform_expression(self):
-        expr = RawSQL("string_to_array(%s, ';')", ["9;2;3"])
-        self.assertSequenceEqual(
-            NullableIntegerArrayModel.objects.filter(field__0_2=SliceTransform(2, 3, expr)),
-            self.objs[2:3],
         )
 
     def test_slice_annotation(self):
@@ -600,74 +470,6 @@ class TestQuerying(TestCase):
             )
             .get()["array_length"],
             1,
-        )
-
-    def test_filter_by_array_subquery(self):
-        inner_qs = NullableIntegerArrayModel.objects.filter(
-            field__len=models.OuterRef("field__len"),
-        ).values("field")
-        self.assertSequenceEqual(
-            NullableIntegerArrayModel.objects.alias(
-                same_sized_fields=ArraySubquery(inner_qs),
-            ).filter(same_sized_fields__len__gt=1),
-            self.objs[0:2],
-        )
-
-    def test_annotated_array_subquery(self):
-        inner_qs = NullableIntegerArrayModel.objects.exclude(pk=models.OuterRef("pk")).values(
-            "order"
-        )
-        self.assertSequenceEqual(
-            NullableIntegerArrayModel.objects.annotate(
-                sibling_ids=ArraySubquery(inner_qs),
-            )
-            .get(order=1)
-            .sibling_ids,
-            [2, 3, 4, 5],
-        )
-
-    def test_group_by_with_annotated_array_subquery(self):
-        inner_qs = NullableIntegerArrayModel.objects.exclude(pk=models.OuterRef("pk")).values(
-            "order"
-        )
-        self.assertSequenceEqual(
-            NullableIntegerArrayModel.objects.annotate(
-                sibling_ids=ArraySubquery(inner_qs),
-                sibling_count=models.Max("sibling_ids__len"),
-            ).values_list("sibling_count", flat=True),
-            [len(self.objs) - 1] * len(self.objs),
-        )
-
-    def test_annotated_ordered_array_subquery(self):
-        inner_qs = NullableIntegerArrayModel.objects.order_by("-order").values("order")
-        self.assertSequenceEqual(
-            NullableIntegerArrayModel.objects.annotate(
-                ids=ArraySubquery(inner_qs),
-            )
-            .first()
-            .ids,
-            [5, 4, 3, 2, 1],
-        )
-
-    def test_annotated_array_subquery_with_json_objects(self):
-        inner_qs = NullableIntegerArrayModel.objects.exclude(pk=models.OuterRef("pk")).values(
-            json=JSONObject(order="order", field="field")
-        )
-        siblings_json = (
-            NullableIntegerArrayModel.objects.annotate(
-                siblings_json=ArraySubquery(inner_qs),
-            )
-            .values_list("siblings_json", flat=True)
-            .get(order=1)
-        )
-        self.assertSequenceEqual(
-            siblings_json,
-            [
-                {"field": [2], "order": 2},
-                {"field": [2, 3], "order": 3},
-                {"field": [20, 30, 40], "order": 4},
-                {"field": None, "order": 5},
-            ],
         )
 
 
@@ -840,7 +642,7 @@ class TestMigrations(TransactionTestCase):
     def test_subclass_deconstruct(self):
         field = ArrayField(models.IntegerField())
         name, path, args, kwargs = field.deconstruct()
-        self.assertEqual(path, "django.contrib.postgres.fields.ArrayField")
+        self.assertEqual(path, "django_mongodb.fields.ArrayField")
 
         field = ArrayFieldSubclass()
         name, path, args, kwargs = field.deconstruct()
@@ -1138,6 +940,8 @@ class TestSimpleFormField(SimpleTestCase):
         self.assertIs(field.has_changed([], ""), False)
 
 
+# To locate the widget's template.
+@modify_settings(INSTALLED_APPS={"append": "django_mongodb"})
 class TestSplitFormField(SimpleTestCase):
     def test_valid(self):
         class SplitForm(forms.Form):
@@ -1296,7 +1100,9 @@ class TestSplitFormField(SimpleTestCase):
                 self.assertIs(form.has_changed(), expected_result)
 
 
-class TestSplitFormWidget(SimpleTestCase):
+# To locate the widget's template.
+@modify_settings(INSTALLED_APPS={"append": "django_mongodb"})
+class TestSplitFormWidget(WidgetTest, SimpleTestCase):
     def test_get_context(self):
         self.assertEqual(
             SplitArrayWidget(forms.TextInput(), size=2).get_context("name", ["val1", "val2"]),
@@ -1307,7 +1113,7 @@ class TestSplitFormWidget(SimpleTestCase):
                     "required": False,
                     "value": "['val1', 'val2']",
                     "attrs": {},
-                    "template_name": "postgres/widgets/split_array.html",
+                    "template_name": "mongodb/widgets/split_array.html",
                     "subwidgets": [
                         {
                             "name": "name_0",
