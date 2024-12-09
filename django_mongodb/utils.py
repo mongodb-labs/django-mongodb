@@ -26,7 +26,7 @@ def check_django_compatability():
         )
 
 
-def parse_uri(uri, conn_max_age=0, conn_health_checks=False, test=None):
+def parse_uri(uri, conn_max_age=0, test=None):
     """
     Convert the given uri into a dictionary suitable for Django's DATABASES
     setting.
@@ -52,7 +52,6 @@ def parse_uri(uri, conn_max_age=0, conn_health_checks=False, test=None):
         "PASSWORD": uri.get("password"),
         "OPTIONS": uri.get("options"),
         "CONN_MAX_AGE": conn_max_age,
-        "CONN_HEALTH_CHECKS": conn_health_checks,
     }
     if test:
         settings_dict["TEST"] = test
