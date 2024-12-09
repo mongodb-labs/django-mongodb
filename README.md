@@ -110,28 +110,51 @@ to this:
 DATABASES = {
     "default": {
         "ENGINE": "django_mongodb",
+        "HOST": "mongodb+srv://cluster0.example.mongodb.net",
         "NAME": "my_database",
         "USER": "my_user",
         "PASSWORD": "my_password",
-        "OPTIONS": {...},
+        "PORT": 27017,
+        "OPTIONS": {
+            # Example:
+            "retryWrites": "true",
+            "w": "majority",
+            "tls": "false",
+        },
     },
 }
 ```
 
+For a local host configuration, you can omit `"HOST"` or specify
+`"HOST": "localhost"`.
+
+Depending on your configuration, `HOST`, `USER`, `PASSWORD`, `PORT`, and
+`OPTIONS` may be optional.
+
 `OPTIONS` is an optional dictionary of parameters that will be passed to
 [`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
 
-Alternatively, if you prefer to simply paste in a MongoDB URI rather than
-parsing it into the format above, you can use:
+For a replica set or sharded cluster where you have multiple hosts, include
+all of them in `"HOST"`, e.g.
+`"mongodb://mongos0.example.com:27017,mongos1.example.com:27017"`.
+
+Alternatively, if you prefer to simply paste in a MongoDB URI rather than parse
+it into the format above, you can use:
 
 ```python
 import django_mongodb
 
-MONGODB_URI = "mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
+MONGODB_URI = "mongodb+srv://my_user:my_password@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
 DATABASES["default"] = django_mongodb.parse_uri(MONGODB_URI)
 ```
 
+This constructs a `DATABASES` setting equivalent to the first example.
+
 #### `django_mongodb.parse_uri(uri, conn_max_age=0, test=None)`
+
+`parse_uri()` provides a few options to customize the resulting `DATABASES`
+setting, but for maximum flexibility, construct `DATABASES` manually as
+described above.
 
 - Use `conn_max_age` to configure [persistent database connections](
   https://docs.djangoproject.com/en/stable/ref/databases/#persistent-database-connections).
