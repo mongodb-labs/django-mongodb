@@ -21,6 +21,7 @@ test_apps = [
     "apps",
     "async",
     "auth_tests",
+    "backend_",
     "backends",
     "basic",
     "bulk_create",
