@@ -3,10 +3,12 @@ from django.core import exceptions
 from django.db.models.fields import Field
 from django.utils.translation import gettext_lazy as _
 
+from django_mongodb import forms
+
 
 class ObjectIdMixin:
     default_error_messages = {
-        "invalid": _("“%(value)s” value must be an Object Id."),
+        "invalid": _("“%(value)s” is not a valid Object Id."),
     }
     description = _("Object Id")
 
@@ -17,12 +19,8 @@ class ObjectIdMixin:
         return "objectId"
 
     def get_prep_value(self, value):
-        if value is None or isinstance(value, ObjectId):
-            return value
-        try:
-            return ObjectId(value)
-        except (errors.InvalidId, TypeError) as e:
-            raise ValueError(f"Field '{self.name}' expected an ObjectId but got {value!r}.") from e
+        value = super().get_prep_value(value)
+        return self.to_python(value)
 
     def to_python(self, value):
         if value is None:
@@ -35,6 +33,14 @@ class ObjectIdMixin:
                 code="invalid",
                 params={"value": value},
             ) from None
+
+    def formfield(self, **kwargs):
+        return super().formfield(
+            **{
+                "form_class": forms.ObjectIdField,
+                **kwargs,
+            }
+        )
 
 
 class ObjectIdField(ObjectIdMixin, Field):

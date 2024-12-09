@@ -7,6 +7,7 @@ django-mongodb 5.0.x documentation
 
    fields
    querysets
+   forms
 
 Indices and tables
 ==================

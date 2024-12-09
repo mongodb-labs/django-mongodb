@@ -1,4 +1,5 @@
 from bson import ObjectId
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from .models import Order, OrderItem, Tag
@@ -89,10 +90,9 @@ class ObjectIdTests(TestCase):
         self.assertSequenceEqual(union_qs, [self.t3, self.t4])
 
     def test_filter_invalid_object_id(self):
-        value = "value1"
-        msg = f"Field 'group_id' expected an ObjectId but got '{value}'."
-        with self.assertRaisesMessage(ValueError, msg):
-            Tag.objects.filter(group_id=value)
+        msg = "“value1” is not a valid Object Id.'"
+        with self.assertRaisesMessage(ValidationError, msg):
+            Tag.objects.filter(group_id="value1")
 
     def test_values_in_subquery(self):
         # If a values() queryset is used, then the given values will be used
