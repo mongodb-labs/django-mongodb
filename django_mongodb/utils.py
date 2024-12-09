@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.utils import logger
 from django.utils.version import get_version_tuple
-from pymongo.uri_parser import parse_uri as parse_uri_mongo
+from pymongo.uri_parser import parse_uri as pymongo_parse_uri
 
 
 def check_django_compatability():
@@ -31,7 +31,7 @@ def parse_uri(uri, conn_max_age=0, test=None):
     Convert the given uri into a dictionary suitable for Django's DATABASES
     setting.
     """
-    uri = parse_uri_mongo(uri)
+    uri = pymongo_parse_uri(uri)
     host = None
     port = None
     if uri["fqdn"] is not None:
