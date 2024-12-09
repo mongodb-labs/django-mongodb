@@ -77,10 +77,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Connection creation doesn't follow the usual Django API.
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
-        # ObjectId type mismatch in a subquery:
-        # https://github.com/mongodb-labs/django-mongodb/issues/161
-        "queries.tests.RelatedLookupTypeTests.test_values_queryset_lookup",
-        "queries.tests.ValuesSubqueryTests.test_values_in_subquery",
         # Object of type ObjectId is not JSON serializable.
         "auth_tests.test_views.LoginTest.test_login_session_without_hash_session_key",
         # GenericRelation.value_to_string() assumes integer pk.
@@ -225,6 +221,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "expressions.tests.BasicExpressionsTests.test_nested_subquery_outer_ref_with_autofield",
             "model_fields.test_foreignkey.ForeignKeyTests.test_to_python",
             "queries.test_qs_combinators.QuerySetSetOperationTests.test_order_raises_on_non_selected_column",
+            "queries.tests.RelatedLookupTypeTests.test_values_queryset_lookup",
+            "queries.tests.ValuesSubqueryTests.test_values_in_subquery",
         },
         "Cannot use QuerySet.delete() when querying across multiple collections on MongoDB.": {
             "admin_changelist.tests.ChangeListTests.test_distinct_for_many_to_many_at_second_level_in_search_fields",
