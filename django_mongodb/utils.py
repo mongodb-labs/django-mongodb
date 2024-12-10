@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.utils import logger
 from django.utils.version import get_version_tuple
+from pymongo.uri_parser import parse_uri as pymongo_parse_uri
 
 
 def check_django_compatability():
@@ -23,6 +24,38 @@ def check_django_compatability():
             f"You must use the latest version of django-mongodb {A}.{B}.x "
             f"with Django {A}.{B}.y (found django-mongodb {__version__})."
         )
+
+
+def parse_uri(uri, conn_max_age=0, test=None):
+    """
+    Convert the given uri into a dictionary suitable for Django's DATABASES
+    setting.
+    """
+    uri = pymongo_parse_uri(uri)
+    host = None
+    port = None
+    if uri["fqdn"]:
+        # This is a SRV URI and the host is the fqdn.
+        host = f"mongodb+srv://{uri['fqdn']}"
+    else:
+        nodelist = uri.get("nodelist")
+        if len(nodelist) == 1:
+            host, port = nodelist[0]
+        elif len(nodelist) > 1:
+            host = ",".join([f"{host}:{port}" for host, port in nodelist])
+    settings_dict = {
+        "ENGINE": "django_mongodb",
+        "NAME": uri["database"],
+        "HOST": host,
+        "PORT": port,
+        "USER": uri.get("username"),
+        "PASSWORD": uri.get("password"),
+        "OPTIONS": uri.get("options"),
+        "CONN_MAX_AGE": conn_max_age,
+    }
+    if test:
+        settings_dict["TEST"] = test
+    return settings_dict
 
 
 def set_wrapped_methods(cls):

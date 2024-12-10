@@ -110,16 +110,58 @@ to this:
 DATABASES = {
     "default": {
         "ENGINE": "django_mongodb",
+        "HOST": "mongodb+srv://cluster0.example.mongodb.net",
         "NAME": "my_database",
         "USER": "my_user",
         "PASSWORD": "my_password",
-        "OPTIONS": {...},
+        "PORT": 27017,
+        "OPTIONS": {
+            # Example:
+            "retryWrites": "true",
+            "w": "majority",
+            "tls": "false",
+        },
     },
 }
 ```
 
+For a localhost configuration, you can omit `HOST` or specify
+`"HOST": "localhost"`.
+
+`HOST` only needs a scheme prefix for SRV connections (`mongodb+srv://`). A
+`mongodb://` prefix is never required.
+
 `OPTIONS` is an optional dictionary of parameters that will be passed to
 [`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
+
+`USER`, `PASSWORD`, and `PORT` (if 27017) may also be optional.
+
+For a replica set or sharded cluster where you have multiple hosts, include
+all of them in `HOST`, e.g.
+`"mongodb://mongos0.example.com:27017,mongos1.example.com:27017"`.
+
+Alternatively, if you prefer to simply paste in a MongoDB URI rather than parse
+it into the format above, you can use:
+
+```python
+import django_mongodb
+
+MONGODB_URI = "mongodb+srv://my_user:my_password@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
+DATABASES["default"] = django_mongodb.parse_uri(MONGODB_URI)
+```
+
+This constructs a `DATABASES` setting equivalent to the first example.
+
+#### `django_mongodb.parse_uri(uri, conn_max_age=0, test=None)`
+
+`parse_uri()` provides a few options to customize the resulting `DATABASES`
+setting, but for maximum flexibility, construct `DATABASES` manually as
+described above.
+
+- Use `conn_max_age` to configure [persistent database connections](
+  https://docs.djangoproject.com/en/stable/ref/databases/#persistent-database-connections).
+- Use `test` to provide a dictionary of [settings for test databases](
+  https://docs.djangoproject.com/en/stable/ref/settings/#test).
 
 Congratulations, your project is ready to go!
 
