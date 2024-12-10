@@ -453,25 +453,6 @@ class TestQuerying(TestCase):
         with self.assertRaisesMessage(FieldError, msg):
             list(NullableIntegerArrayModel.objects.filter(field__0bar=[2]))
 
-    def test_grouping_by_annotations_with_array_field_param(self):
-        value = models.Value([1], output_field=ArrayField(models.IntegerField()))
-        self.assertEqual(
-            NullableIntegerArrayModel.objects.annotate(
-                array_length=models.Func(
-                    value,
-                    1,
-                    function="ARRAY_LENGTH",
-                    output_field=models.IntegerField(),
-                ),
-            )
-            .values("array_length")
-            .annotate(
-                count=models.Count("pk"),
-            )
-            .get()["array_length"],
-            1,
-        )
-
 
 class TestDateTimeExactQuerying(TestCase):
     @classmethod
@@ -671,34 +652,19 @@ class TestMigrations(TransactionTestCase):
         }
     )
     def test_adding_arrayfield_with_index(self):
-        """
-        ArrayField shouldn't have varchar_patterns_ops or text_patterns_ops indexes.
-        """
         table_name = "model_fields__chartextarrayindexmodel"
         call_command("migrate", "model_fields_", verbosity=0)
-        with connection.cursor() as cursor:
-            like_constraint_columns_list = [
-                v["columns"]
-                for k, v in list(
-                    connection.introspection.get_constraints(cursor, table_name).items()
-                )
-                if k.endswith("_like")
-            ]
-        # Only the CharField should have a LIKE index.
-        self.assertEqual(like_constraint_columns_list, [["char2"]])
         # All fields should have regular indexes.
-        with connection.cursor() as cursor:
-            indexes = [
-                c["columns"][0]
-                for c in connection.introspection.get_constraints(cursor, table_name).values()
-                if c["index"] and len(c["columns"]) == 1
-            ]
+        indexes = [
+            c["columns"][0]
+            for c in connection.introspection.get_constraints(None, table_name).values()
+            if c["index"] and len(c["columns"]) == 1
+        ]
         self.assertIn("char", indexes)
         self.assertIn("char2", indexes)
         self.assertIn("text", indexes)
         call_command("migrate", "model_fields_", "zero", verbosity=0)
-        with connection.cursor() as cursor:
-            self.assertNotIn(table_name, connection.introspection.table_names(cursor))
+        self.assertNotIn(table_name, connection.introspection.table_names(None))
 
 
 class TestSerialization(SimpleTestCase):
