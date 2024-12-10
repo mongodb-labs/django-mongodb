@@ -1,5 +1,6 @@
-import django.contrib.postgres.fields
 from django.db import migrations, models
+
+import django_mongodb
 
 
 class Migration(migrations.Migration):
@@ -11,7 +12,7 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.AutoField(
+                    django_mongodb.fields.ObjectIdAutoField(
                         verbose_name="ID",
                         serialize=False,
                         auto_created=True,
@@ -20,14 +21,14 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "char",
-                    django.contrib.postgres.fields.ArrayField(
+                    django_mongodb.fields.ArrayField(
                         models.CharField(max_length=10), db_index=True, size=100
                     ),
                 ),
                 ("char2", models.CharField(max_length=11, db_index=True)),
                 (
                     "text",
-                    django.contrib.postgres.fields.ArrayField(models.TextField(), db_index=True),
+                    django_mongodb.fields.ArrayField(models.TextField(), db_index=True),
                 ),
             ],
             options={},

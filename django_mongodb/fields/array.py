@@ -276,7 +276,7 @@ class ArrayLenTransform(Transform):
     lookup_name = "len"
     output_field = IntegerField()
 
-    def as_sql(self, compiler, connection):
+    def as_mql(self, compiler, connection):
         lhs, params = compiler.compile(self.lhs)
         # Distinguish NULL and empty arrays
         return (
@@ -312,7 +312,7 @@ class IndexTransform(Transform):
         self.index = index
         self.base_field = base_field
 
-    def as_sql(self, compiler, connection):
+    def as_mql(self, compiler, connection):
         lhs, params = compiler.compile(self.lhs)
         if not lhs.endswith("]"):
             lhs = "(%s)" % lhs
@@ -338,7 +338,7 @@ class SliceTransform(Transform):
         self.start = start
         self.end = end
 
-    def as_sql(self, compiler, connection):
+    def as_mql(self, compiler, connection):
         lhs, params = compiler.compile(self.lhs)
         if not lhs.endswith("]"):
             lhs = "(%s)" % lhs
