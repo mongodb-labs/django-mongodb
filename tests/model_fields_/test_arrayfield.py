@@ -100,9 +100,9 @@ class TestSaveLoad(TestCase):
 
     def test_dates(self):
         instance = DateTimeArrayModel(
-            datetimes=[timezone.now()],
+            datetimes=[timezone.now().replace(microsecond=0)],
             dates=[timezone.now().date()],
-            times=[timezone.now().time()],
+            times=[timezone.now().time().replace(microsecond=0)],
         )
         instance.save()
         loaded = DateTimeArrayModel.objects.get()
