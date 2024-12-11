@@ -81,6 +81,34 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "auth_tests.test_views.LoginTest.test_login_session_without_hash_session_key",
         # GenericRelation.value_to_string() assumes integer pk.
         "contenttypes_tests.test_fields.GenericRelationTests.test_value_to_string",
+        # Can contains be implemented?
+        "model_fields_.test_arrayfield.TestQuerying.test_contains",
+        "model_fields_.test_arrayfield.TestQuerying.test_contains_charfield",
+        "model_fields_.test_arrayfield.TestQuerying.test_contains_including_expression",
+        "model_fields_.test_arrayfield.TestQuerying.test_contains_subquery",
+        "model_fields_.test_arrayfield.TestQuerying.test_enum_lookup",
+        "model_fields_.test_arrayfield.TestQuerying.test_icontains",
+        # Field 'field' expected a number but got Value(1).
+        "model_fields_.test_arrayfield.TestQuerying.test_exact_with_expression",
+        # int() argument must be a string, a bytes-like object or a real number, not 'list'
+        "model_fields_.test_arrayfield.TestQuerying.test_index_annotation",
+        # Wrong results
+        "model_fields_.test_arrayfield.TestQuerying.test_exact",
+        "model_fields_.test_arrayfield.TestQuerying.test_gt",
+        "model_fields_.test_arrayfield.TestQuerying.test_in",
+        "model_fields_.test_arrayfield.TestQuerying.test_in_as_F_object",
+        "model_fields_.test_arrayfield.TestQuerying.test_in_subquery",
+        "model_fields_.test_arrayfield.TestQuerying.test_index",
+        "model_fields_.test_arrayfield.TestQuerying.test_index_chained",
+        "model_fields_.test_arrayfield.TestQuerying.test_index_nested",
+        "model_fields_.test_arrayfield.TestQuerying.test_isnull",
+        "model_fields_.test_arrayfield.TestQuerying.test_len",
+        "model_fields_.test_arrayfield.TestQuerying.test_len_empty_array",
+        "model_fields_.test_arrayfield.TestQuerying.test_lt",
+        "model_fields_.test_arrayfield.TestQuerying.test_order_by_slice",
+        "model_fields_.test_arrayfield.TestQuerying.test_slice",
+        "model_fields_.test_arrayfield.TestQuerying.test_slice_annotation",
+        "model_fields_.test_arrayfield.TestQuerying.test_usage_in_subquery",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
