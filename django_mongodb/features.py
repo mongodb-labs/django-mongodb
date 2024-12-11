@@ -93,8 +93,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "model_fields_.test_arrayfield.TestQuerying.test_exact_with_expression",
         # int() argument must be a string, a bytes-like object or a real number, not 'list'
         "model_fields_.test_arrayfield.TestQuerying.test_index_annotation",
-        # the JSON object must be str, bytes or bytearray, not dict
-        "model_fields_.test_arrayfield.TestSaveLoad.test_other_array_types",
         # Wrong results
         "model_fields_.test_arrayfield.TestQuerying.test_in_as_F_object",
         "model_fields_.test_arrayfield.TestQuerying.test_index",
@@ -107,8 +105,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "model_fields_.test_arrayfield.TestQuerying.test_slice",
         "model_fields_.test_arrayfield.TestQuerying.test_slice_annotation",
         "model_fields_.test_arrayfield.TestQuerying.test_usage_in_subquery",
-        # database converters not applied
-        "model_fields_.test_arrayfield.TestSaveLoad.test_dates",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
