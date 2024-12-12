@@ -677,13 +677,13 @@ class SQLInsertCompiler(SQLCompiler):
 
                 field_values[field.column] = value
             objs.append(field_values)
-        return [self.insert(objs, returning_fields=returning_fields)]
+        return self.insert(objs, returning_fields=returning_fields)
 
     @wrap_database_errors
     def insert(self, docs, returning_fields=None):
         """Store a list of documents using field columns as element names."""
         inserted_ids = self.collection.insert_many(docs).inserted_ids
-        return inserted_ids if returning_fields else []
+        return [(x,) for x in inserted_ids] if returning_fields else []
 
     @cached_property
     def collection_name(self):

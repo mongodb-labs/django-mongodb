@@ -10,6 +10,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     allows_multiple_constraints_on_same_fields = False
     can_create_inline_fk = False
     can_introspect_foreign_keys = False
+    can_return_rows_from_bulk_insert = True
     greatest_least_ignores_nulls = True
     has_json_object_function = False
     has_native_json_field = True
