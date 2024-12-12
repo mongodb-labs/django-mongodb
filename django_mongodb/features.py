@@ -10,6 +10,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     allows_multiple_constraints_on_same_fields = False
     can_create_inline_fk = False
     can_introspect_foreign_keys = False
+    can_return_rows_from_bulk_insert = True
     greatest_least_ignores_nulls = True
     has_json_object_function = False
     has_native_json_field = True
@@ -197,7 +198,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         },
         "AutoField not supported.": {
             "bulk_create.tests.BulkCreateTests.test_bulk_insert_nullable_fields",
-            "custom_pk.tests.CustomPKTests.test_auto_field_subclass_create",
             "introspection.tests.IntrospectionTests.test_sequence_list",
             "lookup.tests.LookupTests.test_filter_by_reverse_related_field_transform",
             "lookup.tests.LookupTests.test_in_ignore_none_with_unhashable_items",
@@ -211,6 +211,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_autofield.BigAutoFieldTests",
             "model_fields.test_autofield.SmallAutoFieldTests",
             "queries.tests.TestInvalidValuesRelation.test_invalid_values",
+        },
+        "Converters aren't run on returning fields from insert.": {
+            # Unsure this is needed for this backend. Can implement by request.
+            # https://github.com/django/django/commit/d9de74141e8a920940f1b91ed0a3ccb835b55729
+            "custom_pk.tests.CustomPKTests.test_auto_field_subclass_bulk_create",
+            "custom_pk.tests.CustomPKTests.test_auto_field_subclass_create",
         },
         "MongoDB does not enforce PositiveIntegerField constraint.": {
             "model_fields.test_integerfield.PositiveIntegerFieldTests.test_negative_values",
