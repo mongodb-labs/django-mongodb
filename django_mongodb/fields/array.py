@@ -187,8 +187,8 @@ class ArrayField(CheckFieldDefaultMixin, Field):
                 return IndexTransformFactory(index, self.base_field)
         try:
             start, end = name.split("_")
-            start = int(start) + 1
-            end = int(end)  # don't add one here because postgres slices are weird
+            start = int(start)
+            end = int(end)
         except ValueError:
             pass
         else:
@@ -332,10 +332,8 @@ class SliceTransform(Transform):
         self.end = end
 
     def as_mql(self, compiler, connection):
-        lhs, params = compiler.compile(self.lhs)
-        if not lhs.endswith("]"):
-            lhs = "(%s)" % lhs
-        return "%s[%%s:%%s]" % lhs, (*params, self.start, self.end)
+        lhs_mql = process_lhs(self, compiler, connection)
+        return {"$slice": [lhs_mql, self.start, self.end]}
 
 
 class SliceTransformFactory:

@@ -98,8 +98,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "model_fields_.test_arrayfield.TestQuerying.test_index_chained",
         "model_fields_.test_arrayfield.TestQuerying.test_index_nested",
         "model_fields_.test_arrayfield.TestQuerying.test_order_by_slice",
-        "model_fields_.test_arrayfield.TestQuerying.test_slice",
-        "model_fields_.test_arrayfield.TestQuerying.test_slice_annotation",
         # $lt treats null values as zero.
         "model_fields_.test_arrayfield.TestQuerying.test_lt",
         "model_fields_.test_arrayfield.TestQuerying.test_len",
