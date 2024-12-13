@@ -356,7 +356,6 @@ class TestQuerying(TestCase):
         instance = NestedIntegerArrayModel.objects.create(field=[[1, 2], [3, 4]])
         self.assertSequenceEqual(NestedIntegerArrayModel.objects.filter(field__0__0=1), [instance])
 
-    @unittest.expectedFailure
     def test_index_used_on_nested_data(self):
         instance = NestedIntegerArrayModel.objects.create(field=[[1, 2], [3, 4]])
         self.assertSequenceEqual(
@@ -388,7 +387,7 @@ class TestQuerying(TestCase):
             NullableIntegerArrayModel.objects.filter(field__0_2=[2, 3]), self.objs[2:3]
         )
 
-    def test_order_by_slice(self):
+    def test_order_by_index(self):
         more_objs = (
             NullableIntegerArrayModel.objects.create(field=[1, 637]),
             NullableIntegerArrayModel.objects.create(field=[2, 1]),
@@ -398,19 +397,18 @@ class TestQuerying(TestCase):
         self.assertSequenceEqual(
             NullableIntegerArrayModel.objects.order_by("field__1"),
             [
+                self.objs[0],
+                self.objs[1],
+                self.objs[4],
                 more_objs[2],
                 more_objs[1],
                 more_objs[3],
                 self.objs[2],
                 self.objs[3],
                 more_objs[0],
-                self.objs[4],
-                self.objs[1],
-                self.objs[0],
             ],
         )
 
-    @unittest.expectedFailure
     def test_slice_nested(self):
         instance = NestedIntegerArrayModel.objects.create(field=[[1, 2], [3, 4]])
         self.assertSequenceEqual(

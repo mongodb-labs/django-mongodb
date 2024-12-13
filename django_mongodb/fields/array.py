@@ -183,7 +183,6 @@ class ArrayField(CheckFieldDefaultMixin, Field):
             except ValueError:
                 pass
             else:
-                index += 1  # postgres uses 1-indexing
                 return IndexTransformFactory(index, self.base_field)
         try:
             start, end = name.split("_")
@@ -306,10 +305,8 @@ class IndexTransform(Transform):
         self.base_field = base_field
 
     def as_mql(self, compiler, connection):
-        lhs, params = compiler.compile(self.lhs)
-        if not lhs.endswith("]"):
-            lhs = "(%s)" % lhs
-        return "%s[%%s]" % lhs, (*params, self.index)
+        lhs_mql = process_lhs(self, compiler, connection)
+        return {"$arrayElemAt": [lhs_mql, self.index]}
 
     @property
     def output_field(self):
