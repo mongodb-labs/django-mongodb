@@ -94,17 +94,17 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # int() argument must be a string, a bytes-like object or a real number, not 'list'
         "model_fields_.test_arrayfield.TestQuerying.test_index_annotation",
         # Wrong results
-        "model_fields_.test_arrayfield.TestQuerying.test_in_as_F_object",
         "model_fields_.test_arrayfield.TestQuerying.test_index",
         "model_fields_.test_arrayfield.TestQuerying.test_index_chained",
         "model_fields_.test_arrayfield.TestQuerying.test_index_nested",
-        "model_fields_.test_arrayfield.TestQuerying.test_len",
-        "model_fields_.test_arrayfield.TestQuerying.test_len_empty_array",
-        "model_fields_.test_arrayfield.TestQuerying.test_lt",
         "model_fields_.test_arrayfield.TestQuerying.test_order_by_slice",
         "model_fields_.test_arrayfield.TestQuerying.test_slice",
         "model_fields_.test_arrayfield.TestQuerying.test_slice_annotation",
-        "model_fields_.test_arrayfield.TestQuerying.test_usage_in_subquery",
+        # $lt treats null values as zero.
+        "model_fields_.test_arrayfield.TestQuerying.test_lt",
+        "model_fields_.test_arrayfield.TestQuerying.test_len",
+        # None is $in None
+        "model_fields_.test_arrayfield.TestQuerying.test_in_as_F_object",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
