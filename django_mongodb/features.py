@@ -91,16 +91,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "model_fields_.test_arrayfield.TestQuerying.test_icontains",
         # Field 'field' expected a number but got Value(1).
         "model_fields_.test_arrayfield.TestQuerying.test_exact_with_expression",
-        # int() argument must be a string, a bytes-like object or a real number, not 'list'
-        "model_fields_.test_arrayfield.TestQuerying.test_index_annotation",
-        # Wrong results
-        "model_fields_.test_arrayfield.TestQuerying.test_index",
-        "model_fields_.test_arrayfield.TestQuerying.test_index_chained",
-        "model_fields_.test_arrayfield.TestQuerying.test_index_nested",
-        "model_fields_.test_arrayfield.TestQuerying.test_order_by_slice",
         # $lt treats null values as zero.
         "model_fields_.test_arrayfield.TestQuerying.test_lt",
         "model_fields_.test_arrayfield.TestQuerying.test_len",
+        "model_fields_.test_arrayfield.TestQuerying.test_index_chained",
         # None is $in None
         "model_fields_.test_arrayfield.TestQuerying.test_in_as_F_object",
     }
