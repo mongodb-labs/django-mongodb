@@ -4,7 +4,7 @@ from django.contrib.postgres.validators import ArrayMaxLengthValidator
 from django.core import checks, exceptions
 from django.db.models import DecimalField, Field, Func, IntegerField, Transform, Value
 from django.db.models.fields.mixins import CheckFieldDefaultMixin
-from django.db.models.lookups import In
+from django.db.models.lookups import In, Lookup
 from django.utils.translation import gettext_lazy as _
 
 from django_mongodb.forms import SimpleArrayField
@@ -266,9 +266,30 @@ class ArrayRHSMixin:
                 yield True
 
 
+@ArrayField.register_lookup
+class ArrayContains(Lookup):  # ArrayRHSMixin, lookups.DataContains):
+    lookup_name = "contains"
+
+    def as_mql(self, compiler, connection):
+        lhs_mql = process_lhs(self, compiler, connection)
+
+        return {
+            "$gt": [
+                {
+                    "$cond": {
+                        "if": {"$eq": [lhs_mql, None]},
+                        "then": None,
+                        "else": {"$size": {"$setIntersection": [lhs_mql, [2]]}},
+                    }
+                },
+                0,
+            ]
+        }
+
+
 # @ArrayField.register_lookup
 # class ArrayExact(ArrayRHSMixin, Exact):
-#     pass
+#    pass
 
 
 @ArrayField.register_lookup
