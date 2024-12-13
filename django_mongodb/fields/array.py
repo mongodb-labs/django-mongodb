@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from django_mongodb.forms import SimpleArrayField
 
+from ..query_utils import process_lhs
 from ..utils import prefix_validation_error
 
 __all__ = ["ArrayField"]
@@ -277,16 +278,8 @@ class ArrayLenTransform(Transform):
     output_field = IntegerField()
 
     def as_mql(self, compiler, connection):
-        lhs, params = compiler.compile(self.lhs)
-        # Distinguish NULL and empty arrays
-        return (
-            (
-                ""  # "CASE WHEN %(lhs)s IS NULL THEN NULL ELSE "
-                # "coalesce(array_length(%(lhs)s, 1), 0) END"
-            )
-            % {},
-            params * 2,
-        )
+        lhs_mql = process_lhs(self, compiler, connection)
+        return {"$cond": {"if": {"$eq": [lhs_mql, None]}, "then": None, "else": {"$size": lhs_mql}}}
 
 
 @ArrayField.register_lookup
