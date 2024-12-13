@@ -4,12 +4,12 @@ from django.contrib.postgres.validators import ArrayMaxLengthValidator
 from django.core import checks, exceptions
 from django.db.models import DecimalField, Field, Func, IntegerField, Transform, Value
 from django.db.models.fields.mixins import CheckFieldDefaultMixin
-from django.db.models.lookups import In
+from django.db.models.lookups import In, Lookup
 from django.utils.translation import gettext_lazy as _
 
 from django_mongodb.forms import SimpleArrayField
 
-from ..query_utils import process_lhs
+from ..query_utils import process_lhs, process_rhs
 from ..utils import prefix_validation_error
 
 __all__ = ["ArrayField"]
@@ -264,6 +264,27 @@ class ArrayRHSMixin:
                 yield from self._rhs_not_none_values(x)
             elif x is not None:
                 yield True
+
+
+@ArrayField.register_lookup
+class ArrayContains(Lookup):  # ArrayRHSMixin, lookups.DataContains):
+    lookup_name = "contains"
+
+    def as_mql(self, compiler, connection):
+        lhs_mql = process_lhs(self, compiler, connection)
+        value = process_rhs(self, compiler, connection)
+        return {
+            "$gt": [
+                {
+                    "$cond": {
+                        "if": {"$eq": [lhs_mql, None]},
+                        "then": None,
+                        "else": {"$size": {"$setIntersection": [lhs_mql, value]}},
+                    }
+                },
+                0,
+            ]
+        }
 
 
 # @ArrayField.register_lookup
