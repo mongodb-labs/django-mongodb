@@ -89,6 +89,23 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "auth_tests.test_views.LoginTest.test_login_session_without_hash_session_key",
         # GenericRelation.value_to_string() assumes integer pk.
         "contenttypes_tests.test_fields.GenericRelationTests.test_value_to_string",
+        # Broken by https://github.com/django/django/commit/65ad4ade74dc9208b9d686a451cd6045df0c9c3a
+        "aggregation.tests.AggregateTestCase.test_even_more_aggregate",
+        "aggregation.tests.AggregateTestCase.test_grouped_annotation_in_group_by",
+        "aggregation.tests.AggregateTestCase.test_non_grouped_annotation_not_in_group_by",
+        "aggregation_regress.tests.AggregationTests.test_aggregate_fexpr",
+        "aggregation_regress.tests.AggregationTests.test_values_list_annotation_args_ordering",
+        "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_subquery_and_aggregate_values_chaining",
+        "annotations.tests.NonAggregateAnnotationTestCase.test_values_fields_annotations_order",
+        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_multiple_models_with_values_and_datetime_annotations",
+        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_multiple_models_with_values_list_and_datetime_annotations",
+        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_multiple_models_with_values_list_and_annotations",
+        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_with_field_and_annotation_values",
+        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_with_two_annotated_values_list",
+        "queries.tests.Queries1Tests.test_union_values_subquery",
+        # pymongo.errors.WriteError: Performing an update on the path '_id'
+        # would modify the immutable field '_id'
+        "migrations.test_operations.OperationTests.test_composite_pk_operations",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -610,6 +627,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "foreign_object.test_empty_join.RestrictedConditionsTests",
             "foreign_object.tests.MultiColumnFKTests",
             "foreign_object.tests.TestExtraJoinFilterQ",
+        },
+        "Tuple lookups are not supported.": {
+            "foreign_object.test_tuple_lookups.TupleLookupsTests",
         },
         "Custom lookups are not supported.": {
             "custom_lookups.tests.BilateralTransformTests",
