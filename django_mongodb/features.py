@@ -82,6 +82,22 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "auth_tests.test_views.LoginTest.test_login_session_without_hash_session_key",
         # GenericRelation.value_to_string() assumes integer pk.
         "contenttypes_tests.test_fields.GenericRelationTests.test_value_to_string",
+        # contains with expressions/subqueries doesn't work.
+        "model_fields_.test_arrayfield.TestQuerying.test_contains_including_expression",
+        "model_fields_.test_arrayfield.TestQuerying.test_contains_subquery",
+        # Add FieldGetDbPrepValueMixin to lookups?
+        # https://github.com/django/django/commit/5a36c81f58b8ff45d8dac052343722c54e3fa521#diff-10cd50a6d8761600a1aea96d413184582481a278388b4ad38a788030a21cbd45R5
+        "model_fields_.test_arrayfield.TestQuerying.test_enum_lookup",
+        # Unsupported conversion from array to string in $convert
+        "model_fields_.test_arrayfield.TestQuerying.test_icontains",
+        # Field 'field' expected a number but got Value(1).
+        "model_fields_.test_arrayfield.TestQuerying.test_exact_with_expression",
+        # $lt treats null values as zero.
+        "model_fields_.test_arrayfield.TestQuerying.test_lt",
+        "model_fields_.test_arrayfield.TestQuerying.test_len",
+        "model_fields_.test_arrayfield.TestQuerying.test_index_chained",
+        # None is $in None
+        "model_fields_.test_arrayfield.TestQuerying.test_in_as_F_object",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
