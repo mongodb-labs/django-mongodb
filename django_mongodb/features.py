@@ -473,11 +473,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
             "timezones.tests.NewDatabaseTests.test_query_convert_timezones",
         },
-        "TruncTime database function not supported.": {
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_time_comparison",
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_time_func",
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_time_none",
-        },
         "MongoDB can't annotate ($project) a function like PI().": {
             "aggregation.tests.AggregateTestCase.test_aggregation_default_using_decimal_from_database",
             "db_functions.math.test_pi.PiTests.test",
