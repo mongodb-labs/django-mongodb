@@ -17,7 +17,6 @@ from django.db.models.sql.datastructures import BaseTable
 from django.utils.functional import cached_property
 from pymongo import ASCENDING, DESCENDING
 
-from .base import Cursor
 from .query import MongoQuery, wrap_database_errors
 
 
@@ -91,7 +90,7 @@ class SQLCompiler(compiler.SQLCompiler):
                 rhs = sub_expr.as_mql(self, self.connection, resolve_inner_expression=True)
                 group[alias] = {"$addToSet": rhs}
                 replacing_expr = sub_expr.copy()
-                replacing_expr.set_source_expressions([inner_column])
+                replacing_expr.set_source_expressions([inner_column, None])
             else:
                 group[alias] = sub_expr.as_mql(self, self.connection)
                 replacing_expr = inner_column
@@ -692,9 +691,7 @@ class SQLInsertCompiler(SQLCompiler):
 
 class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
     def execute_sql(self, result_type=MULTI):
-        cursor = Cursor()
-        cursor.rowcount = self.build_query().delete()
-        return cursor
+        return self.build_query().delete()
 
     def check_query(self):
         super().check_query()
