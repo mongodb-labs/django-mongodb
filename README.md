@@ -203,7 +203,6 @@ Congratulations, your project is ready to go!
     - `Right`
     - `SHA1`, `SHA224`, `SHA256`, `SHA384`, `SHA512`
     - `Sign`
-    - `TruncDate`
     - `TruncTime`
 
 - The `tzinfo` parameter of the `Trunc` database functions doesn't work

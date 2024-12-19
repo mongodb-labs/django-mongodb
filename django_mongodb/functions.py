@@ -15,6 +15,7 @@ from django.db.models.functions.datetime import (
     ExtractYear,
     Now,
     TruncBase,
+    TruncDate,
 )
 from django.db.models.functions.math import Ceil, Cot, Degrees, Log, Power, Radians, Random, Round
 from django.db.models.functions.text import (
@@ -191,6 +192,15 @@ def trunc(self, compiler, connection):
     return {"$dateTrunc": lhs_mql}
 
 
+def trunc_date(self, compiler, connection):
+    # Cast to date rather than truncate to date.
+    lhs_mql = process_lhs(self, compiler, connection)
+    tzname = self.get_tzname()
+    if tzname and tzname != "UTC":
+        raise NotSupportedError(f"TruncDate with timezone ({tzname}) isn't supported on MongoDB.")
+    return {"$toDate": lhs_mql}
+
+
 def register_functions():
     Cast.as_mql = cast
     Concat.as_mql = concat
@@ -212,4 +222,5 @@ def register_functions():
     Substr.as_mql = substr
     Trim.as_mql = trim("trim")
     TruncBase.as_mql = trunc
+    TruncDate.as_mql = trunc_date
     Upper.as_mql = preserve_null("toUpper")

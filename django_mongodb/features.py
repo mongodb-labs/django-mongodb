@@ -498,14 +498,14 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_quarter_func",
             "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_extract_quarter_func_boundaries",
         },
-        "TruncDate database function not supported.": {
-            "aggregation.tests.AggregateTestCase.test_aggregation_default_using_date_from_database",
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_date_func",
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_date_none",
-            "db_functions.datetime.test_extract_trunc.DateFunctionTests.test_trunc_lookup_name_sql_injection",
-            "expressions.tests.FieldTransformTests.test_multiple_transforms_in_values",
-            "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
+        "TruncDate comparison against datetime.date() doesn't work": {
+            # field__date=date() generates a type mismatch:
+            # {'$eq': [{'$toDate': '$dt'}, datetime.datetime(2014, 3, 12, 0, 0)]}
+            # since DatabaseOperations.adapt_datefield_value() converts the date.
             "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_without_use_tz",
+        },
+        "TruncDate database function with timezone not supported.": {
+            "model_fields.test_datetimefield.DateTimeFieldTests.test_lookup_date_with_use_tz",
             "timezones.tests.NewDatabaseTests.test_query_convert_timezones",
         },
         "TruncTime database function not supported.": {
