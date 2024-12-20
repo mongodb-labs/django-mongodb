@@ -14,6 +14,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     greatest_least_ignores_nulls = True
     has_json_object_function = False
     has_native_json_field = True
+    rounds_to_even = True
     supports_boolean_expr_in_select_clause = True
     supports_collation_on_charfield = False
     supports_column_check_constraints = False
@@ -46,6 +47,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     uses_savepoints = False
 
     _django_test_expected_failures = {
+        # $concat only supports strings, not int
+        "db_functions.text.test_concat.ConcatTests.test_concat_non_str",
+        # QuerySet.order_by() with annotation transform doesn't work:
+        # "Expression $mod takes exactly 2 arguments. 1 were passed in"
+        # https://github.com/django/django/commit/b0ad41198b3e333f57351e3fce5a1fb47f23f376
+        "aggregation.tests.AggregateTestCase.test_order_by_aggregate_transform",
         # 'NulledTransform' object has no attribute 'as_mql'.
         "lookup.tests.LookupTests.test_exact_none_transform",
         # "Save with update_fields did not affect any rows."
@@ -56,8 +63,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Pattern lookups that use regexMatch don't work on JSONField:
         # Unsupported conversion from array to string in $convert
         "model_fields.test_jsonfield.TestQuerying.test_icontains",
-        # MongoDB gives ROUND(365, -1)=360 instead of 370 like other databases.
-        "db_functions.math.test_round.RoundTests.test_integer_with_negative_precision",
         # Truncating in another timezone doesn't work becauase MongoDB converts
         # the result back to UTC.
         "db_functions.datetime.test_extract_trunc.DateFunctionWithTimeZoneTests.test_trunc_func_with_timezone",
@@ -78,10 +83,28 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # Connection creation doesn't follow the usual Django API.
         "backends.tests.ThreadTests.test_pass_connection_between_threads",
         "backends.tests.ThreadTests.test_default_connection_thread_local",
+        "test_utils.tests.DisallowedDatabaseQueriesTests.test_disallowed_thread_database_connection",
         # Object of type ObjectId is not JSON serializable.
         "auth_tests.test_views.LoginTest.test_login_session_without_hash_session_key",
         # GenericRelation.value_to_string() assumes integer pk.
         "contenttypes_tests.test_fields.GenericRelationTests.test_value_to_string",
+        # Broken by https://github.com/django/django/commit/65ad4ade74dc9208b9d686a451cd6045df0c9c3a
+        "aggregation.tests.AggregateTestCase.test_even_more_aggregate",
+        "aggregation.tests.AggregateTestCase.test_grouped_annotation_in_group_by",
+        "aggregation.tests.AggregateTestCase.test_non_grouped_annotation_not_in_group_by",
+        "aggregation_regress.tests.AggregationTests.test_aggregate_fexpr",
+        "aggregation_regress.tests.AggregationTests.test_values_list_annotation_args_ordering",
+        "annotations.tests.NonAggregateAnnotationTestCase.test_annotation_subquery_and_aggregate_values_chaining",
+        "annotations.tests.NonAggregateAnnotationTestCase.test_values_fields_annotations_order",
+        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_multiple_models_with_values_and_datetime_annotations",
+        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_multiple_models_with_values_list_and_datetime_annotations",
+        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_multiple_models_with_values_list_and_annotations",
+        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_with_field_and_annotation_values",
+        "queries.test_qs_combinators.QuerySetSetOperationTests.test_union_with_two_annotated_values_list",
+        "queries.tests.Queries1Tests.test_union_values_subquery",
+        # pymongo.errors.WriteError: Performing an update on the path '_id'
+        # would modify the immutable field '_id'
+        "migrations.test_operations.OperationTests.test_composite_pk_operations",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
@@ -170,6 +193,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "fixtures.tests.FixtureLoadingTests.test_loading_and_dumping",
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_proxied",
             "m2m_through_regress.test_multitable.MultiTableTests.test_m2m_prefetch_reverse_proxied",
+            "many_to_many.tests.ManyToManyQueryTests.test_prefetch_related_no_queries_optimization_disabled",
             "many_to_many.tests.ManyToManyTests.test_add_after_prefetch",
             "many_to_many.tests.ManyToManyTests.test_add_then_remove_after_prefetch",
             "many_to_many.tests.ManyToManyTests.test_clear_after_prefetch",
@@ -381,7 +405,11 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "delete.tests.DeletionTests.test_only_referenced_fields_selected",
             "expressions.tests.ExistsTests.test_optimizations",
             "lookup.tests.LookupTests.test_in_ignore_none",
+            "lookup.tests.LookupTests.test_lookup_direct_value_rhs_unwrapped",
             "lookup.tests.LookupTests.test_textfield_exact_null",
+            "many_to_many.tests.ManyToManyQueryTests.test_count_join_optimization_disabled",
+            "many_to_many.tests.ManyToManyQueryTests.test_exists_join_optimization_disabled",
+            "many_to_many.tests.ManyToManyTests.test_custom_default_manager_exists_count",
             "migrations.test_commands.MigrateTests.test_migrate_syncdb_app_label",
             "migrations.test_commands.MigrateTests.test_migrate_syncdb_deferred_sql_executed_with_schemaeditor",
             "queries.tests.ExistsSql.test_exists",
@@ -429,6 +457,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "raw_query.tests.RawQueryTests",
             "schema.test_logging.SchemaLoggerTests.test_extra_args",
             "schema.tests.SchemaTests.test_remove_constraints_capital_letters",
+            "test_utils.tests.AllowedDatabaseQueriesTests.test_allowed_database_copy_queries",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_accepts_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_cursor_execute_returns_naive_datetime",
             "timezones.tests.LegacyDatabaseTests.test_raw_sql",
@@ -586,6 +615,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "foreign_object.test_empty_join.RestrictedConditionsTests",
             "foreign_object.tests.MultiColumnFKTests",
             "foreign_object.tests.TestExtraJoinFilterQ",
+        },
+        "Tuple lookups are not supported.": {
+            "foreign_object.test_tuple_lookups.TupleLookupsTests",
         },
         "Custom lookups are not supported.": {
             "custom_lookups.tests.BilateralTransformTests",
