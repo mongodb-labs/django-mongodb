@@ -693,7 +693,13 @@ class SQLInsertCompiler(SQLCompiler):
 class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
     def execute_sql(self, result_type=MULTI):
         cursor = Cursor()
-        cursor.rowcount = self.build_query().delete()
+        try:
+            query = self.build_query()
+        except EmptyResultSet:
+            rowcount = 0
+        else:
+            rowcount = query.delete()
+        cursor.rowcount = rowcount
         return cursor
 
     def check_query(self):
