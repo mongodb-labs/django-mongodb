@@ -85,9 +85,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # contains with expressions/subqueries doesn't work.
         "model_fields_.test_arrayfield.TestQuerying.test_contains_including_expression",
         "model_fields_.test_arrayfield.TestQuerying.test_contains_subquery",
-        # Add FieldGetDbPrepValueMixin to lookups?
-        # https://github.com/django/django/commit/5a36c81f58b8ff45d8dac052343722c54e3fa521#diff-10cd50a6d8761600a1aea96d413184582481a278388b4ad38a788030a21cbd45R5
-        "model_fields_.test_arrayfield.TestQuerying.test_enum_lookup",
         # Unsupported conversion from array to string in $convert
         "model_fields_.test_arrayfield.TestQuerying.test_icontains",
         # Field 'field' expected a number but got Value(1).
