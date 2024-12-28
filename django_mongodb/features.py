@@ -82,13 +82,10 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "auth_tests.test_views.LoginTest.test_login_session_without_hash_session_key",
         # GenericRelation.value_to_string() assumes integer pk.
         "contenttypes_tests.test_fields.GenericRelationTests.test_value_to_string",
-        # contains with expressions/subqueries doesn't work.
-        "model_fields_.test_arrayfield.TestQuerying.test_contains_including_expression",
+        # contains with subqueries doesn't work.
         "model_fields_.test_arrayfield.TestQuerying.test_contains_subquery",
         # Unsupported conversion from array to string in $convert
         "model_fields_.test_arrayfield.TestQuerying.test_icontains",
-        # Field 'field' expected a number but got Value(1).
-        "model_fields_.test_arrayfield.TestQuerying.test_exact_with_expression",
         # $lt treats null values as zero.
         "model_fields_.test_arrayfield.TestQuerying.test_lt",
         "model_fields_.test_arrayfield.TestQuerying.test_len",

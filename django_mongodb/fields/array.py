@@ -4,7 +4,7 @@ from django.contrib.postgres.validators import ArrayMaxLengthValidator
 from django.core import checks, exceptions
 from django.db.models import DecimalField, Field, Func, IntegerField, Transform, Value
 from django.db.models.fields.mixins import CheckFieldDefaultMixin
-from django.db.models.lookups import FieldGetDbPrepValueMixin, In, Lookup
+from django.db.models.lookups import Exact, FieldGetDbPrepValueMixin, In, Lookup
 from django.utils.translation import gettext_lazy as _
 
 from django_mongodb.forms import SimpleArrayField
@@ -235,6 +235,11 @@ class ArrayField(CheckFieldDefaultMixin, Field):
         )
 
 
+class Array(Func):
+    def as_mql(self, compiler, connection):
+        return [expr.as_mql(compiler, connection) for expr in self.get_source_expressions()]
+
+
 class ArrayRHSMixin:
     def __init__(self, lhs, rhs):
         # Don't wrap arrays that contains only None values, psycopg doesn't
@@ -246,17 +251,8 @@ class ArrayRHSMixin:
                     field = lhs.output_field
                     value = Value(field.base_field.get_prep_value(value))
                 expressions.append(value)
-            rhs = Func(
-                *expressions,
-                function="ARRAY",
-                template="%(function)s[%(expressions)s]",
-            )
+            rhs = Array(*expressions)
         super().__init__(lhs, rhs)
-
-    def process_rhs(self, compiler, connection):
-        rhs, rhs_params = super().process_rhs(compiler, connection)
-        cast_type = self.lhs.output_field.cast_db_type(connection)
-        return f"{rhs}::{cast_type}", rhs_params
 
     def _rhs_not_none_values(self, rhs):
         for x in rhs:
@@ -267,29 +263,29 @@ class ArrayRHSMixin:
 
 
 @ArrayField.register_lookup
-class ArrayContains(FieldGetDbPrepValueMixin, Lookup):
+class ArrayContains(ArrayRHSMixin, FieldGetDbPrepValueMixin, Lookup):
     lookup_name = "contains"
 
     def as_mql(self, compiler, connection):
         lhs_mql = process_lhs(self, compiler, connection)
         value = process_rhs(self, compiler, connection)
         return {
-            "$gt": [
+            "$eq": [
                 {
                     "$cond": {
                         "if": {"$eq": [lhs_mql, None]},
-                        "then": None,
-                        "else": {"$size": {"$setIntersection": [lhs_mql, value]}},
+                        "then": False,
+                        "else": {"$setIsSubset": [value, lhs_mql]},
                     }
                 },
-                0,
+                True,
             ]
         }
 
 
-# @ArrayField.register_lookup
-# class ArrayExact(ArrayRHSMixin, Exact):
-#     pass
+@ArrayField.register_lookup
+class ArrayExact(ArrayRHSMixin, Exact):
+    pass
 
 
 @ArrayField.register_lookup
