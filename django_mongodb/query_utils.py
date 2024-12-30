@@ -12,6 +12,8 @@ def process_lhs(node, compiler, connection):
         # node is a Func or Expression, possibly with multiple source expressions.
         result = []
         for expr in node.get_source_expressions():
+            if expr is None:
+                continue
             try:
                 result.append(expr.as_mql(compiler, connection))
             except FullResultSet:
