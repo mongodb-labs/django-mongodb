@@ -98,10 +98,9 @@ def order_by(self, compiler, connection):
 def query(self, compiler, connection, lookup_name=None):
     subquery_compiler = self.get_compiler(connection=connection)
     subquery_compiler.pre_sql_setup(with_col_aliases=False)
-    columns = subquery_compiler.get_columns()
-    field_name, expr = columns[0]
+    field_name, expr = subquery_compiler.columns[0]
     subquery = subquery_compiler.build_query(
-        columns
+        subquery_compiler.columns
         if subquery_compiler.query.annotations or not subquery_compiler.query.default_cols
         else None
     )
