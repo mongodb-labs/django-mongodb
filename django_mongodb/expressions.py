@@ -209,6 +209,8 @@ def value(self, compiler, connection):  # noqa: ARG001
         return {"$literal": value}
     if isinstance(value, Decimal):
         return Decimal128(value)
+    if isinstance(value, datetime.datetime):
+        return value
     if isinstance(value, datetime.date):
         # Turn dates into datetimes since BSON doesn't support dates.
         return datetime.datetime.combine(value, datetime.datetime.min.time())

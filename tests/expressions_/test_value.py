@@ -17,7 +17,7 @@ class ValueTests(SimpleTestCase):
     def test_datetime(self):
         self.assertEqual(
             Value(datetime.datetime(2025, 1, 1, 9, 8, 7)).as_mql(None, None),
-            datetime.datetime(2025, 1, 1),
+            datetime.datetime(2025, 1, 1, 9, 8, 7),
         )
 
     def test_decimal(self):
