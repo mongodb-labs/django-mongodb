@@ -68,7 +68,7 @@ class ArrayField(CheckFieldDefaultMixin, Field):
                 checks.Error(
                     "Base field for array cannot be a related field.",
                     obj=self,
-                    id="postgres.E002",
+                    id="django_mongodb.array.E002",
                 )
             )
         else:
@@ -85,7 +85,7 @@ class ArrayField(CheckFieldDefaultMixin, Field):
                         checks.Error(
                             f"Base field for array has errors:\n    {error_messages}",
                             obj=self,
-                            id="postgres.E001",
+                            id="django_mongodb.array.E001",
                         )
                     )
                 warning_messages = "\n    ".join(
@@ -98,7 +98,7 @@ class ArrayField(CheckFieldDefaultMixin, Field):
                         checks.Warning(
                             f"Base field for array has warnings:\n    {warning_messages}",
                             obj=self,
-                            id="postgres.W004",
+                            id="django_mongodb.array.W004",
                         )
                     )
         return errors
@@ -112,13 +112,7 @@ class ArrayField(CheckFieldDefaultMixin, Field):
         return f"Array of {self.base_field.description}"
 
     def db_type(self, connection):
-        # size = self.size or ""
-        # return "%s[%s]" % (self.base_field.db_type(connection), size)
         return "array"
-
-    # def cast_db_type(self, connection):
-    #     size = self.size or ""
-    #     return "%s[%s]" % (self.base_field.cast_db_type(connection), size)
 
     def db_parameters(self, connection):
         db_params = super().db_parameters(connection)

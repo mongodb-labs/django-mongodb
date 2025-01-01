@@ -335,7 +335,6 @@ class TestQuerying(TestCase):
         )
 
     def test_icontains(self):
-        # Using the __icontains lookup with ArrayField is inefficient.
         instance = CharArrayModel.objects.create(field=["FoO"])
         self.assertSequenceEqual(CharArrayModel.objects.filter(field__icontains="foo"), [instance])
 
@@ -518,7 +517,7 @@ class TestChecks(SimpleTestCase):
         errors = model.check()
         self.assertEqual(len(errors), 1)
         # The inner CharField has a non-positive max_length.
-        self.assertEqual(errors[0].id, "postgres.E001")
+        self.assertEqual(errors[0].id, "django_mongodb.array.E001")
         self.assertIn("max_length", errors[0].msg)
 
     def test_invalid_base_fields(self):
@@ -528,7 +527,7 @@ class TestChecks(SimpleTestCase):
         model = MyModel()
         errors = model.check()
         self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[0].id, "postgres.E002")
+        self.assertEqual(errors[0].id, "django_mongodb.array.E002")
 
     def test_invalid_default(self):
         class MyModel(models.Model):
@@ -577,7 +576,7 @@ class TestChecks(SimpleTestCase):
         errors = model.check()
         self.assertEqual(len(errors), 1)
         # The inner CharField has a non-positive max_length.
-        self.assertEqual(errors[0].id, "postgres.E001")
+        self.assertEqual(errors[0].id, "django_mongodb.array.E001")
         self.assertIn("max_length", errors[0].msg)
 
     def test_choices_tuple_list(self):
