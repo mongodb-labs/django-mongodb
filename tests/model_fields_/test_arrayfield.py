@@ -506,7 +506,7 @@ class OtherTypesExactQueryingTests(TestCase):
 
 @isolate_apps("model_fields_")
 class CheckTests(SimpleTestCase):
-    def test_field_checks(self):
+    def test_base_field_errors(self):
         class MyModel(models.Model):
             field = ArrayField(models.CharField(max_length=-1))
 
@@ -515,7 +515,25 @@ class CheckTests(SimpleTestCase):
         self.assertEqual(len(errors), 1)
         # The inner CharField has a non-positive max_length.
         self.assertEqual(errors[0].id, "django_mongodb.array.E001")
-        self.assertIn("max_length", errors[0].msg)
+        msg = errors[0].msg
+        self.assertIn("Base field for array has errors:", msg)
+        self.assertIn("'max_length' must be a positive integer. (fields.E121)", msg)
+
+    def test_base_field_warnings(self):
+        class WarningField(models.IntegerField):
+            def check(self):
+                return [checks.Warning("Test warning", obj=self, id="test.E001")]
+
+        class MyModel(models.Model):
+            field = ArrayField(WarningField(), default=None)
+
+        model = MyModel()
+        errors = model.check()
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0].id, "django_mongodb.array.W004")
+        msg = errors[0].msg
+        self.assertIn("Base field for array has warnings:", msg)
+        self.assertIn("Test warning (test.E001)", msg)
 
     def test_invalid_base_fields(self):
         class MyModel(models.Model):
