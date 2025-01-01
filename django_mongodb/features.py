@@ -83,15 +83,15 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         # GenericRelation.value_to_string() assumes integer pk.
         "contenttypes_tests.test_fields.GenericRelationTests.test_value_to_string",
         # contains with subqueries doesn't work.
-        "model_fields_.test_arrayfield.TestQuerying.test_contains_subquery",
+        "model_fields_.test_arrayfield.QueryingTests.test_contains_subquery",
         # Unsupported conversion from array to string in $convert
-        "model_fields_.test_arrayfield.TestQuerying.test_icontains",
+        "model_fields_.test_arrayfield.QueryingTests.test_icontains",
         # $lt treats null values as zero.
-        "model_fields_.test_arrayfield.TestQuerying.test_lt",
-        "model_fields_.test_arrayfield.TestQuerying.test_len",
-        "model_fields_.test_arrayfield.TestQuerying.test_index_chained",
+        "model_fields_.test_arrayfield.QueryingTests.test_lt",
+        "model_fields_.test_arrayfield.QueryingTests.test_len",
+        "model_fields_.test_arrayfield.QueryingTests.test_index_chained",
         # None is $in None
-        "model_fields_.test_arrayfield.TestQuerying.test_in_as_F_object",
+        "model_fields_.test_arrayfield.QueryingTests.test_in_as_F_object",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
