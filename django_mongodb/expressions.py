@@ -203,20 +203,24 @@ def when(self, compiler, connection):
 
 def value(self, compiler, connection):  # noqa: ARG001
     value = self.value
+    if isinstance(value, int):
+        # Wrap numbers in $literal to prevent ambiguity when Value appears in
+        # $project.
+        return {"$literal": value}
     if isinstance(value, Decimal):
-        value = Decimal128(value)
-    elif isinstance(value, datetime.date):
+        return Decimal128(value)
+    if isinstance(value, datetime.date):
         # Turn dates into datetimes since BSON doesn't support dates.
-        value = datetime.datetime.combine(value, datetime.datetime.min.time())
-    elif isinstance(value, datetime.time):
+        return datetime.datetime.combine(value, datetime.datetime.min.time())
+    if isinstance(value, datetime.time):
         # Turn times into datetimes since BSON doesn't support times.
-        value = datetime.datetime.combine(datetime.datetime.min.date(), value)
-    elif isinstance(value, datetime.timedelta):
+        return datetime.datetime.combine(datetime.datetime.min.date(), value)
+    if isinstance(value, datetime.timedelta):
         # DurationField stores milliseconds rather than microseconds.
-        value /= datetime.timedelta(milliseconds=1)
-    elif isinstance(value, UUID):
-        value = value.hex
-    return {"$literal": value}
+        return value / datetime.timedelta(milliseconds=1)
+    if isinstance(value, UUID):
+        return value.hex
+    return value
 
 
 def register_expressions():
