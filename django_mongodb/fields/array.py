@@ -30,7 +30,6 @@ class ArrayField(CheckFieldDefaultMixin, Field):
 
     def __init__(self, base_field, size=None, **kwargs):
         self.base_field = base_field
-        self.db_collation = getattr(self.base_field, "db_collation", None)
         self.size = size
         if self.size:
             self.default_validators = [
@@ -72,7 +71,6 @@ class ArrayField(CheckFieldDefaultMixin, Field):
                 )
             )
         else:
-            # Remove the field name checks as they are not needed here.
             base_checks = self.base_field.check()
             if base_checks:
                 error_messages = "\n    ".join(
@@ -114,14 +112,6 @@ class ArrayField(CheckFieldDefaultMixin, Field):
     def db_type(self, connection):
         return "array"
 
-    def db_parameters(self, connection):
-        db_params = super().db_parameters(connection)
-        db_params["collation"] = self.db_collation
-        return db_params
-
-    def get_placeholder(self, value, compiler, connection):
-        return f"%s::{self.db_type(connection)}"
-
     def get_db_prep_value(self, value, connection, prepared=False):
         if isinstance(value, list | tuple):
             # Workaround for https://code.djangoproject.com/ticket/35982
@@ -144,7 +134,7 @@ class ArrayField(CheckFieldDefaultMixin, Field):
 
     def to_python(self, value):
         if isinstance(value, str):
-            # Assume we're deserializing
+            # Assume value is being deserialized,
             vals = json.loads(value)
             value = [self.base_field.to_python(val) for val in vals]
         return value
@@ -236,9 +226,7 @@ class Array(Func):
 
 class ArrayRHSMixin:
     def __init__(self, lhs, rhs):
-        # Don't wrap arrays that contains only None values, psycopg doesn't
-        # allow this.
-        if isinstance(rhs, tuple | list) and any(self._rhs_not_none_values(rhs)):
+        if isinstance(rhs, tuple | list):
             expressions = []
             for value in rhs:
                 if not hasattr(value, "resolve_expression"):
@@ -247,13 +235,6 @@ class ArrayRHSMixin:
                 expressions.append(value)
             rhs = Array(*expressions)
         super().__init__(lhs, rhs)
-
-    def _rhs_not_none_values(self, rhs):
-        for x in rhs:
-            if isinstance(x, list | tuple):
-                yield from self._rhs_not_none_values(x)
-            elif x is not None:
-                yield True
 
 
 @ArrayField.register_lookup
@@ -298,8 +279,7 @@ class ArrayInLookup(In):
         values = super().get_prep_lookup()
         if hasattr(values, "resolve_expression"):
             return values
-        # In.process_rhs() expects values to be hashable, so convert lists
-        # to tuples.
+        # process_rhs() expects hashable values, so convert lists to tuples.
         prepared_values = []
         for value in values:
             if hasattr(value, "resolve_expression"):
