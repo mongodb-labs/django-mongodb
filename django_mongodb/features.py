@@ -82,16 +82,12 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "auth_tests.test_views.LoginTest.test_login_session_without_hash_session_key",
         # GenericRelation.value_to_string() assumes integer pk.
         "contenttypes_tests.test_fields.GenericRelationTests.test_value_to_string",
-        # contains with subqueries doesn't work.
+        # contains with Exists() doesn't work:
+        # https://github.com/mongodb-labs/django-mongodb/issues/204
         "model_fields_.test_arrayfield.QueryingTests.test_contains_subquery",
+        # icontains doesn't work on ArrayField:
         # Unsupported conversion from array to string in $convert
         "model_fields_.test_arrayfield.QueryingTests.test_icontains",
-        # $lt treats null values as zero.
-        "model_fields_.test_arrayfield.QueryingTests.test_lt",
-        "model_fields_.test_arrayfield.QueryingTests.test_len",
-        "model_fields_.test_arrayfield.QueryingTests.test_index_chained",
-        # None is $in None
-        "model_fields_.test_arrayfield.QueryingTests.test_in_as_F_object",
     }
     # $bitAnd, #bitOr, and $bitXor are new in MongoDB 6.3.
     _django_test_expected_failures_bitwise = {
