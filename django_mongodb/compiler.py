@@ -17,7 +17,6 @@ from django.db.models.sql.datastructures import BaseTable
 from django.utils.functional import cached_property
 from pymongo import ASCENDING, DESCENDING
 
-from .base import Cursor
 from .query import MongoQuery, wrap_database_errors
 
 
@@ -91,7 +90,7 @@ class SQLCompiler(compiler.SQLCompiler):
                 rhs = sub_expr.as_mql(self, self.connection, resolve_inner_expression=True)
                 group[alias] = {"$addToSet": rhs}
                 replacing_expr = sub_expr.copy()
-                replacing_expr.set_source_expressions([inner_column])
+                replacing_expr.set_source_expressions([inner_column, None])
             else:
                 group[alias] = sub_expr.as_mql(self, self.connection)
                 replacing_expr = inner_column
@@ -241,11 +240,10 @@ class SQLCompiler(compiler.SQLCompiler):
         self, result_type=MULTI, chunked_fetch=False, chunk_size=GET_ITERATOR_CHUNK_SIZE
     ):
         self.pre_sql_setup()
-        columns = self.get_columns()
         try:
             query = self.build_query(
                 # Avoid $project (columns=None) if unneeded.
-                columns
+                self.columns
                 if self.query.annotations or not self.query.default_cols or self.query.distinct
                 else None
             )
@@ -259,10 +257,10 @@ class SQLCompiler(compiler.SQLCompiler):
             except StopIteration:
                 return None  # No result
             else:
-                return self._make_result(obj, columns)
+                return self._make_result(obj, self.columns)
         # result_type is MULTI
         cursor.batch_size(chunk_size)
-        result = self.cursor_iter(cursor, chunk_size, columns)
+        result = self.cursor_iter(cursor, chunk_size, self.columns)
         if not chunked_fetch:
             # If using non-chunked reads, read data into memory.
             return list(result)
@@ -394,7 +392,8 @@ class SQLCompiler(compiler.SQLCompiler):
         query.subqueries = self.subqueries
         return query
 
-    def get_columns(self):
+    @cached_property
+    def columns(self):
         """
         Return a tuple of (name, expression) with the columns and annotations
         which should be loaded by the query.
@@ -403,12 +402,6 @@ class SQLCompiler(compiler.SQLCompiler):
         columns = (
             self.get_default_columns(select_mask) if self.query.default_cols else self.query.select
         )
-        # Populate QuerySet.select_related() data.
-        related_columns = []
-        if self.query.select_related:
-            self.get_related_selections(related_columns, select_mask)
-            if related_columns:
-                related_columns, _ = zip(*related_columns, strict=True)
 
         annotation_idx = 1
 
@@ -427,11 +420,28 @@ class SQLCompiler(compiler.SQLCompiler):
                 annotation_idx += 1
             return target, column
 
-        return (
-            tuple(map(project_field, columns))
-            + tuple(self.annotations.items())
-            + tuple(map(project_field, related_columns))
-        )
+        selected = []
+        if self.query.selected is None:
+            selected = [
+                *(project_field(col) for col in columns),
+                *self.annotations.items(),
+            ]
+        else:
+            for expression in self.query.selected.values():
+                # Reference to an annotation.
+                if isinstance(expression, str):
+                    alias, expression = expression, self.annotations[expression]
+                # Reference to a column.
+                elif isinstance(expression, int):
+                    alias, expression = project_field(columns[expression])
+                selected.append((alias, expression))
+        # Populate QuerySet.select_related() data.
+        related_columns = []
+        if self.query.select_related:
+            self.get_related_selections(related_columns, select_mask)
+            if related_columns:
+                related_columns, _ = zip(*related_columns, strict=True)
+        return tuple(selected) + tuple(map(project_field, related_columns))
 
     @cached_property
     def base_table(self):
@@ -472,14 +482,17 @@ class SQLCompiler(compiler.SQLCompiler):
             query.get_compiler(self.using, self.connection, self.elide_empty)
             for query in self.query.combined_queries
         ]
-        main_query_columns = self.get_columns()
-        main_query_fields, _ = zip(*main_query_columns, strict=True)
+        main_query_fields, _ = zip(*self.columns, strict=True)
         for compiler_ in compilers:
             try:
                 # If the columns list is limited, then all combined queries
                 # must have the same columns list. Set the selects defined on
                 # the query on all combined queries, if not already set.
-                if not compiler_.query.values_select and self.query.values_select:
+                selected = self.query.selected
+                if selected is not None and compiler_.query.selected is None:
+                    compiler_.query = compiler_.query.clone()
+                    compiler_.query.set_values(selected)
+                elif not compiler_.query.values_select and self.query.values_select:
                     compiler_.query = compiler_.query.clone()
                     compiler_.query.set_values(
                         (
@@ -490,7 +503,7 @@ class SQLCompiler(compiler.SQLCompiler):
                     )
                 compiler_.pre_sql_setup()
                 compiler_.column_indices = self.column_indices
-                columns = compiler_.get_columns()
+                columns = compiler_.columns
                 parts.append((compiler_.build_query(columns), compiler_, columns))
             except EmptyResultSet:
                 # Omit the empty queryset with UNION.
@@ -528,7 +541,7 @@ class SQLCompiler(compiler.SQLCompiler):
                 combinator_pipeline = inner_pipeline
         if not self.query.combinator_all:
             ids = defaultdict(dict)
-            for alias, expr in main_query_columns:
+            for alias, expr in self.columns:
                 # Unfold foreign fields.
                 if isinstance(expr, Col) and expr.alias != self.collection_name:
                     ids[expr.alias][expr.target.column] = expr.as_mql(self, self.connection)
@@ -633,10 +646,9 @@ class SQLCompiler(compiler.SQLCompiler):
         )
         # Build the query pipeline.
         self.pre_sql_setup()
-        columns = self.get_columns()
         query = self.build_query(
             # Avoid $project (columns=None) if unneeded.
-            columns if self.query.annotations or not self.query.default_cols else None
+            self.columns if self.query.annotations or not self.query.default_cols else None
         )
         pipeline = query.get_pipeline()
         # Explain the pipeline.
@@ -692,15 +704,12 @@ class SQLInsertCompiler(SQLCompiler):
 
 class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
     def execute_sql(self, result_type=MULTI):
-        cursor = Cursor()
         try:
             query = self.build_query()
         except EmptyResultSet:
-            rowcount = 0
+            return 0
         else:
-            rowcount = query.delete()
-        cursor.rowcount = rowcount
-        return cursor
+            return query.delete()
 
     def check_query(self):
         super().check_query()
@@ -796,7 +805,7 @@ class SQLAggregateCompiler(SQLCompiler):
         compiler.pre_sql_setup(with_col_aliases=False)
         # Avoid $project (columns=None) if unneeded.
         columns = (
-            compiler.get_columns()
+            compiler.columns
             if self.query.annotations or not self.query.default_cols or self.query.distinct
             else None
         )
