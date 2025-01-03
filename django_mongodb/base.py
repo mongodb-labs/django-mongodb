@@ -100,8 +100,10 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         "exact": lambda a, b: {"$eq": [a, b]},
         "gt": lambda a, b: {"$gt": [a, b]},
         "gte": lambda a, b: {"$gte": [a, b]},
-        "lt": lambda a, b: {"$lt": [a, b]},
-        "lte": lambda a, b: {"$lte": [a, b]},
+        # MongoDB considers null less than zero. Exclude null values to match
+        # SQL behavior.
+        "lt": lambda a, b: {"$and": [{"$lt": [a, b]}, {"$ne": [a, None]}]},
+        "lte": lambda a, b: {"$and": [{"$lte": [a, b]}, {"$ne": [a, None]}]},
         "in": lambda a, b: {"$in": [a, b]},
         "isnull": _isnull_operator,
         "range": lambda a, b: {
