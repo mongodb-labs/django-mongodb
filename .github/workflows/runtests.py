@@ -21,7 +21,6 @@ test_apps = [
     "apps",
     "async",
     "auth_tests",
-    "backend_",
     "backends",
     "basic",
     "bulk_create",
@@ -38,7 +37,6 @@ test_apps = [
     "dates",
     "datetimes",
     "db_functions",
-    "dbshell_",
     "defer",
     "defer_regress",
     "delete",
@@ -57,7 +55,6 @@ test_apps = [
     "force_insert_update",
     "foreign_object",
     "forms_tests",
-    "forms_tests_",
     "from_db_value",
     "generic_inline_admin",
     "generic_relations",
@@ -68,7 +65,6 @@ test_apps = [
     "get_or_create",
     "i18n",
     "indexes",
-    "indexes_",
     "inline_formsets",
     "introspection",
     "invalid_models_tests",
@@ -93,7 +89,6 @@ test_apps = [
     "migration_test_data_persistence",
     "migrations",
     "model_fields",
-    "model_fields_",
     "model_forms",
     "model_formsets",
     "model_formsets_regress",
@@ -120,9 +115,7 @@ test_apps = [
     "proxy_model_inheritance",
     "proxy_models",
     "queries",
-    "queries_",
     "queryset_pickle",
-    "raw_query_",
     "redirects_tests",
     "reserved_names",
     "reverse_lookup",
@@ -156,6 +149,13 @@ test_apps = [
     "validation",
     "view_tests",
     "xor_lookups",
+    # Add directories in django_mongodb/tests
+    *sorted(
+        [
+            x.name
+            for x in (pathlib.Path(__file__).parent.parent.parent.resolve() / "tests").iterdir()
+        ]
+    ),
 ]
 runtests = pathlib.Path(__file__).parent.resolve() / "runtests.py"
 run_tests_cmd = f"python3 {runtests} %s --settings mongodb_settings -v 2"
