@@ -1,6 +1,6 @@
 from django.db import models
 
-from django_mongodb.fields import ObjectIdAutoField, ObjectIdField
+from django_mongodb_backend.fields import ObjectIdAutoField, ObjectIdField
 
 
 class Author(models.Model):

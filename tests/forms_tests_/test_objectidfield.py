@@ -2,7 +2,7 @@ from bson import ObjectId
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
 
-from django_mongodb.forms.fields import ObjectIdField
+from django_mongodb_backend.forms.fields import ObjectIdField
 
 
 class ObjectIdFieldTests(SimpleTestCase):

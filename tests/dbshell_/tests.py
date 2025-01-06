@@ -4,7 +4,7 @@ from unittest import mock
 from django.db import connection
 from django.test import SimpleTestCase
 
-from django_mongodb.client import DatabaseClient
+from django_mongodb_backend.client import DatabaseClient
 
 
 class MongoDbshellTests(SimpleTestCase):

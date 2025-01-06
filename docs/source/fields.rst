@@ -1,9 +1,9 @@
 Model field reference
 =====================
 
-.. module:: django_mongodb.fields
+.. module:: django_mongodb_backend.fields
 
-Some MongoDB-specific fields are available in ``django_mongodb.fields``.
+Some MongoDB-specific fields are available in ``django_mongodb_backend.fields``.
 
 ``ObjectIdField``
 -----------------

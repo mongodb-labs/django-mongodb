@@ -3,7 +3,7 @@ from django.core import exceptions
 from django.db.models.fields import Field
 from django.utils.translation import gettext_lazy as _
 
-from django_mongodb import forms
+from django_mongodb_backend import forms
 
 
 class ObjectIdMixin:
@@ -46,8 +46,8 @@ class ObjectIdMixin:
 class ObjectIdField(ObjectIdMixin, Field):
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
-        if path.startswith("django_mongodb.fields.objectid"):
-            path = path.replace("django_mongodb.fields.objectid", "django_mongodb.fields")
+        if path.startswith("django_mongodb_backend.fields.objectid"):
+            path = path.replace("django_mongodb_backend.fields.objectid", "django_mongodb_backend.fields")
         return name, path, args, kwargs
 
     def get_internal_type(self):

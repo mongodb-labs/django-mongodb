@@ -149,7 +149,7 @@ test_apps = [
     "validation",
     "view_tests",
     "xor_lookups",
-    # Add directories in django_mongodb/tests
+    # Add directories in django_mongodb_backend/tests
     *sorted(
         [
             x.name

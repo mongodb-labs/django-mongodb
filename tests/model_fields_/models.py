@@ -1,6 +1,6 @@
 from django.db import models
 
-from django_mongodb.fields import ObjectIdField
+from django_mongodb_backend.fields import ObjectIdField
 
 
 class ObjectIdModel(models.Model):

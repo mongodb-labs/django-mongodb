@@ -16,7 +16,7 @@ from django.utils.regex_helper import _lazy_re_compile
 
 
 class DatabaseOperations(BaseDatabaseOperations):
-    compiler_module = "django_mongodb.compiler"
+    compiler_module = "django_mongodb_backend.compiler"
     combine_operators = {
         Combinable.ADD: "add",
         Combinable.SUB: "subtract",

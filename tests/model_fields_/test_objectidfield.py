@@ -5,8 +5,8 @@ from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase, TestCase
 
-from django_mongodb import forms
-from django_mongodb.fields import ObjectIdField
+from django_mongodb_backend import forms
+from django_mongodb_backend.fields import ObjectIdField
 
 from .models import NullableObjectIdModel, ObjectIdModel, PrimaryKeyObjectIdModel
 
@@ -15,7 +15,7 @@ class MethodTests(SimpleTestCase):
     def test_deconstruct(self):
         field = ObjectIdField()
         name, path, args, kwargs = field.deconstruct()
-        self.assertEqual(path, "django_mongodb.fields.ObjectIdField")
+        self.assertEqual(path, "django_mongodb_backend.fields.ObjectIdField")
         self.assertEqual(args, [])
         self.assertEqual(kwargs, {})
 

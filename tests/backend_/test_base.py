@@ -2,7 +2,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db import connection
 from django.test import SimpleTestCase
 
-from django_mongodb.base import DatabaseWrapper
+from django_mongodb_backend.base import DatabaseWrapper
 
 
 class DatabaseWrapperTests(SimpleTestCase):

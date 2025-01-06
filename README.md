@@ -26,7 +26,7 @@ $ django-admin startproject mysite --template https://github.com/mongodb-labs/dj
 This template includes the following line in `settings.py`:
 
 ```python
-DEFAULT_AUTO_FIELD = "django_mongodb.fields.ObjectIdAutoField"
+DEFAULT_AUTO_FIELD = "django_mongodb_backend.fields.ObjectIdAutoField"
 ```
 
 But this setting won't override any apps that have an `AppConfig` that
@@ -42,15 +42,15 @@ from django.contrib.contenttypes.apps import ContentTypesConfig
 
 
 class MongoAdminConfig(AdminConfig):
-    default_auto_field = "django_mongodb.fields.ObjectIdAutoField"
+    default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
 
 
 class MongoAuthConfig(AuthConfig):
-    default_auto_field = "django_mongodb.fields.ObjectIdAutoField"
+    default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
 
 
 class MongoContentTypesConfig(ContentTypesConfig):
-    default_auto_field = "django_mongodb.fields.ObjectIdAutoField"
+    default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
 ```
 
 Each app reference in the `INSTALLED_APPS` setting must point to the
@@ -91,7 +91,7 @@ Whenever you run `python manage.py startapp`, you must remove the line:
 `default_auto_field = 'django.db.models.BigAutoField'`
 
 from the new application's `apps.py` file (or change it to reference
- `"django_mongodb.fields.ObjectIdAutoField"`).
+ `"django_mongodb_backend.fields.ObjectIdAutoField"`).
 
 Alternatively, you can use the following `startapp` template which includes
 this change:
@@ -109,7 +109,7 @@ to this:
 ```python
 DATABASES = {
     "default": {
-        "ENGINE": "django_mongodb",
+        "ENGINE": "django_mongodb_backend",
         "HOST": "mongodb+srv://cluster0.example.mongodb.net",
         "NAME": "my_database",
         "USER": "my_user",
@@ -144,15 +144,15 @@ Alternatively, if you prefer to simply paste in a MongoDB URI rather than parse
 it into the format above, you can use:
 
 ```python
-import django_mongodb
+import django_mongodb_backend
 
 MONGODB_URI = "mongodb+srv://my_user:my_password@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
-DATABASES["default"] = django_mongodb.parse_uri(MONGODB_URI)
+DATABASES["default"] = django_mongodb_backend.parse_uri(MONGODB_URI)
 ```
 
 This constructs a `DATABASES` setting equivalent to the first example.
 
-#### `django_mongodb.parse_uri(uri, conn_max_age=0, test=None)`
+#### `django_mongodb_backend.parse_uri(uri, conn_max_age=0, test=None)`
 
 `parse_uri()` provides a few options to customize the resulting `DATABASES`
 setting, but for maximum flexibility, construct `DATABASES` manually as

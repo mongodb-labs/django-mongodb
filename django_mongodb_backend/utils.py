@@ -11,8 +11,8 @@ from pymongo.uri_parser import parse_uri as pymongo_parse_uri
 
 def check_django_compatability():
     """
-    Verify that this version of django-mongodb is compatible with the
-    installed version of Django. For example, any django-mongodb 5.0.x is
+    Verify that this version of django-mongodb-backend is compatible with the
+    installed version of Django. For example, any django-mongodb-backend 5.0.x is
     compatible with Django 5.0.y.
     """
     from . import __version__
@@ -21,8 +21,8 @@ def check_django_compatability():
         A = django.VERSION[0]
         B = django.VERSION[1]
         raise ImproperlyConfigured(
-            f"You must use the latest version of django-mongodb {A}.{B}.x "
-            f"with Django {A}.{B}.y (found django-mongodb {__version__})."
+            f"You must use the latest version of django-mongodb-backend {A}.{B}.x "
+            f"with Django {A}.{B}.y (found django-mongodb-backend {__version__})."
         )
 
 
@@ -44,7 +44,7 @@ def parse_uri(uri, conn_max_age=0, test=None):
         elif len(nodelist) > 1:
             host = ",".join([f"{host}:{port}" for host, port in nodelist])
     settings_dict = {
-        "ENGINE": "django_mongodb",
+        "ENGINE": "django_mongodb_backend",
         "NAME": uri["database"],
         "HOST": host,
         "PORT": port,

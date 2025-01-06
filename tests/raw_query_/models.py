@@ -1,7 +1,7 @@
 from django.db import models
 
-from django_mongodb.fields import ObjectIdAutoField
-from django_mongodb.managers import MongoManager
+from django_mongodb_backend.fields import ObjectIdAutoField
+from django_mongodb_backend.managers import MongoManager
 
 
 class Author(models.Model):

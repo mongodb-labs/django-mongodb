@@ -7,7 +7,7 @@ from datetime import date
 from django.core.exceptions import FieldDoesNotExist
 from django.test import TestCase
 
-from django_mongodb.queryset import RawQuerySet
+from django_mongodb_backend.queryset import RawQuerySet
 
 from .models import (
     Author,
