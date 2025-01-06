@@ -16,7 +16,9 @@ class ObjectIdAutoField(ObjectIdMixin, AutoField):
         if self.db_column == "_id":
             del kwargs["db_column"]
         if path.startswith("django_mongodb_backend.fields.auto"):
-            path = path.replace("django_mongodb_backend.fields.auto", "django_mongodb_backend.fields")
+            path = path.replace(
+                "django_mongodb_backend.fields.auto", "django_mongodb_backend.fields"
+            )
         return name, path, args, kwargs
 
     def get_prep_value(self, value):
@@ -33,7 +35,9 @@ class ObjectIdAutoField(ObjectIdMixin, AutoField):
             # A manually assigned integer ID?
             if isinstance(value, str) and value.isdigit():
                 return int(value)
-            raise ValueError(f"Field '{self.name}' expected an ObjectId but got {value!r}.") from e
+            raise ValueError(
+                f"Field '{self.name}' expected an ObjectId but got {value!r}."
+            ) from e
 
     def get_internal_type(self):
         return "ObjectIdAutoField"

@@ -47,7 +47,10 @@ class ObjectIdField(ObjectIdMixin, Field):
     def deconstruct(self):
         name, path, args, kwargs = super().deconstruct()
         if path.startswith("django_mongodb_backend.fields.objectid"):
-            path = path.replace("django_mongodb_backend.fields.objectid", "django_mongodb_backend.fields")
+            path = path.replace(
+                "django_mongodb_backend.fields.objectid",
+                "django_mongodb_backend.fields",
+            )
         return name, path, args, kwargs
 
     def get_internal_type(self):
