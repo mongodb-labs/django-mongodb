@@ -35,9 +35,7 @@ class ObjectIdAutoField(ObjectIdMixin, AutoField):
             # A manually assigned integer ID?
             if isinstance(value, str) and value.isdigit():
                 return int(value)
-            raise ValueError(
-                f"Field '{self.name}' expected an ObjectId but got {value!r}."
-            ) from e
+            raise ValueError(f"Field '{self.name}' expected an ObjectId but got {value!r}.") from e
 
     def get_internal_type(self):
         return "ObjectIdAutoField"
