@@ -1,8 +1,10 @@
 import contextlib
+from importlib import metadata
 
 from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.base.base import BaseDatabaseWrapper
 from pymongo.collection import Collection
+from pymongo.driver_info import DriverInfo
 from pymongo.mongo_client import MongoClient
 
 from . import dbapi as Database
@@ -170,7 +172,10 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         }
 
     def get_new_connection(self, conn_params):
-        return MongoClient(**conn_params)
+        return MongoClient(**conn_params, driver=self._driver_info())
+
+    def _driver_info(self):
+        return DriverInfo("django-mongodb", metadata.version("django-mongodb"))
 
     def _commit(self):
         pass
