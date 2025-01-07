@@ -8,7 +8,7 @@ explore and build. The best way to share this is via our [MongoDB Community Foru
 
 The development version of this package supports Django 5.0.x. To install it:
 
-`pip install git+https://github.com/mongodb-labs/django-mongodb`
+`pip install git+https://github.com/mongodb-labs/django-mongodb-backend`
 
 ### Specifying the default primary key field
 
