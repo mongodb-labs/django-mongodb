@@ -3,7 +3,7 @@ from django.db import connection, models
 from django.test import SimpleTestCase
 from django.test.utils import isolate_apps
 
-from django_mongodb.validation import DatabaseValidation
+from django_mongodb_backend.validation import DatabaseValidation
 
 
 @isolate_apps("invalid_models_tests")
@@ -19,7 +19,7 @@ class ProhibitedFieldTests(SimpleTestCase):
             [
                 Error(
                     "MongoDB does not support AutoField.",
-                    hint="Use django_mongodb.fields.ObjectIdAutoField instead.",
+                    hint="Use django_mongodb_backend.fields.ObjectIdAutoField instead.",
                     obj=field,
                     id="mongodb.E001",
                 )
@@ -37,7 +37,7 @@ class ProhibitedFieldTests(SimpleTestCase):
             [
                 Error(
                     "MongoDB does not support BigAutoField.",
-                    hint="Use django_mongodb.fields.ObjectIdAutoField instead.",
+                    hint="Use django_mongodb_backend.fields.ObjectIdAutoField instead.",
                     obj=field,
                     id="mongodb.E001",
                 )
@@ -55,7 +55,7 @@ class ProhibitedFieldTests(SimpleTestCase):
             [
                 Error(
                     "MongoDB does not support SmallAutoField.",
-                    hint="Use django_mongodb.fields.ObjectIdAutoField instead.",
+                    hint="Use django_mongodb_backend.fields.ObjectIdAutoField instead.",
                     obj=field,
                     id="mongodb.E001",
                 )

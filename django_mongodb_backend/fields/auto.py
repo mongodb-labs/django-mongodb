@@ -15,8 +15,10 @@ class ObjectIdAutoField(ObjectIdMixin, AutoField):
         name, path, args, kwargs = super().deconstruct()
         if self.db_column == "_id":
             del kwargs["db_column"]
-        if path.startswith("django_mongodb.fields.auto"):
-            path = path.replace("django_mongodb.fields.auto", "django_mongodb.fields")
+        if path.startswith("django_mongodb_backend.fields.auto"):
+            path = path.replace(
+                "django_mongodb_backend.fields.auto", "django_mongodb_backend.fields"
+            )
         return name, path, args, kwargs
 
     def get_prep_value(self, value):

@@ -6,7 +6,7 @@ Some MongoDB-specific ``QuerySet`` methods are available by adding a custom
 
     from django.db import models
 
-    from django_mongodb.managers import MongoManager
+    from django_mongodb_backend.managers import MongoManager
 
 
     class MyModel(models.Model):
@@ -15,7 +15,7 @@ Some MongoDB-specific ``QuerySet`` methods are available by adding a custom
         objects = MongoManager()
 
 
-.. currentmodule:: django_mongodb.queryset.MongoQuerySet
+.. currentmodule:: django_mongodb_backend.queryset.MongoQuerySet
 
 ``raw_aggregate()``
 -------------------

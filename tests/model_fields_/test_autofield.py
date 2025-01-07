@@ -1,13 +1,13 @@
 from django.test import SimpleTestCase
 
-from django_mongodb.fields import ObjectIdAutoField
+from django_mongodb_backend.fields import ObjectIdAutoField
 
 
 class MethodTests(SimpleTestCase):
     def test_deconstruct(self):
         field = ObjectIdAutoField()
         name, path, args, kwargs = field.deconstruct()
-        self.assertEqual(path, "django_mongodb.fields.ObjectIdAutoField")
+        self.assertEqual(path, "django_mongodb_backend.fields.ObjectIdAutoField")
         self.assertEqual(args, [])
         self.assertEqual(kwargs, {"primary_key": True})
 

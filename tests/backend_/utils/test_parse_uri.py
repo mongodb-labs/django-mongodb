@@ -3,13 +3,13 @@ from unittest.mock import patch
 import pymongo
 from django.test import SimpleTestCase
 
-from django_mongodb import parse_uri
+from django_mongodb_backend import parse_uri
 
 
 class ParseURITests(SimpleTestCase):
     def test_simple_uri(self):
         settings_dict = parse_uri("mongodb://cluster0.example.mongodb.net/myDatabase")
-        self.assertEqual(settings_dict["ENGINE"], "django_mongodb")
+        self.assertEqual(settings_dict["ENGINE"], "django_mongodb_backend")
         self.assertEqual(settings_dict["NAME"], "myDatabase")
         self.assertEqual(settings_dict["HOST"], "cluster0.example.mongodb.net")
 
