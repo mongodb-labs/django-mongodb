@@ -1,10 +1,13 @@
 import contextlib
+import os
 
 from django.core.exceptions import ImproperlyConfigured
 from django.db.backends.base.base import BaseDatabaseWrapper
 from pymongo.collection import Collection
+from pymongo.driver_info import DriverInfo
 from pymongo.mongo_client import MongoClient
 
+from . import __version__ as django_mongodb_backend_version
 from . import dbapi as Database
 from .client import DatabaseClient
 from .creation import DatabaseCreation
@@ -170,7 +173,12 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         }
 
     def get_new_connection(self, conn_params):
-        return MongoClient(**conn_params)
+        return MongoClient(**conn_params, driver=self._driver_info())
+
+    def _driver_info(self):
+        if not os.environ.get("RUNNING_DJANGOS_TEST_SUITE"):
+            return DriverInfo("django-mongodb-backend", django_mongodb_backend_version)
+        return None
 
     def _commit(self):
         pass
