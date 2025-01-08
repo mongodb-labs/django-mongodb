@@ -1,5 +1,5 @@
-django-mongodb 5.0.x documentation
-==================================
+django-mongodb-backend 5.0.x documentation
+==========================================
 
 .. toctree::
    :maxdepth: 1

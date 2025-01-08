@@ -16,10 +16,10 @@ on:
 
 env:
   # Changes per repo
-  PRODUCT_NAME: django-mongodb
+  PRODUCT_NAME: django-mongodb-backend
   # Changes per branch
-  SILK_ASSET_GROUP: django-mongodb-main
-  EVERGREEN_PROJECT: django-mongodb
+  SILK_ASSET_GROUP: django-mongodb-backend-main
+  EVERGREEN_PROJECT: django-mongodb-backend
 
 defaults:
   run:

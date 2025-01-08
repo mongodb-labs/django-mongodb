@@ -21,11 +21,11 @@ jobs:
     name: Django Test Suite
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout django-mongodb
+      - name: Checkout django-mongodb-backend
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: install the django-mongodb backend
+      - name: install django-mongodb-backend
         run: |
           pip3 install --upgrade pip
           pip3 install -e .
