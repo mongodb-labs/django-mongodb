@@ -119,11 +119,10 @@ def query(self, compiler, connection, lookup_name=None):
             for col, i in subquery_compiler.column_indices.items()
         },
     }
+    wrapping_result_pipeline = None
     # The result must be a list of values. The output is compressed with an
     # aggregation pipeline.
     if lookup_name in ("in", "range"):
-        if subquery.aggregation_pipeline is None:
-            subquery.aggregation_pipeline = []
         wrapping_result_pipeline = [
             {
                 "$facet": {
@@ -155,12 +154,49 @@ def query(self, compiler, connection, lookup_name=None):
                 }
             },
         ]
+    if lookup_name == "overlap":
+        wrapping_result_pipeline = [
+            {
+                "$facet": {
+                    "group": [
+                        {"$project": {"tmp_name": expr.as_mql(subquery_compiler, connection)}},
+                        {
+                            "$unwind": "$tmp_name",
+                        },
+                        {
+                            "$group": {
+                                "_id": None,
+                                "tmp_name": {"$addToSet": "$tmp_name"},
+                            }
+                        },
+                    ]
+                }
+            },
+            {
+                "$project": {
+                    field_name: {
+                        "$ifNull": [
+                            {
+                                "$getField": {
+                                    "input": {"$arrayElemAt": ["$group", 0]},
+                                    "field": "tmp_name",
+                                }
+                            },
+                            [],
+                        ]
+                    }
+                }
+            },
+        ]
+    if wrapping_result_pipeline:
         # If the subquery is a combinator, wrap the result at the end of the
         # combinator pipeline...
         if subquery.query.combinator:
             subquery.combinator_pipeline.extend(wrapping_result_pipeline)
         # ... otherwise put at the end of subquery's pipeline.
         else:
+            if subquery.aggregation_pipeline is None:
+                subquery.aggregation_pipeline = []
             subquery.aggregation_pipeline.extend(wrapping_result_pipeline)
         # Erase project_fields since the required value is projected above.
         subquery.project_fields = None

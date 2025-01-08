@@ -80,9 +80,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "auth_tests.test_views.LoginTest.test_login_session_without_hash_session_key",
         # GenericRelation.value_to_string() assumes integer pk.
         "contenttypes_tests.test_fields.GenericRelationTests.test_value_to_string",
-        # overlap with values() returns no results:
-        # https://github.com/mongodb-labs/django-mongodb/issues/209
-        "model_fields_.test_arrayfield.QueryingTests.test_overlap_values",
         # icontains doesn't work on ArrayField:
         # Unsupported conversion from array to string in $convert
         "model_fields_.test_arrayfield.QueryingTests.test_icontains",
