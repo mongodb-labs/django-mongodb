@@ -1,9 +1,9 @@
-django-mongodb uses third-party libraries or other resources that may
+django-mongodb-backend uses third-party libraries or other resources that may
 be distributed under licenses different than this software.
 
 The attached notices are provided for information only.
 
-django-mongodb began by borrowing code from Django non-rel's
+django-mongodb-backend began by borrowing code from Django non-rel's
 django-mongodb-engine (https://github.com/django-nonrel/mongodb-engine),
 abandoned since 2015 and Django 1.6.
 

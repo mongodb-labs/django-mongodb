@@ -2,7 +2,7 @@
 
 set -eux
 
-# Install the django-mongodb backend
+# Install django-mongodb-backend
 /opt/python/3.10/bin/python3 -m venv venv
 . venv/bin/activate
 python -m pip install -U pip
