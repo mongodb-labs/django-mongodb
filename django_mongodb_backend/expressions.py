@@ -95,7 +95,7 @@ def order_by(self, compiler, connection):
     return self.expression.as_mql(compiler, connection)
 
 
-def query(self, compiler, connection, lookup_name=None):
+def query(self, compiler, connection, get_wrapping_pipeline=None):
     subquery_compiler = self.get_compiler(connection=connection)
     subquery_compiler.pre_sql_setup(with_col_aliases=False)
     field_name, expr = subquery_compiler.columns[0]
@@ -119,76 +119,12 @@ def query(self, compiler, connection, lookup_name=None):
             for col, i in subquery_compiler.column_indices.items()
         },
     }
-    wrapping_result_pipeline = None
-    # The result must be a list of values. The output is compressed with an
-    # aggregation pipeline.
-    if lookup_name in ("in", "range"):
-        wrapping_result_pipeline = [
-            {
-                "$facet": {
-                    "group": [
-                        {
-                            "$group": {
-                                "_id": None,
-                                "tmp_name": {
-                                    "$addToSet": expr.as_mql(subquery_compiler, connection)
-                                },
-                            }
-                        }
-                    ]
-                }
-            },
-            {
-                "$project": {
-                    field_name: {
-                        "$ifNull": [
-                            {
-                                "$getField": {
-                                    "input": {"$arrayElemAt": ["$group", 0]},
-                                    "field": "tmp_name",
-                                }
-                            },
-                            [],
-                        ]
-                    }
-                }
-            },
-        ]
-    if lookup_name == "overlap":
-        wrapping_result_pipeline = [
-            {
-                "$facet": {
-                    "group": [
-                        {"$project": {"tmp_name": expr.as_mql(subquery_compiler, connection)}},
-                        {
-                            "$unwind": "$tmp_name",
-                        },
-                        {
-                            "$group": {
-                                "_id": None,
-                                "tmp_name": {"$addToSet": "$tmp_name"},
-                            }
-                        },
-                    ]
-                }
-            },
-            {
-                "$project": {
-                    field_name: {
-                        "$ifNull": [
-                            {
-                                "$getField": {
-                                    "input": {"$arrayElemAt": ["$group", 0]},
-                                    "field": "tmp_name",
-                                }
-                            },
-                            [],
-                        ]
-                    }
-                }
-            },
-        ]
-    if wrapping_result_pipeline:
+    if get_wrapping_pipeline:
+        # The results from some lookups must be converted to a list of values.
+        # The output is compressed with an aggregation pipeline.
+        wrapping_result_pipeline = get_wrapping_pipeline(
+            subquery_compiler, connection, field_name, expr
+        )
         # If the subquery is a combinator, wrap the result at the end of the
         # combinator pipeline...
         if subquery.query.combinator:
@@ -221,13 +157,13 @@ def star(self, compiler, connection):  # noqa: ARG001
     return {"$literal": True}
 
 
-def subquery(self, compiler, connection, lookup_name=None):
-    return self.query.as_mql(compiler, connection, lookup_name=lookup_name)
+def subquery(self, compiler, connection, get_wrapping_pipeline=None):
+    return self.query.as_mql(compiler, connection, get_wrapping_pipeline=get_wrapping_pipeline)
 
 
-def exists(self, compiler, connection, lookup_name=None):
+def exists(self, compiler, connection, get_wrapping_pipeline=None):
     try:
-        lhs_mql = subquery(self, compiler, connection, lookup_name=lookup_name)
+        lhs_mql = subquery(self, compiler, connection, get_wrapping_pipeline=get_wrapping_pipeline)
     except EmptyResultSet:
         return Value(False).as_mql(compiler, connection)
     return connection.mongo_operators["isnull"](lhs_mql, False)

@@ -278,6 +278,41 @@ class ArrayExact(ArrayRHSMixin, Exact):
 class ArrayOverlap(ArrayRHSMixin, FieldGetDbPrepValueMixin, Lookup):
     lookup_name = "overlap"
 
+    def get_subquery_wrapping_pipeline(self, compiler, connection, field_name, expr):
+        return [
+            {
+                "$facet": {
+                    "group": [
+                        {"$project": {"tmp_name": expr.as_mql(compiler, connection)}},
+                        {
+                            "$unwind": "$tmp_name",
+                        },
+                        {
+                            "$group": {
+                                "_id": None,
+                                "tmp_name": {"$addToSet": "$tmp_name"},
+                            }
+                        },
+                    ]
+                }
+            },
+            {
+                "$project": {
+                    field_name: {
+                        "$ifNull": [
+                            {
+                                "$getField": {
+                                    "input": {"$arrayElemAt": ["$group", 0]},
+                                    "field": "tmp_name",
+                                }
+                            },
+                            [],
+                        ]
+                    }
+                }
+            },
+        ]
+
     def as_mql(self, compiler, connection):
         lhs_mql = process_lhs(self, compiler, connection)
         value = process_rhs(self, compiler, connection)

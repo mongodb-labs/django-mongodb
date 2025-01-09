@@ -45,6 +45,38 @@ def in_(self, compiler, connection):
     return builtin_lookup(self, compiler, connection)
 
 
+def get_subquery_wrapping_pipeline(self, compiler, connection, field_name, expr):  # noqa: ARG001
+    return [
+        {
+            "$facet": {
+                "group": [
+                    {
+                        "$group": {
+                            "_id": None,
+                            "tmp_name": {"$addToSet": expr.as_mql(compiler, connection)},
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "$project": {
+                field_name: {
+                    "$ifNull": [
+                        {
+                            "$getField": {
+                                "input": {"$arrayElemAt": ["$group", 0]},
+                                "field": "tmp_name",
+                            }
+                        },
+                        [],
+                    ]
+                }
+            }
+        },
+    ]
+
+
 def is_null(self, compiler, connection):
     if not isinstance(self.rhs, bool):
         raise ValueError("The QuerySet value for an isnull lookup must be True or False.")
@@ -97,6 +129,7 @@ def register_lookups():
         field_resolve_expression_parameter
     )
     In.as_mql = RelatedIn.as_mql = in_
+    In.get_subquery_wrapping_pipeline = get_subquery_wrapping_pipeline
     IsNull.as_mql = is_null
     PatternLookup.prep_lookup_value_mongo = pattern_lookup_prep_lookup_value
     UUIDTextMixin.as_mql = uuid_text_mixin
