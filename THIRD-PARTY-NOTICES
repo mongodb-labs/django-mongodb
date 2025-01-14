@@ -3,7 +3,7 @@ be distributed under licenses different than this software.
 
 The attached notices are provided for information only.
 
-django-mongodb-backend began by borrowing code from Django non-rel's
+django-mongodb-backend and EmbeddedModelField began by borrowing code from
 django-mongodb-engine (https://github.com/django-nonrel/mongodb-engine),
 abandoned since 2015 and Django 1.6.
 

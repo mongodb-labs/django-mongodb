@@ -36,7 +36,8 @@ Some MongoDB-specific fields are available in ``django_mongodb_backend.fields``.
         :class:`~django.db.models.OneToOneField` and
         :class:`~django.db.models.ManyToManyField`) and file fields (
         :class:`~django.db.models.FileField` and
-        :class:`~django.db.models.ImageField`).
+        :class:`~django.db.models.ImageField`). :class:`EmbeddedModelField` is
+        also not (yet) supported.
 
         It is possible to nest array fields - you can specify an instance of
         ``ArrayField`` as the ``base_field``. For example::
@@ -209,6 +210,51 @@ transform do not change. For example:
     <QuerySet [<Post: First post>, <Post: Second post>]>
 
 These indexes use 0-based indexing.
+
+``EmbeddedModelField``
+----------------------
+
+.. class:: EmbeddedModelField(embedded_model, **kwargs)
+
+Stores a model of type ``embedded_model``.
+
+   .. attribute:: embedded_model
+
+        This is a required argument.
+
+        Specifies the model class to embed. It can be either a concrete model
+        class or a :ref:`lazy reference <lazy-relationships>` to a model class.
+
+        The embedded model cannot have relational fields
+        (:class:`~django.db.models.ForeignKey`,
+        :class:`~django.db.models.OneToOneField` and
+        :class:`~django.db.models.ManyToManyField`).
+
+        It is possible to nest embedded models. For example::
+
+            from django.db import models
+            from django_mongodb_backend.fields import EmbeddedModelField
+
+            class Address(models.Model):
+                ...
+
+            class Author(models.Model):
+                address = EmbeddedModelField(Address)
+
+            class Book(models.Model):
+                author = EmbeddedModelField(Author)
+
+See :doc:`embedded-models` for more details and examples.
+
+.. admonition:: Migrations support is limited
+
+    :djadmin:`makemigrations` does not yet detect changes to embedded models.
+
+    After you create a model with an ``EmbeddedModelField`` or add an
+    ``EmbeddedModelField`` to an existing model, no further updates to the
+    embedded model will be made. Using the models above as an example, if you
+    created these models and then added an indexed field to ``Address``,
+    the index created in the nested ``Book`` embed is not created.
 
 ``ObjectIdField``
 -----------------

@@ -1,6 +1,13 @@
-from .fields import ObjectIdField, SimpleArrayField, SplitArrayField, SplitArrayWidget
+from .fields import (
+    EmbeddedModelField,
+    ObjectIdField,
+    SimpleArrayField,
+    SplitArrayField,
+    SplitArrayWidget,
+)
 
 __all__ = [
+    "EmbeddedModelField",
     "SimpleArrayField",
     "SplitArrayField",
     "SplitArrayWidget",

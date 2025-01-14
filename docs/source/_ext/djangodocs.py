@@ -1,4 +1,9 @@
 def setup(app):
+    app.add_object_type(
+        directivename="django-admin",
+        rolename="djadmin",
+        indextemplate="pair: %s; django-admin command",
+    )
     app.add_crossref_type(
         directivename="fieldlookup",
         rolename="lookup",

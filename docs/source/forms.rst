@@ -5,6 +5,24 @@ Forms API reference
 
 Some MongoDB-specific fields are available in ``django_mongodb_backend.forms``.
 
+``EmbeddedModelField``
+----------------------
+
+.. class:: EmbeddedModelField(model, prefix, **kwargs)
+
+    A field which maps to a model. The field will render as a
+    :class:`~django.forms.ModelForm`.
+
+    .. attribute:: model
+
+        This is a required argument that specifies the model class.
+
+    .. attribute:: prefix
+
+        This is a required argument that specifies the prefix that all fields
+        in this field's subform will have so that the names don't collide with
+        fields in the main form.
+
 ``ObjectIdField``
 -----------------
 

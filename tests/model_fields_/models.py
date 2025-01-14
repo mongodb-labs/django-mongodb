@@ -2,9 +2,10 @@ import enum
 
 from django.db import models
 
-from django_mongodb_backend.fields import ArrayField, ObjectIdField
+from django_mongodb_backend.fields import ArrayField, EmbeddedModelField, ObjectIdField
 
 
+# ObjectIdField
 class ObjectIdModel(models.Model):
     field = ObjectIdField()
 
@@ -17,6 +18,7 @@ class PrimaryKeyObjectIdModel(models.Model):
     field = ObjectIdField(primary_key=True)
 
 
+# ArrayField
 class ArrayFieldSubclass(ArrayField):
     def __init__(self, *args, **kwargs):
         super().__init__(models.IntegerField())
@@ -89,3 +91,31 @@ class EnumField(models.CharField):
 
 class ArrayEnumModel(models.Model):
     array_of_enums = ArrayField(EnumField(max_length=20))
+
+
+# EmbeddedModelField
+class Holder(models.Model):
+    data = EmbeddedModelField("Data", null=True, blank=True)
+
+
+class Data(models.Model):
+    integer = models.IntegerField(db_column="custom_column")
+    auto_now = models.DateTimeField(auto_now=True)
+    auto_now_add = models.DateTimeField(auto_now_add=True)
+
+
+class Address(models.Model):
+    city = models.CharField(max_length=20)
+    state = models.CharField(max_length=2)
+    zip_code = models.IntegerField(db_index=True)
+
+
+class Author(models.Model):
+    name = models.CharField(max_length=10)
+    age = models.IntegerField()
+    address = EmbeddedModelField(Address)
+
+
+class Book(models.Model):
+    name = models.CharField(max_length=100)
+    author = EmbeddedModelField(Author)

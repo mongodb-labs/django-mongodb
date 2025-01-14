@@ -8,6 +8,7 @@ django-mongodb-backend 5.0.x documentation
    fields
    querysets
    forms
+   embedded-models
 
 Indices and tables
 ==================
