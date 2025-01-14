@@ -1,4 +1,4 @@
-# MongoDB backend for Django
+# Django MongoDB Backend
 
 This backend is currently in development and is not advised for Production workflows. Backwards incompatible
 changes may be made without notice. We welcome your feedback as we continue to

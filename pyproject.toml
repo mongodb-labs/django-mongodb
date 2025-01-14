@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "django-mongodb-backend"
 dynamic = ["version", "dependencies"]
-description = "MongoDB backend for Django"
+description = "Django MongoDB Backend"
 readme = "README.md"
 license = {file="LICENSE"}
 requires-python = ">=3.10"
