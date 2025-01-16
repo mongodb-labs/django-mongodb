@@ -97,7 +97,7 @@ buildvariants:
   tasks:
   - name: run-tests
 
-- name: tests-8-noauth-nossl
+- name: tests-8-auth-ssl
   display_name: Run Tests 8.0 Auth SSL
   run_on: rhel87-small
   expansions:
