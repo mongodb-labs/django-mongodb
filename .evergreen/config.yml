@@ -36,7 +36,7 @@ functions:
           - ${DRIVERS_TOOLS}/.evergreen/run-orchestration.sh
     - command: expansions.update
       params:
-        file: ${DRIVERS_TOOLS}/expansion.yml
+        file: ${DRIVERS_TOOLS}/mo-expansion.yml
 
 
   "run unit tests":
