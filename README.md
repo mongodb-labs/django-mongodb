@@ -4,247 +4,199 @@ This backend is currently in development and is not advised for Production workf
 changes may be made without notice. We welcome your feedback as we continue to
 explore and build. The best way to share this is via our [MongoDB Community Forum](https://www.mongodb.com/community/forums/tag/python)
 
-## Install and usage
+## Install
 
 The development version of this package supports Django 5.0.x. To install it:
 
-`pip install git+https://github.com/mongodb-labs/django-mongodb-backend`
+`pip install django-mongodb-backend`
 
-### Specifying the default primary key field
+## Get Started
 
-In your Django settings, you must specify that all models should use
-`ObjectIdAutoField`.
+This tutorial shows you how to create a Django app, connect to a MongoDB cluster hosted on MongoDB Atlas, and interact with data in your cluster.
 
-You can create a new project that's configured based on these steps using a
-project template:
+### Start a Project
 
-```bash
-$ django-admin startproject mysite --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/5.0.x.zip
-```
-(where "5.0" matches the version of Django that you're using.)
-
-This template includes the following line in `settings.py`:
-
-```python
-DEFAULT_AUTO_FIELD = "django_mongodb_backend.fields.ObjectIdAutoField"
-```
-
-But this setting won't override any apps that have an `AppConfig` that
-specifies `default_auto_field`. For those apps, you'll need to create a custom
-`AppConfig`.
-
-For example, the project template includes `<project_name>/apps.py`:
-
-```python
-from django.contrib.admin.apps import AdminConfig
-from django.contrib.auth.apps import AuthConfig
-from django.contrib.contenttypes.apps import ContentTypesConfig
-
-
-class MongoAdminConfig(AdminConfig):
-    default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
-
-
-class MongoAuthConfig(AuthConfig):
-    default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
-
-
-class MongoContentTypesConfig(ContentTypesConfig):
-    default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
-```
-
-Each app reference in the `INSTALLED_APPS` setting must point to the
-corresponding ``AppConfig``. For example, instead of `'django.contrib.admin'`,
-the template uses `'<project_name>.apps.MongoAdminConfig'`.
-
-### Configuring migrations
-
-Because all models must use `ObjectIdAutoField`, each third-party and contrib app
-you use needs to have its own migrations specific to MongoDB.
-
-For example, `settings.py` in the project template specifies:
-
-```python
-MIGRATION_MODULES = {
-    "admin": "mongo_migrations.admin",
-    "auth": "mongo_migrations.auth",
-    "contenttypes": "mongo_migrations.contenttypes",
-}
-```
-
-The project template includes these migrations, but you can generate them if
-you're setting things up manually or if you need to create migrations for
-third-party apps. For example:
-
-```console
-$ python manage.py makemigrations admin auth contenttypes
-Migrations for 'admin':
-  mongo_migrations/admin/0001_initial.py
-    - Create model LogEntry
-...
-```
-
-### Creating Django applications
-
-Whenever you run `python manage.py startapp`, you must remove the line:
-
-`default_auto_field = 'django.db.models.BigAutoField'`
-
-from the new application's `apps.py` file (or change it to reference
- `"django_mongodb_backend.fields.ObjectIdAutoField"`).
-
-Alternatively, you can use the following `startapp` template which includes
-this change:
+From your shell, run the following command to create a new Django project called example based on a custom template:
 
 ```bash
-$ python manage.py startapp myapp --template https://github.com/mongodb-labs/django-mongodb-app/archive/refs/heads/5.0.x.zip
+$ django-admin startproject example --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/5.0.x.zip
 ```
-(where "5.0" matches the version of Django that you're using.)
 
-### Configuring the `DATABASES` setting
+### Create a Connection String
 
-After you've set up a project, configure Django's `DATABASES` setting similar
-to this:
+Check out [Create a Connection String](https://deploy-preview-132--docs-pymongo.netlify.app/get-started/create-a-connection-string/) in our documentation to learn how to obtain a free MongoDB Atlas cluster.
+
+Once finished, your URI should look something like this:
+```bash
+mongodb+srv://<username>:<password>@samplecluster.jkiff1s.mongodb.net/?retryWrites=true&w=majority&appName=SampleCluster
+```
+Replace the `<username>` and `<password>` placeholders with your database user's username and password.
+
+Then, specify a connection to your example database from the Atlas sample datasets by adding it after the hostname, as shown in the following example:
+
+```bash
+mongodb+srv://<username>:<password>@samplecluster.jkiff1s.mongodb.net/<DATABASE_NAME>?retryWrites=true&w=majority&appName=SampleCluster
+```
+
+Replacing `<DATABASE_NAME>` with your database name of choice.
+
+
+### Connect to the Database
+
+Navigate to your `example/settings.py` file and find the variable named `DATABASES` Replace the `DATABASES` setting with this:
 
 ```python
 DATABASES = {
-    "default": {
-        "ENGINE": "django_mongodb_backend",
-        "HOST": "mongodb+srv://cluster0.example.mongodb.net",
-        "NAME": "my_database",
-        "USER": "my_user",
-        "PASSWORD": "my_password",
-        "PORT": 27017,
-        "OPTIONS": {
-            # Example:
-            "retryWrites": "true",
-            "w": "majority",
-            "tls": "false",
-        },
-    },
+   "default": django_mongodb_backend.parse_uri("<CONNECTION_STRING_URI>"),
 }
 ```
 
-For a localhost configuration, you can omit `HOST` or specify
-`"HOST": "localhost"`.
+Where `<CONNECTION_STRING_URI>` is your connection string from the previous step.
 
-`HOST` only needs a scheme prefix for SRV connections (`mongodb+srv://`). A
-`mongodb://` prefix is never required.
+### Start the Server
+To verify that you installed Django MongoDB Backend and correctly configured your project, run the following command from your project root:
+```bash
+python manage.py runserver
+```
+Then, visit http://127.0.0.1:8000/. This page displays a "Congratulations!" message and an image of a rocket.
 
-`OPTIONS` is an optional dictionary of parameters that will be passed to
-[`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
+Once you've done that, you'll see messages saying you haven't run migrations yet. Make sure to run this command:
+```bash
+python manage.py migrate
+```
+### Create an app
+An app is a web application that does something – e.g., a blog system, a database of public records or a small poll app.
 
-`USER`, `PASSWORD`, and `PORT` (if 27017) may also be optional.
+From your project's root directory, run the following command to create a new Django app called polls based on a custom template:
 
-For a replica set or sharded cluster where you have multiple hosts, include
-all of them in `HOST`, e.g.
-`"mongodb://mongos0.example.com:27017,mongos1.example.com:27017"`.
-
-Alternatively, if you prefer to simply paste in a MongoDB URI rather than parse
-it into the format above, you can use:
-
-```python
-import django_mongodb_backend
-
-MONGODB_URI = "mongodb+srv://my_user:my_password@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
-DATABASES["default"] = django_mongodb_backend.parse_uri(MONGODB_URI)
+```bash
+python manage.py startapp polls --template https://github.com/mongodb-labs/django-mongodb-app/archive/refs/heads/5.0.x.zip
 ```
 
-This constructs a `DATABASES` setting equivalent to the first example.
-
-#### `django_mongodb_backend.parse_uri(uri, conn_max_age=0, test=None)`
-
-`parse_uri()` provides a few options to customize the resulting `DATABASES`
-setting, but for maximum flexibility, construct `DATABASES` manually as
-described above.
-
-- Use `conn_max_age` to configure [persistent database connections](
-  https://docs.djangoproject.com/en/stable/ref/databases/#persistent-database-connections).
-- Use `test` to provide a dictionary of [settings for test databases](
-  https://docs.djangoproject.com/en/stable/ref/settings/#test).
-
-Congratulations, your project is ready to go!
-
-## Notes on Django QuerySets
-
-* `QuerySet.explain()` supports the [`comment` and `verbosity` options](
-  https://www.mongodb.com/docs/manual/reference/command/explain/#command-fields).
-
-   Example: `QuerySet.explain(comment="...", verbosity="...")`
-
-   Valid values for `verbosity` are `"queryPlanner"` (default),
-   `"executionStats"`, and `"allPlansExecution"`.
-
-## Known issues and limitations
-
-- The following `QuerySet` methods aren't supported:
-  - `bulk_update()`
-  - `dates()`
-  - `datetimes()`
-  - `distinct()`
-  - `extra()`
-  - `prefetch_related()`
-
-- `QuerySet.delete()` and `update()` do not support queries that span multiple
-  collections.
-
-- `DateTimeField` doesn't support microsecond precision, and correspondingly,
-  `DurationField` stores milliseconds rather than microseconds.
-
-- The following database functions aren't supported:
-    - `Chr`
-    - `ExtractQuarter`
-    - `MD5`
-    - `Now`
-    - `Ord`
-    - `Pad`
-    - `Repeat`
-    - `Reverse`
-    - `Right`
-    - `SHA1`, `SHA224`, `SHA256`, `SHA384`, `SHA512`
-    - `Sign`
-
-- The `tzinfo` parameter of the `Trunc` database functions doesn't work
-  properly because MongoDB converts the result back to UTC.
-
-- When querying `JSONField`:
-  - There is no way to distinguish between a JSON "null" (represented by
-    `Value(None, JSONField())`) and a SQL null (queried using the `isnull`
-    lookup). Both of these queries return both of these nulls.
-  - Some queries with `Q` objects, e.g. `Q(value__foo="bar")`, don't work
-    properly, particularly with `QuerySet.exclude()`.
-  - Filtering for a `None` key, e.g. `QuerySet.filter(value__j=None)`
-    incorrectly returns objects where the key doesn't exist.
-  - You can study the skipped tests in `DatabaseFeatures.django_test_skips` for
-    more details on known issues.
-
-- Due to the lack of ability to introspect MongoDB collection schema,
-  `migrate --fake-initial` isn't supported.
-
-## Troubleshooting
-
-### Debug logging
-
-To troubleshoot MongoDB connectivity issues, you can enable [PyMongo's logging](
-https://pymongo.readthedocs.io/en/stable/examples/logging.html) using
-[Django's `LOGGING` setting](https://docs.djangoproject.com/en/stable/topics/logging/).
-
-This is a minimal `LOGGING` setting that enables PyMongo's `DEBUG` logging:
+This will register a new `polls` app in your project, and provide the necessary files to have your polls app be a registered in `INSTALLED_APPS` within `example/settings.py` setting. It’ll look like this:
 
 ```python
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
-    },
-    "loggers": {
-        "pymongo": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-    },
-}
+INSTALLED_APPS = [
+    "polls.apps.PollsConfig",
+    'example.apps.MongoAdminConfig',
+    'example.apps.MongoAuthConfig',
+    'example.apps.MongoContentTypesConfig',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
 ```
+
+### Make a Django Model
+
+Go to `example/polls/models.py` and paste this example code to creat a `Poll` and `Question` model.
+
+```python
+from django.db import models
+
+
+class Question(models.Model):
+    question_text = models.CharField(max_length=200)
+    pub_date = models.DateTimeField("date published")
+
+
+class Choice(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice_text = models.CharField(max_length=200)
+    votes = models.IntegerField(default=0)
+```
+
+With your new models defined and configs set, call the `makemigrations` command from the root of your directory.
+```bash
+python manage.py makemigrations polls
+```
+
+### Query your data
+Hop into the interactive Python shell provided by the Django api with this command:
+```bash
+python manage.py shell
+```
+
+Within the shell, play around with creating, reading, updating, and deleting your models. Here's a few steps to start (provided by django tutorial):
+```python
+>>> from polls.models import Choice, Question  # Import the model classes we just wrote.
+
+# No questions are in the system yet.
+>>> Question.objects.all()
+<QuerySet []>
+
+# Create a new Question.
+# Support for time zones is enabled in the default settings file, so
+# Django expects a datetime with tzinfo for pub_date. Use timezone.now()
+# instead of datetime.datetime.now() and it will do the right thing.
+>>> from django.utils import timezone
+>>> q = Question(question_text="What's new?", pub_date=timezone.now())
+
+# Save the object into the database. You have to call save() explicitly.
+>>> q.save()
+
+# Now it has an ID.
+>>> q.id
+1
+
+# Access model field values via Python attributes.
+>>> q.question_text
+"What's new?"
+>>> q.pub_date
+datetime.datetime(2012, 2, 26, 13, 0, 0, 775217, tzinfo=datetime.timezone.utc)
+
+# Change values by changing the attributes, then calling save().
+>>> q.question_text = "What's up?"
+>>> q.save()
+
+# objects.all() displays all the questions in the database.
+>>> Question.objects.all()
+<QuerySet [<Question: Question object (1)>]>
+```
+
+Check out the Django [database API](https://docs.djangoproject.com/en/5.1/topics/db/queries/) documentation for more information on queries.
+
+### View the Admin Dashboard
+1. Make the poll app modifiable in the admin site. Route to the `polls/admin.py` file and include this code:
+   ```python
+   from django.contrib import admin
+
+   from .models import Question
+
+   admin.site.register(Question)
+   ```
+2. Create a superuser. When prompted, enter your desired username, password, and email address.
+   ```bash
+   $ python manage.py createsuperuser
+   ```
+3. Start the Development Server
+   ```bash
+   $ python manage.py runserver
+   ```
+4. Open a web browser and go to “/admin/” on your local domain – e.g., http://127.0.0.1:8000/admin/. Login and explore the free admin functionality!
+
+### Congrats! You've made your first Django MongoDB Backend Project
+
+Check back soon as we aim to provide more links that will dive deeper into our library!
+
+<!-- * Developer Notes
+* Capabilities & Limitations
+* Tutorials
+* Troubleshooting -->
+
+### Issues & Help
+
+We're glad to have such a vibrant community of users of Django MongoDB Backend. We recommend seeking support for general questions through the MongoDB Community Forums.
+
+#### Bugs / Feature Requests
+To report a bug or to request a new feature in Django MongoDB Backend, please open an issue in JIRA, our issue-management tool, using the following steps:
+
+1. [Create a JIRA account.](https://jira.mongodb.org/)
+
+2. Navigate to the [Python Integrations project](https://jira.mongodb.org/projects/INTPYTHON/).
+
+3. Click **Create Issue**. Please provide as much information as possible about the issue and the steps to reproduce it.
+
+Bug reports in JIRA for the Django MongoDB Backend project can be viewed by everyone.
+
+If you identify a security vulnerability in the driver or in any other MongoDB project, please report it according to the instructions found in [Create a Vulnerability Report](https://www.mongodb.com/docs/manual/tutorial/create-a-vulnerability-report/).
