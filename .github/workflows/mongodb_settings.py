@@ -1,9 +1,18 @@
+import os
+
+from django_mongodb_backend import parse_uri
+
+PARSED_URI = parse_uri(os.getenv("MONGODB_URI")) if os.getenv("MONGODB_URI") else {}
+
+
 DATABASES = {
     "default": {
+        **PARSED_URI,
         "ENGINE": "django_mongodb_backend",
         "NAME": "djangotests",
     },
     "other": {
+        **PARSED_URI,
         "ENGINE": "django_mongodb_backend",
         "NAME": "djangotests-other",
     },
