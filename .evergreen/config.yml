@@ -31,6 +31,7 @@ functions:
     - command: subprocess.exec
       params:
         binary: bash
+        add_expansions_to_env: true
         args:
           - ${DRIVERS_TOOLS}/.evergreen/run-orchestration.sh
 
