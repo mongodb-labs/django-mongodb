@@ -113,5 +113,4 @@ jobs:
           silk_asset_group: ${{ env.SILK_ASSET_GROUP }}
           evergreen_project: ${{ env.EVERGREEN_PROJECT }}
           token: ${{ github.token }}
-          repository_url: https://test.pypi.org/legacy/
           dry_run: ${{ inputs.dry_run }}
