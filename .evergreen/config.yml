@@ -34,6 +34,10 @@ functions:
         add_expansions_to_env: true
         args:
           - ${DRIVERS_TOOLS}/.evergreen/run-orchestration.sh
+    - command: expansions.update
+      params:
+        file: ${DRIVERS_TOOLS}/expansion.yml
+
 
   "run unit tests":
     - command: subprocess.exec
@@ -41,7 +45,7 @@ functions:
       params:
         binary: bash
         working_dir: "src"
-        include_expansions_in_env: ["DRIVERS_TOOLS"]
+        include_expansions_in_env: ["DRIVERS_TOOLS", "MONGODB_URI"]
         args:
           - ./.evergreen/run-tests.sh
 
