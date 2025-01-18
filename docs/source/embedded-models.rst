@@ -11,13 +11,14 @@ The basics
 Let's consider this example::
 
    from django_mongodb_backend.fields import EmbeddedModelField
+   from django_mongodb_backend.models import EmbeddedModel
 
    class Customer(models.Model):
        name = models.CharField(...)
        address = EmbeddedModelField("Address")
        ...
 
-   class Address(models.Model):
+   class Address(EmbeddedModel):
        ...
        city = models.CharField(...)
 

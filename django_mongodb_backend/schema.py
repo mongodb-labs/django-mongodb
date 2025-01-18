@@ -10,6 +10,24 @@ from .query import wrap_database_errors
 from .utils import OperationCollector
 
 
+def ignore_embedded_models(func):
+    """
+    Make a SchemaEditor method a no-op if model is an EmbeddedModel (unless
+    parent_model isn't None, in which case this is a valid recursive operation
+    such as adding an index on an embedded model's field).
+    """
+
+    def wrapper(self, model, *args, **kwargs):
+        parent_model = kwargs.get("parent_model")
+        from .models import EmbeddedModel
+
+        if issubclass(model, EmbeddedModel) and parent_model is None:
+            return
+        func(self, model, *args, **kwargs)
+
+    return wrapper
+
+
 class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
     def get_collection(self, name):
         if self.collect_sql:
@@ -22,6 +40,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         return self.connection.get_database()
 
     @wrap_database_errors
+    @ignore_embedded_models
     def create_model(self, model):
         self.get_database().create_collection(model._meta.db_table)
         self._create_model_indexes(model)
@@ -75,6 +94,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         for index in model._meta.indexes:
             self.add_index(model, index, column_prefix=column_prefix, parent_model=parent_model)
 
+    @ignore_embedded_models
     def delete_model(self, model):
         # Delete implicit M2m tables.
         for field in model._meta.local_many_to_many:
@@ -82,6 +102,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 self.delete_model(field.remote_field.through)
         self.get_collection(model._meta.db_table).drop()
 
+    @ignore_embedded_models
     def add_field(self, model, field):
         # Create implicit M2M tables.
         if field.many_to_many and field.remote_field.through._meta.auto_created:
@@ -103,6 +124,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         elif self._field_should_have_unique(field):
             self._add_field_unique(model, field)
 
+    @ignore_embedded_models
     def _alter_field(
         self,
         model,
@@ -149,6 +171,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         if not old_field_unique and new_field_unique:
             self._add_field_unique(model, new_field)
 
+    @ignore_embedded_models
     def remove_field(self, model, field):
         # Remove implicit M2M tables.
         if field.many_to_many and field.remote_field.through._meta.auto_created:
@@ -210,6 +233,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         for index in model._meta.indexes:
             self.remove_index(parent_model or model, index)
 
+    @ignore_embedded_models
     def alter_index_together(self, model, old_index_together, new_index_together, column_prefix=""):
         olds = {tuple(fields) for fields in old_index_together}
         news = {tuple(fields) for fields in new_index_together}
@@ -222,6 +246,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         for field_names in news.difference(olds):
             self._add_composed_index(model, field_names, column_prefix=column_prefix)
 
+    @ignore_embedded_models
     def alter_unique_together(
         self, model, old_unique_together, new_unique_together, column_prefix="", parent_model=None
     ):
@@ -249,6 +274,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
                 model, constraint, parent_model=parent_model, column_prefix=column_prefix
             )
 
+    @ignore_embedded_models
     def add_index(
         self, model, index, *, field=None, unique=False, column_prefix="", parent_model=None
     ):
@@ -302,6 +328,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         index.name = self._create_index_name(model._meta.db_table, [column_prefix + field.column])
         self.add_index(model, index, field=field, column_prefix=column_prefix)
 
+    @ignore_embedded_models
     def remove_index(self, model, index):
         if index.contains_expressions:
             return
@@ -355,6 +382,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             )
         collection.drop_index(index_names[0])
 
+    @ignore_embedded_models
     def add_constraint(self, model, constraint, field=None, column_prefix="", parent_model=None):
         if isinstance(constraint, UniqueConstraint) and self._unique_supported(
             condition=constraint.condition,
@@ -384,6 +412,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
         constraint = UniqueConstraint(fields=[field.name], name=name)
         self.add_constraint(model, constraint, field=field, column_prefix=column_prefix)
 
+    @ignore_embedded_models
     def remove_constraint(self, model, constraint):
         if isinstance(constraint, UniqueConstraint) and self._unique_supported(
             condition=constraint.condition,
@@ -417,6 +446,7 @@ class DatabaseSchemaEditor(BaseDatabaseSchemaEditor):
             )
         self.get_collection(model._meta.db_table).drop_index(constraint_names[0])
 
+    @ignore_embedded_models
     def alter_db_table(self, model, old_db_table, new_db_table):
         if old_db_table == new_db_table:
             return

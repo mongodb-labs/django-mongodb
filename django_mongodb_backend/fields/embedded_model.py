@@ -18,7 +18,18 @@ class EmbeddedModelField(models.Field):
         super().__init__(*args, **kwargs)
 
     def check(self, **kwargs):
+        from ..models import EmbeddedModel
+
         errors = super().check(**kwargs)
+        if not issubclass(self.embedded_model, EmbeddedModel):
+            return [
+                checks.Error(
+                    "Embedded models must be a subclass of "
+                    "django_mongodb_backend.models.EmbeddedModel.",
+                    obj=self,
+                    id="django_mongodb_backend.embedded_model.E002",
+                )
+            ]
         for field in self.embedded_model._meta.fields:
             if field.remote_field:
                 errors.append(

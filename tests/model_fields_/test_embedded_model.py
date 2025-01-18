@@ -4,6 +4,7 @@ from django.test import SimpleTestCase, TestCase
 from django.test.utils import isolate_apps
 
 from django_mongodb_backend.fields import EmbeddedModelField
+from django_mongodb_backend.models import EmbeddedModel
 
 from .models import (
     Address,
@@ -108,7 +109,7 @@ class QueryingTests(TestCase):
 @isolate_apps("model_fields_")
 class CheckTests(SimpleTestCase):
     def test_no_relational_fields(self):
-        class Target(models.Model):
+        class Target(EmbeddedModel):
             key = models.ForeignKey("MyModel", models.CASCADE)
 
         class MyModel(models.Model):
@@ -120,4 +121,20 @@ class CheckTests(SimpleTestCase):
         msg = errors[0].msg
         self.assertEqual(
             msg, "Embedded models cannot have relational fields (Target.key is a ForeignKey)."
+        )
+
+    def test_embedded_model_subclass(self):
+        class Target(models.Model):
+            pass
+
+        class MyModel(models.Model):
+            field = EmbeddedModelField(Target)
+
+        errors = MyModel().check()
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0].id, "django_mongodb_backend.embedded_model.E002")
+        msg = errors[0].msg
+        self.assertEqual(
+            msg,
+            "Embedded models must be a subclass of django_mongodb_backend.models.EmbeddedModel.",
         )
