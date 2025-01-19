@@ -27,7 +27,7 @@ class EmbeddedModelField(models.Field):
                         f"({self.embedded_model().__class__.__name__}.{field.name} "
                         f"is a {field.__class__.__name__}).",
                         obj=self,
-                        id="django_mongodb.embedded_model.E001",
+                        id="django_mongodb_backend.embedded_model.E001",
                     )
                 )
         return errors

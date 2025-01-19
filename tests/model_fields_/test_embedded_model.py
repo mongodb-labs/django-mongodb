@@ -114,11 +114,9 @@ class CheckTests(SimpleTestCase):
         class MyModel(models.Model):
             field = EmbeddedModelField(Target)
 
-        model = MyModel()
-        errors = model.check()
+        errors = MyModel().check()
         self.assertEqual(len(errors), 1)
-        # The inner CharField has a non-positive max_length.
-        self.assertEqual(errors[0].id, "django_mongodb.embedded_model.E001")
+        self.assertEqual(errors[0].id, "django_mongodb_backend.embedded_model.E001")
         msg = errors[0].msg
         self.assertEqual(
             msg, "Embedded models cannot have relational fields (Target.key is a ForeignKey)."
