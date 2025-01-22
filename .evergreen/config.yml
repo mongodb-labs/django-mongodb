@@ -37,7 +37,7 @@ functions:
     - command: shell.exec
       params:
         binary: bash
-        run: |
+        script: |
           tree ${DRIVERS_TOOLS}/
     - command: expansions.update
       params:
