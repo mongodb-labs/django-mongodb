@@ -1,8 +1,8 @@
 Embedded models
 ===============
 
-Use :class:`~django_mongdob.fields.EmbeddedModelField` to structure your data
-using `embedded documents
+Use :class:`~django_mongodb_backend.fields.EmbeddedModelField` to structure
+your data using `embedded documents
 <https://www.mongodb.com/docs/manual/data-modeling/#embedded-data>`_.
 
 The basics
@@ -11,13 +11,14 @@ The basics
 Let's consider this example::
 
    from django_mongodb_backend.fields import EmbeddedModelField
+   from django_mongodb_backend.models import EmbeddedModel
 
    class Customer(models.Model):
        name = models.CharField(...)
        address = EmbeddedModelField("Address")
        ...
 
-   class Address(models.Model):
+   class Address(EmbeddedModel):
        ...
        city = models.CharField(...)
 

@@ -222,8 +222,11 @@ Stores a model of type ``embedded_model``.
 
         This is a required argument.
 
-        Specifies the model class to embed. It can be either a concrete model
-        class or a :ref:`lazy reference <lazy-relationships>` to a model class.
+        Specifies the model class to embed. It must be a subclass of
+        :class:`django_mongodb_backend.models.EmbeddedModel`.
+
+        It can be either a concrete model class or a :ref:`lazy reference
+        <lazy-relationships>` to a model class.
 
         The embedded model cannot have relational fields
         (:class:`~django.db.models.ForeignKey`,
@@ -234,11 +237,12 @@ Stores a model of type ``embedded_model``.
 
             from django.db import models
             from django_mongodb_backend.fields import EmbeddedModelField
+            from django_mongodb_backend.models import EmbeddedModel
 
-            class Address(models.Model):
+            class Address(EmbeddedModel):
                 ...
 
-            class Author(models.Model):
+            class Author(EmbeddedModel):
                 address = EmbeddedModelField(Address)
 
             class Book(models.Model):

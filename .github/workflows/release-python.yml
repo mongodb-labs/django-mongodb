@@ -76,6 +76,11 @@ jobs:
         with:
           name: all-dist-${{ github.run_id }}
           path: dist/
+      - name: Publish package distributions to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
       - name: Publish package distributions to PyPI
         if: startsWith(inputs.dry_run, 'false')
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -108,5 +113,4 @@ jobs:
           silk_asset_group: ${{ env.SILK_ASSET_GROUP }}
           evergreen_project: ${{ env.EVERGREEN_PROJECT }}
           token: ${{ github.token }}
-          repository_url: https://test.pypi.org/legacy/
           dry_run: ${{ inputs.dry_run }}

@@ -6,11 +6,12 @@ from django.test.utils import isolate_apps
 from django.utils.deprecation import RemovedInDjango51Warning
 
 from django_mongodb_backend.fields import EmbeddedModelField
+from django_mongodb_backend.models import EmbeddedModel
 
 from .models import Address, Author, Book, new_apps
 
 
-class SchemaTests(TransactionTestCase):
+class TestMixin:
     available_apps = []
     models = [Address, Author, Book]
 
@@ -88,6 +89,8 @@ class SchemaTests(TransactionTestCase):
     def assertTableNotExists(self, model):
         self.assertNotIn(model._meta.db_table, connection.introspection.table_names())
 
+
+class SchemaTests(TestMixin, TransactionTestCase):
     # SchemaEditor.create_model() tests
     def test_db_index(self):
         """Field(db_index=True) on an embedded model."""
@@ -133,7 +136,7 @@ class SchemaTests(TransactionTestCase):
     def test_index_together(self):
         """Meta.index_together on an embedded model."""
 
-        class Address(models.Model):
+        class Address(EmbeddedModel):
             index_together_one = models.CharField(max_length=10)
             index_together_two = models.CharField(max_length=10)
 
@@ -180,7 +183,7 @@ class SchemaTests(TransactionTestCase):
     def test_unique_together(self):
         """Meta.unique_together on an embedded model."""
 
-        class Address(models.Model):
+        class Address(EmbeddedModel):
             unique_together_one = models.CharField(max_length=10)
             unique_together_two = models.CharField(max_length=10)
 
@@ -188,7 +191,7 @@ class SchemaTests(TransactionTestCase):
                 app_label = "schema_"
                 unique_together = [("unique_together_one", "unique_together_two")]
 
-        class Author(models.Model):
+        class Author(EmbeddedModel):
             address = EmbeddedModelField(Address)
             unique_together_three = models.CharField(max_length=10)
             unique_together_four = models.CharField(max_length=10)
@@ -231,14 +234,14 @@ class SchemaTests(TransactionTestCase):
     def test_indexes(self):
         """Meta.indexes on an embedded model."""
 
-        class Address(models.Model):
+        class Address(EmbeddedModel):
             indexed_one = models.CharField(max_length=10)
 
             class Meta:
                 app_label = "schema_"
                 indexes = [models.Index(fields=["indexed_one"])]
 
-        class Author(models.Model):
+        class Author(EmbeddedModel):
             address = EmbeddedModelField(Address)
             indexed_two = models.CharField(max_length=10)
 
@@ -627,3 +630,38 @@ class SchemaTests(TransactionTestCase):
             )
             editor.delete_model(Author)
         self.assertTableNotExists(Author)
+
+
+class EmbeddedModelsIgnoredTests(TestMixin, TransactionTestCase):
+    def test_embedded_not_created(self):
+        """create_model() and delete_model() ignore EmbeddedModel."""
+        with connection.schema_editor() as editor:
+            editor.create_model(Book)
+            editor.create_model(Address)
+            editor.create_model(Author)
+            self.assertTableExists(Book)
+            self.assertTableNotExists(Address)
+            self.assertTableNotExists(Author)
+            editor.delete_model(Book)
+            with self.assertNumQueries(0):
+                editor.delete_model(Address)
+                editor.delete_model(Author)
+        self.assertTableNotExists(Book)
+
+    def test_embedded_add_field_ignored(self):
+        """add_field() and remove_field() ignore EmbeddedModel."""
+        new_field = models.CharField(max_length=1, default="a")
+        new_field.set_attributes_from_name("char")
+        with connection.schema_editor() as editor, self.assertNumQueries(0):
+            editor.add_field(Author, new_field)
+        with connection.schema_editor() as editor, self.assertNumQueries(0):
+            editor.remove_field(Author, new_field)
+
+    def test_embedded_alter_field_ignored(self):
+        """alter_field() ignores EmbeddedModel."""
+        old_field = models.CharField(max_length=1)
+        old_field.set_attributes_from_name("old")
+        new_field = models.CharField(max_length=1)
+        new_field.set_attributes_from_name("new")
+        with connection.schema_editor() as editor, self.assertNumQueries(0):
+            editor.alter_field(Author, old_field, new_field)
