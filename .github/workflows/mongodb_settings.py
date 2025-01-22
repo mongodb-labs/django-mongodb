@@ -2,8 +2,11 @@ import os
 
 from django_mongodb_backend import parse_uri
 
+
 PARSED_URI = parse_uri(os.getenv("MONGODB_URI")) if os.getenv("MONGODB_URI") else {}
 
+if not PARSED_URI:
+    print("MONGODB_URI not found; please check if environment variable set")
 
 DATABASES = {
     "default": {

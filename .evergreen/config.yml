@@ -34,10 +34,14 @@ functions:
         add_expansions_to_env: true
         args:
           - ${DRIVERS_TOOLS}/.evergreen/run-orchestration.sh
+    - command: shell.exec
+      params:
+        binary: bash
+        script: |
+          cat mo-expansion.yml
     - command: expansions.update
       params:
         file: mo-expansion.yml
-
 
   "run unit tests":
     - command: subprocess.exec
@@ -64,51 +68,51 @@ post:
   - func: teardown
 
 tasks:
-- name: run-tests
-  commands:
-    - func: "run unit tests"
+  - name: run-tests
+    commands:
+      - func: "run unit tests"
 
 buildvariants:
-- name: tests-5-noauth-nossl
-  display_name: Run Tests 5.0 NoAuth NoSSL
-  run_on: rhel87-small
-  expansions:
-    MONGODB_VERSION: "5.0"
-    TOPOLOGY: server
-    AUTH: "noauth"
-    SSL: "nossl"
-  tasks:
-  - name: run-tests
+  - name: tests-5-noauth-nossl
+    display_name: Run Tests 5.0 NoAuth NoSSL
+    run_on: rhel87-small
+    expansions:
+      MONGODB_VERSION: "5.0"
+      TOPOLOGY: server
+      AUTH: "noauth"
+      SSL: "nossl"
+    tasks:
+      - name: run-tests
 
-- name: tests-5-auth-ssl
-  display_name: Run Tests 5.0 Auth SSL
-  run_on: rhel87-small
-  expansions:
-    MONGODB_VERSION: "5.0"
-    TOPOLOGY: server
-    AUTH: "auth"
-    SSL: "ssl"
-  tasks:
-  - name: run-tests
+  - name: tests-5-auth-ssl
+    display_name: Run Tests 5.0 Auth SSL
+    run_on: rhel87-small
+    expansions:
+      MONGODB_VERSION: "5.0"
+      TOPOLOGY: server
+      AUTH: "auth"
+      SSL: "ssl"
+    tasks:
+      - name: run-tests
 
-- name: tests-8-noauth-nossl
-  display_name: Run Tests 8.0 NoAuth NoSSL
-  run_on: rhel87-small
-  expansions:
-    MONGODB_VERSION: "8.0"
-    TOPOLOGY: server
-    AUTH: "noauth"
-    SSL: "nossl"
-  tasks:
-  - name: run-tests
+  - name: tests-8-noauth-nossl
+    display_name: Run Tests 8.0 NoAuth NoSSL
+    run_on: rhel87-small
+    expansions:
+      MONGODB_VERSION: "8.0"
+      TOPOLOGY: server
+      AUTH: "noauth"
+      SSL: "nossl"
+    tasks:
+      - name: run-tests
 
-- name: tests-8-auth-ssl
-  display_name: Run Tests 8.0 Auth SSL
-  run_on: rhel87-small
-  expansions:
-    MONGODB_VERSION: "8.0"
-    TOPOLOGY: server
-    AUTH: "auth"
-    SSL: "ssl"
-  tasks:
-  - name: run-tests
+  - name: tests-8-auth-ssl
+    display_name: Run Tests 8.0 Auth SSL
+    run_on: rhel87-small
+    expansions:
+      MONGODB_VERSION: "8.0"
+      TOPOLOGY: server
+      AUTH: "auth"
+      SSL: "ssl"
+    tasks:
+      - name: run-tests
