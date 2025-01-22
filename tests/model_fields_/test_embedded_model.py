@@ -13,6 +13,7 @@ from .models import (
     Data,
     Holder,
 )
+from .utils import truncate_ms
 
 
 class MethodTests(SimpleTestCase):
@@ -38,10 +39,6 @@ class MethodTests(SimpleTestCase):
 
 
 class ModelTests(TestCase):
-    def truncate_ms(self, value):
-        """Truncate microseconds to milliseconds as supported by MongoDB."""
-        return value.replace(microsecond=(value.microsecond // 1000) * 1000)
-
     def test_save_load(self):
         Holder.objects.create(data=Data(integer="5"))
         obj = Holder.objects.get()
@@ -64,12 +61,12 @@ class ModelTests(TestCase):
     def test_pre_save(self):
         """Field.pre_save() is called on embedded model fields."""
         obj = Holder.objects.create(data=Data())
-        auto_now = self.truncate_ms(obj.data.auto_now)
-        auto_now_add = self.truncate_ms(obj.data.auto_now_add)
+        auto_now = truncate_ms(obj.data.auto_now)
+        auto_now_add = truncate_ms(obj.data.auto_now_add)
         self.assertEqual(auto_now, auto_now_add)
         # save() updates auto_now but not auto_now_add.
         obj.save()
-        self.assertEqual(self.truncate_ms(obj.data.auto_now_add), auto_now_add)
+        self.assertEqual(truncate_ms(obj.data.auto_now_add), auto_now_add)
         auto_now_two = obj.data.auto_now
         self.assertGreater(auto_now_two, obj.data.auto_now_add)
         # And again, save() updates auto_now but not auto_now_add.
