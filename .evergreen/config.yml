@@ -38,7 +38,22 @@ functions:
       params:
         binary: bash
         script: |
-          tree ${DRIVERS_TOOLS}/
+          ls -l ${DRIVERS_TOOLS}/
+    - command: shell.exec
+      params:
+        binary: bash
+        script: |
+          ls -l ${DRIVERS_TOOLS}/.evergreen/
+    - command: shell.exec
+      params:
+        binary: bash
+        script: |
+          ls -l ${DRIVERS_TOOLS}/.evergreen/orchestration/
+    - command: shell.exec
+      params:
+        binary: bash
+        script: |
+          ls -l .evergreen/
     - command: expansions.update
       params:
         file: ${DRIVERS_TOOLS}/.evergreen/orchestration/mo-expansion.yml
