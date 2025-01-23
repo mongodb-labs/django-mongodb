@@ -53,7 +53,7 @@ class SQLCompiler(compiler.SQLCompiler):
         Create a column named `alias` from the given expression to hold the
         aggregate value.
         """
-        column_target = expr.output_field.__class__()
+        column_target = expr.output_field.clone()
         column_target.db_column = alias
         column_target.set_attributes_from_name(alias)
         return Col(self.collection_name, column_target)
@@ -81,7 +81,7 @@ class SQLCompiler(compiler.SQLCompiler):
             alias = (
                 f"__aggregation{next(annotation_group_idx)}" if sub_expr != expression else target
             )
-            column_target = sub_expr.output_field.__class__()
+            column_target = sub_expr.output_field.clone()
             column_target.db_column = alias
             column_target.set_attributes_from_name(alias)
             inner_column = Col(self.collection_name, column_target)

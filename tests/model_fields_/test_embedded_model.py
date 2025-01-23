@@ -1,5 +1,8 @@
-from django.core.exceptions import ValidationError
+import operator
+
+from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db import models
+from django.db.models import ExpressionWrapper, F, Max, Sum
 from django.test import SimpleTestCase, TestCase
 from django.test.utils import isolate_apps
 
@@ -13,6 +16,7 @@ from .models import (
     Data,
     Holder,
 )
+from .utils import truncate_ms
 
 
 class MethodTests(SimpleTestCase):
@@ -38,10 +42,6 @@ class MethodTests(SimpleTestCase):
 
 
 class ModelTests(TestCase):
-    def truncate_ms(self, value):
-        """Truncate microseconds to milliseconds as supported by MongoDB."""
-        return value.replace(microsecond=(value.microsecond // 1000) * 1000)
-
     def test_save_load(self):
         Holder.objects.create(data=Data(integer="5"))
         obj = Holder.objects.get()
@@ -64,12 +64,12 @@ class ModelTests(TestCase):
     def test_pre_save(self):
         """Field.pre_save() is called on embedded model fields."""
         obj = Holder.objects.create(data=Data())
-        auto_now = self.truncate_ms(obj.data.auto_now)
-        auto_now_add = self.truncate_ms(obj.data.auto_now_add)
+        auto_now = truncate_ms(obj.data.auto_now)
+        auto_now_add = truncate_ms(obj.data.auto_now_add)
         self.assertEqual(auto_now, auto_now_add)
         # save() updates auto_now but not auto_now_add.
         obj.save()
-        self.assertEqual(self.truncate_ms(obj.data.auto_now_add), auto_now_add)
+        self.assertEqual(truncate_ms(obj.data.auto_now_add), auto_now_add)
         auto_now_two = obj.data.auto_now
         self.assertGreater(auto_now_two, obj.data.auto_now_add)
         # And again, save() updates auto_now but not auto_now_add.
@@ -99,11 +99,87 @@ class QueryingTests(TestCase):
     def test_gte(self):
         self.assertCountEqual(Holder.objects.filter(data__integer__gte=3), self.objs[3:])
 
+    def test_order_by_embedded_field(self):
+        qs = Holder.objects.filter(data__integer__gt=3).order_by("-data__integer")
+        self.assertSequenceEqual(qs, list(reversed(self.objs[4:])))
+
+    def test_order_and_group_by_embedded_field(self):
+        # Create and sort test data by `data__integer`.
+        expected_objs = sorted(
+            (Holder.objects.create(data=Data(integer=x)) for x in range(6)),
+            key=lambda x: x.data.integer,
+        )
+        # Group by `data__integer + 5` and get the latest `data__auto_now`
+        # datetime.
+        qs = (
+            Holder.objects.annotate(
+                group=ExpressionWrapper(F("data__integer") + 5, output_field=models.IntegerField()),
+            )
+            .values("group")
+            .annotate(max_auto_now=Max("data__auto_now"))
+            .order_by("data__integer")
+        )
+        # Each unique `data__integer` is correctly grouped and annotated.
+        self.assertSequenceEqual(
+            [{**e, "max_auto_now": e["max_auto_now"]} for e in qs],
+            [
+                {"group": e.data.integer + 5, "max_auto_now": truncate_ms(e.data.auto_now)}
+                for e in expected_objs
+            ],
+        )
+
+    def test_order_and_group_by_embedded_field_annotation(self):
+        # Create repeated `data__integer` values.
+        [Holder.objects.create(data=Data(integer=x)) for x in range(6)]
+        # Group by `data__integer` and compute the sum of occurrences.
+        qs = (
+            Holder.objects.values("data__integer")
+            .annotate(sum=Sum("data__integer"))
+            .order_by("sum")
+        )
+        # The sum is twice the integer values since each appears twice.
+        self.assertQuerySetEqual(qs, [0, 2, 4, 6, 8, 10], operator.itemgetter("sum"))
+
     def test_nested(self):
         obj = Book.objects.create(
             author=Author(name="Shakespeare", age=55, address=Address(city="NYC", state="NY"))
         )
         self.assertCountEqual(Book.objects.filter(author__address__city="NYC"), [obj])
+
+
+class InvalidLookupTests(SimpleTestCase):
+    def test_invalid_field(self):
+        msg = "Author has no field named 'first_name'"
+        with self.assertRaisesMessage(FieldDoesNotExist, msg):
+            Book.objects.filter(author__first_name="Bob")
+
+    def test_invalid_field_nested(self):
+        msg = "Address has no field named 'floor'"
+        with self.assertRaisesMessage(FieldDoesNotExist, msg):
+            Book.objects.filter(author__address__floor="NYC")
+
+    def test_invalid_lookup(self):
+        msg = "Unsupported lookup 'foo' for CharField 'city'."
+        with self.assertRaisesMessage(FieldDoesNotExist, msg):
+            Book.objects.filter(author__address__city__foo="NYC")
+
+    def test_invalid_lookup_with_suggestions(self):
+        msg = (
+            "Unsupported lookup '{lookup}' for CharField 'name', "
+            "perhaps you meant {suggested_lookups}?"
+        )
+        with self.assertRaisesMessage(
+            FieldDoesNotExist, msg.format(lookup="exactly", suggested_lookups="exact or iexact")
+        ):
+            Book.objects.filter(author__name__exactly="NYC")
+        with self.assertRaisesMessage(
+            FieldDoesNotExist, msg.format(lookup="gti", suggested_lookups="gt or gte")
+        ):
+            Book.objects.filter(author__name__gti="NYC")
+        with self.assertRaisesMessage(
+            FieldDoesNotExist, msg.format(lookup="is_null", suggested_lookups="isnull")
+        ):
+            Book.objects.filter(author__name__is_null="NYC")
 
 
 @isolate_apps("model_fields_")
