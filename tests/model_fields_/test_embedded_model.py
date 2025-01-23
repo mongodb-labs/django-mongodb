@@ -107,6 +107,9 @@ class QueryingTests(TestCase):
     def test_gte(self):
         self.assertCountEqual(Holder.objects.filter(data__integer__gte=3), self.objs[3:])
 
+    def test_range(self):
+        self.assertCountEqual(Holder.objects.filter(data__integer__range=(2, 4)), self.objs[2:5])
+
     def test_order_by_embedded_field(self):
         qs = Holder.objects.filter(data__integer__gt=3).order_by("-data__integer")
         self.assertSequenceEqual(qs, list(reversed(self.objs[4:])))
