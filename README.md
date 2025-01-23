@@ -10,6 +10,9 @@ explore and build. The best way to share this is via our [MongoDB Community Foru
 * [Model Your Data](https://www.mongodb.com/docs/languages/python/django-mongodb/current/model-data/)
 * [Limitations & Future Work](https://www.mongodb.com/docs/languages/python/django-mongodb/current/limitations-upcoming/)
 
+The documentation in the "docs" directory is online at
+https://django-mongodb-backend.readthedocs.io/en/latest/.
+
 ## Install
 
 Use the version of `django-mongodb-backend` that corresponds to your version of
