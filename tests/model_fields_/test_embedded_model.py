@@ -96,6 +96,10 @@ class QueryingTests(TestCase):
     def test_gte(self):
         self.assertCountEqual(Holder.objects.filter(data__integer__gte=3), self.objs[3:])
 
+    def test_order_by_embedded_field(self):
+        qs = Holder.objects.filter(data__integer__gt=3).order_by("-data__integer")
+        self.assertSequenceEqual(qs, list(reversed(self.objs[4:])))
+
     def test_nested(self):
         obj = Book.objects.create(
             author=Author(name="Shakespeare", age=55, address=Address(city="NYC", state="NY"))
