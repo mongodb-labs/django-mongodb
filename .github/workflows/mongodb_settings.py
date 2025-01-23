@@ -5,8 +5,9 @@ from django_mongodb_backend import parse_uri
 PARSED_URI = parse_uri(os.getenv("MONGODB_URI")) if os.getenv("MONGODB_URI") else {}
 
 # Temporary fix for https://github.com/mongodb-labs/mongo-orchestration/issues/268
-if "USER" in PARSED_URI and "PASSWORD" in PARSED_URI:
+if PARSED_URI["USER"] and PARSED_URI["PASSWORD"]:
     PARSED_URI["OPTIONS"]["tls"] = True
+    PARSED_URI["OPTIONS"]["tlsAllowInvalidCertificates"] = True
 
 DATABASES = {
     "default": {
