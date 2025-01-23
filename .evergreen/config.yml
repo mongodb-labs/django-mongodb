@@ -34,11 +34,6 @@ functions:
         add_expansions_to_env: true
         args:
           - ${DRIVERS_TOOLS}/.evergreen/run-orchestration.sh
-    - command: shell.exec
-      params:
-        binary: bash
-        script: |
-          cat mo-expansion.yml
     - command: expansions.update
       params:
         file: mo-expansion.yml
