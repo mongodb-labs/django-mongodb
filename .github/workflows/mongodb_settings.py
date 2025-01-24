@@ -2,24 +2,27 @@ import os
 
 from django_mongodb_backend import parse_uri
 
-PARSED_URI = parse_uri(os.getenv("MONGODB_URI")) if os.getenv("MONGODB_URI") else {}
+if mongodb_uri := os.getenv("MONGODB_URI"):
+    db_settings = parse_uri(mongodb_uri)
 
-# Temporary fix for https://github.com/mongodb-labs/mongo-orchestration/issues/268
-if PARSED_URI.get("USER") and PARSED_URI.get("PASSWORD"):
-    PARSED_URI["OPTIONS"].update({"tls": True, "tlsAllowInvalidCertificates": True})
-
-DATABASES = {
-    "default": {
-        **PARSED_URI,
-        "ENGINE": "django_mongodb_backend",
-        "NAME": "djangotests",
-    },
-    "other": {
-        **PARSED_URI,
-        "ENGINE": "django_mongodb_backend",
-        "NAME": "djangotests-other",
-    },
-}
+    # Workaround for https://github.com/mongodb-labs/mongo-orchestration/issues/268
+    if db_settings["USER"] and db_settings["PASSWORD"]:
+        db_settings.update({"tls": True, "tlsAllowInvalidCertificates": True})
+    DATABASES = {
+        "default": {**db_settings, "NAME": "djangotests"},
+        "other": {**db_settings, "NAME": "djangotests-other"},
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django_mongodb_backend",
+            "NAME": "djangotests",
+        },
+        "other": {
+            "ENGINE": "django_mongodb_backend",
+            "NAME": "djangotests-other",
+        },
+    }
 
 DEFAULT_AUTO_FIELD = "django_mongodb_backend.fields.ObjectIdAutoField"
 PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
