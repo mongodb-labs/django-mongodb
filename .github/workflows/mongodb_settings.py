@@ -7,7 +7,7 @@ if mongodb_uri := os.getenv("MONGODB_URI"):
 
     # Workaround for https://github.com/mongodb-labs/mongo-orchestration/issues/268
     if db_settings["USER"] and db_settings["PASSWORD"]:
-        db_settings.update({"tls": True, "tlsAllowInvalidCertificates": True})
+        db_settings["OPTIONS"].update({"tls": True, "tlsAllowInvalidCertificates": True})
     DATABASES = {
         "default": {**db_settings, "NAME": "djangotests"},
         "other": {**db_settings, "NAME": "djangotests-other"},
