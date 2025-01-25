@@ -216,3 +216,40 @@ class NestedFormTests(TestCase):
         form = BookForm(data, instance=book)
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors["publisher"], ["This field is required."])
+
+    def test_rendering(self):
+        form = BookForm()
+        self.assertHTMLEqual(
+            str(form.fields["publisher"].get_bound_field(form, "publisher")),
+            """
+            <div>
+              <label for="id_publisher-name">Name:</label>
+              <input type="text" name="publisher-name" maxlength="50"
+                required id="id_publisher-name">
+            </div>
+            <div>
+              <fieldset>
+                <legend>Address:</legend>
+                <div>
+                  <label for="id_publisher-address-po_box">PO Box:</label>
+                  <input type="text" name="publisher-address-po_box" maxlength="50"
+                    id="id_publisher-address-po_box">
+                </div>
+                <div>
+                  <label for="id_publisher-address-city">City:</label>
+                  <input type="text" name="publisher-address-city" maxlength="20"
+                    required id="id_publisher-address-city">
+                </div>
+                <div>
+                  <label for="id_publisher-address-state">State:</label>
+                  <input type="text" name="publisher-address-state" maxlength="2"
+                    required id="id_publisher-address-state">
+                </div>
+                <div>
+                  <label for="id_publisher-address-zip_code">Zip code:</label>
+                  <input type="number" name="publisher-address-zip_code"
+                    required id="id_publisher-address-zip_code">
+                </div>
+              </fieldset>
+            </div>""",
+        )
