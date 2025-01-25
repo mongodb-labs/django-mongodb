@@ -20,9 +20,17 @@ class EmbeddedModelWidget(forms.MultiWidget):
 
 
 class EmbeddedModelBoundField(forms.BoundField):
+    def __init__(self, form, field, name, prefix_override=None):
+        super().__init__(form, field, name)
+        # prefix_override overrides the prefix in self.field.form_kwargs so
+        # that nested embedded model form elements have the correct name.
+        self.prefix_override = prefix_override
+
     def __str__(self):
         """Render the model form as the representation for this field."""
         form = self.field.model_form_cls(instance=self.value(), **self.field.form_kwargs)
+        if self.prefix_override:
+            form.prefix = self.prefix_override
         return mark_safe(f"{form.as_div()}")  # noqa: S308
 
 
@@ -53,7 +61,9 @@ class EmbeddedModelField(forms.MultiValueField):
         return self.model_form._meta.model(**values)
 
     def get_bound_field(self, form, field_name):
-        return EmbeddedModelBoundField(form, self, field_name)
+        # Nested embedded model form fields need a double prefix.
+        prefix_override = f"{form.prefix}-{self.model_form.prefix}" if form.prefix else None
+        return EmbeddedModelBoundField(form, self, field_name, prefix_override)
 
     def bound_data(self, data, initial):
         if self.disabled:
