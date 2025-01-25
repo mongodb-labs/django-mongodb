@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from .forms import AuthorForm
-from .models import Address, Author
+from .forms import AuthorForm, BookForm
+from .models import Address, Author, Book, Publisher
 
 
 class ModelFormTests(TestCase):
@@ -128,3 +128,91 @@ class ModelFormTests(TestCase):
                 <input type="number" name="address-zip_code" required id="id_address-zip_code">
             </div>""",
         )
+
+
+class NestedFormTests(TestCase):
+    def test_update(self):
+        book = Book.objects.create(
+            title="Learning MongoDB",
+            publisher=Publisher(
+                name="Random House", address=Address(city="NYC", state="NY", zip_code="10001")
+            ),
+        )
+        data = {
+            "title": "Learning MongoDB!",
+            "publisher-name": "Random House!",
+            "publisher-address-po_box": "",
+            "publisher-address-city": "New York City",
+            "publisher-address-state": "NY",
+            "publisher-address-zip_code": "10001",
+        }
+        form = BookForm(data, instance=book)
+        self.assertTrue(form.is_valid())
+        form.save()
+        book.refresh_from_db()
+        self.assertEqual(book.title, "Learning MongoDB!")
+        self.assertEqual(book.publisher.name, "Random House!")
+        self.assertEqual(book.publisher.address.city, "New York City")
+
+    def test_some_missing_data(self):
+        """A required field (zip_code) is missing."""
+        book = Book.objects.create(
+            title="Learning MongoDB",
+            publisher=Publisher(
+                name="Random House", address=Address(city="NYC", state="NY", zip_code="10001")
+            ),
+        )
+        data = {
+            "title": "Learning MongoDB!",
+            "publisher-name": "Random House!",
+            "publisher-address-po_box": "",
+            "publisher-address-city": "New York City",
+            "publisher-address-state": "NY",
+            "publisher-address-zip_code": "",
+        }
+        form = BookForm(data, instance=book)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors["publisher"], ["Enter all required values."])
+
+    def test_invalid_field_data(self):
+        """A field's data (state) is too long."""
+        book = Book.objects.create(
+            title="Learning MongoDB",
+            publisher=Publisher(
+                name="Random House", address=Address(city="NYC", state="NY", zip_code="10001")
+            ),
+        )
+        data = {
+            "title": "Learning MongoDB!",
+            "publisher-name": "Random House!",
+            "publisher-address-po_box": "",
+            "publisher-address-city": "New York City",
+            "publisher-address-state": "TOO LONG",
+            "publisher-address-zip_code": "10001",
+        }
+        form = BookForm(data, instance=book)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            form.errors["publisher"],
+            ["Ensure this value has at most 2 characters (it has 8)."],
+        )
+
+    def test_all_missing_data(self):
+        """An embedded model with all data missing triggers a required error."""
+        book = Book.objects.create(
+            title="Learning MongoDB",
+            publisher=Publisher(
+                name="Random House", address=Address(city="NYC", state="NY", zip_code="10001")
+            ),
+        )
+        data = {
+            "title": "Learning MongoDB!",
+            "publisher-name": "Random House!",
+            "publisher-address-po_box": "",
+            "publisher-address-city": "",
+            "publisher-address-state": "",
+            "publisher-address-zip_code": "",
+        }
+        form = BookForm(data, instance=book)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors["publisher"], ["This field is required."])
