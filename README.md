@@ -10,9 +10,16 @@ The development version of this package supports Django 5.0.x. To install it:
 
 `pip install django-mongodb-backend`
 
-## Get Started
+### Resources
 
-This tutorial shows you how to create a Django app, connect to a MongoDB cluster hosted on MongoDB Atlas, and interact with data in your cluster.
+ Check back soon as we aim to provide more links that will dive deeper into our library!
+
+* [Developer Notes](DEV_NOTES.md)
+
+
+## Quickstart
+
+This tutorial shows you how to create a Django project, connect to a MongoDB cluster hosted on MongoDB Atlas, and interact with data in your cluster. To read more, please check our MongoDB Backend for Django tutorials page.
 
 ### Start a Project
 
@@ -21,24 +28,6 @@ From your shell, run the following command to create a new Django project called
 ```bash
 $ django-admin startproject example --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/5.0.x.zip
 ```
-
-### Create a Connection String
-
-Check out [Create a Connection String](https://deploy-preview-132--docs-pymongo.netlify.app/get-started/create-a-connection-string/) in our documentation to learn how to obtain a free MongoDB Atlas cluster.
-
-Once finished, your URI should look something like this:
-```bash
-mongodb+srv://<username>:<password>@samplecluster.jkiff1s.mongodb.net/?retryWrites=true&w=majority&appName=SampleCluster
-```
-Replace the `<username>` and `<password>` placeholders with your database user's username and password.
-
-Then, specify a connection to your example database from the Atlas sample datasets by adding it after the hostname, as shown in the following example:
-
-```bash
-mongodb+srv://<username>:<password>@samplecluster.jkiff1s.mongodb.net/<DATABASE_NAME>?retryWrites=true&w=majority&appName=SampleCluster
-```
-
-Replacing `<DATABASE_NAME>` with your database name of choice.
 
 
 ### Connect to the Database
@@ -60,129 +49,89 @@ python manage.py runserver
 ```
 Then, visit http://127.0.0.1:8000/. This page displays a "Congratulations!" message and an image of a rocket.
 
-Once you've done that, you'll see messages saying you haven't run migrations yet. Make sure to run this command:
-```bash
-python manage.py migrate
-```
-### Create an app
-An app is a web application that does something – e.g., a blog system, a database of public records or a small poll app.
 
-From your project's root directory, run the following command to create a new Django app called polls based on a custom template:
+## Capabilities of Django Backend for MongoDB
 
-```bash
-python manage.py startapp polls --template https://github.com/mongodb-labs/django-mongodb-app/archive/refs/heads/5.0.x.zip
-```
-
-This will register a new `polls` app in your project, and provide the necessary files to have your polls app be a registered in `INSTALLED_APPS` within `example/settings.py` setting. It’ll look like this:
-
-```python
-INSTALLED_APPS = [
-    "polls.apps.PollsConfig",
-    'example.apps.MongoAdminConfig',
-    'example.apps.MongoAuthConfig',
-    'example.apps.MongoContentTypesConfig',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-]
-```
-
-### Make a Django Model
-
-Go to `example/polls/models.py` and paste this example code to creat a `Poll` and `Question` model.
-
-```python
-from django.db import models
+- **Database Connectivity**  
+    
+  - Directly tune MongoDB connection settings within your Django configuration\!  
+  - Work against a persisted cloud instance of MongoDB for free\!
 
 
-class Question(models.Model):
-    question_text = models.CharField(max_length=200)
-    pub_date = models.DateTimeField("date published")
+- **Model MongoDB Documents Through Django’s ORM**  
+    
+  - Translate Django model instances to MongoDB documents.  
+  - Create new collections corresponding to models.  
+  - Supports field validation, data storage, updating, and deletion.  
+  - Maps Django's built-in fields to MongoDB data types.  
+  - Provides new custom fields for arrays (ArrayField) and embedded documents (EmbeddedModelField).  
+  - Supports core migration functionalities including creating, deleting, and updating indexes and collections
 
 
-class Choice(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    choice_text = models.CharField(max_length=200)
-    votes = models.IntegerField(default=0)
-```
+- **Index Management**  
+    
+  - Create single, compound, and unique indexes using Django Indexes  
+  - Create MongoDB partial indexes in Django using Q notation.
 
-With your new models defined and configs set, call the `makemigrations` command from the root of your directory.
-```bash
-python manage.py makemigrations polls
-```
 
-### Query your data
-Hop into the interactive Python shell provided by the Django api with this command:
-```bash
-python manage.py shell
-```
+- **Querying Data**  
+    
+  - Querying API powered through the amazing MongoDB Aggregation Pipeline  
+  - Supports most functions of the Django QuerySet API  
+  - Support Query Annotations and common SQL AGGREGATE operators  
+  - We support foreign keys and execute JOIN operations all in 1 database call  
+  - Through our custom raw\_aggregate call, MQL operations like Vector Search, Atlas Search, and GeoSpatial querying still yield Django QuerySet results\!
 
-Within the shell, play around with creating, reading, updating, and deleting your models. Here's a few steps to start (provided by django tutorial):
-```python
->>> from polls.models import Choice, Question  # Import the model classes we just wrote.
 
-# No questions are in the system yet.
->>> Question.objects.all()
-<QuerySet []>
+- **Administrator Dashboard & Authentication**  
+    
+  - Manage your data in Django’s admin site.  
+  - Fully integrated with Django's authentication framework.  
+  - Supports native user management features like creating users and sessions.
 
-# Create a new Question.
-# Support for time zones is enabled in the default settings file, so
-# Django expects a datetime with tzinfo for pub_date. Use timezone.now()
-# instead of datetime.datetime.now() and it will do the right thing.
->>> from django.utils import timezone
->>> q = Question(question_text="What's new?", pub_date=timezone.now())
 
-# Save the object into the database. You have to call save() explicitly.
->>> q.save()
+- **Management Commands**  
+    
+  - Use commands like `migrate`, `makemigrations`, `flush`, `sqlmigrate`, many more.
 
-# Now it has an ID.
->>> q.id
-1
 
-# Access model field values via Python attributes.
->>> q.question_text
-"What's new?"
->>> q.pub_date
-datetime.datetime(2012, 2, 26, 13, 0, 0, 775217, tzinfo=datetime.timezone.utc)
+## Future Commitments of Django Backend for MongoDB
 
-# Change values by changing the attributes, then calling save().
->>> q.question_text = "What's up?"
->>> q.save()
+- **Advanced Indexing**  
+    
+  - Support for advanced index types like geospatial, text, and vector search indexes.  
+      
+- **Improved Data Modeling**  
+    
+  - Support ArrayFields containing Embedded Models  
+  - Support Collections with multiple Django Models  
+  - Possible support for additional Django fields such as ImageField
 
-# objects.all() displays all the questions in the database.
->>> Question.objects.all()
-<QuerySet [<Question: Question object (1)>]>
-```
 
-Check out the Django [database API](https://docs.djangoproject.com/en/5.1/topics/db/queries/) documentation for more information on queries.
+- **Extended Querying Features**  
+    
+  - Exploring smoother ways to allow users to use full-text search, vector search, or geospatial querying.
 
-### View the Admin Dashboard
-1. Make the poll app modifiable in the admin site. Route to the `polls/admin.py` file and include this code:
-   ```python
-   from django.contrib import admin
 
-   from .models import Question
+- **Enhanced Transactions Support**  
+    
+  - Investigation and support for transactions, allowing features like `ATOMIC_REQUESTS` and `AUTOCOMMIT`.
 
-   admin.site.register(Question)
-   ```
-2. Create a superuser. When prompted, enter your desired username, password, and email address.
-   ```bash
-   $ python manage.py createsuperuser
-   ```
-3. Start the Development Server
-   ```bash
-   $ python manage.py runserver
-   ```
-4. Open a web browser and go to “/admin/” on your local domain – e.g., http://127.0.0.1:8000/admin/. Login and explore the free admin functionality!
+- **Asynchronous Capabilities**  
+    
+  - Evaluation and support for Django’s asynchronous callback functions.
 
-### Congrats! You've made your first Django MongoDB Backend Project
 
-Check back soon as we aim to provide more links that will dive deeper into our library!
+- **Performance Optimization**  
+    
+  - Focus on performance tuning, especially concerning JOIN operations and ensure competitive performance relative to SQL databases.
 
-<!-- * Developer Notes
-* Capabilities & Limitations
-* Tutorials
-* Troubleshooting -->
+
+- **Expanded Third-Party Library Support**  
+    
+  - Vet our backend library works effortlessly with major Django Third-Party solutions
+
+These future capabilities are intended to enhance the functionality of the Django Backend for MongoDB as it progresses towards a General Availability (GA) release. If you have any more specific questions or need further details, feel free to ask\!  
 
 ### Issues & Help
 
