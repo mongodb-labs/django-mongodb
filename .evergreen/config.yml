@@ -69,10 +69,10 @@ tasks:
 
 buildvariants:
   - name: tests-5-noauth-nossl
-    display_name: Run Tests 5.0 NoAuth NoSSL
+    display_name: Run Tests 6.0 NoAuth NoSSL
     run_on: rhel87-small
     expansions:
-      MONGODB_VERSION: "5.0"
+      MONGODB_VERSION: "6.0"
       TOPOLOGY: server
       AUTH: "noauth"
       SSL: "nossl"
@@ -80,10 +80,10 @@ buildvariants:
       - name: run-tests
 
   - name: tests-5-auth-ssl
-    display_name: Run Tests 5.0 Auth SSL
+    display_name: Run Tests 6.0 Auth SSL
     run_on: rhel87-small
     expansions:
-      MONGODB_VERSION: "5.0"
+      MONGODB_VERSION: "6.0"
       TOPOLOGY: server
       AUTH: "auth"
       SSL: "ssl"

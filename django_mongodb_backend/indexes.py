@@ -1,6 +1,5 @@
 from django.db import NotSupportedError
 from django.db.models import Index
-from django.db.models.fields.related_lookups import In
 from django.db.models.lookups import BuiltinLookup
 from django.db.models.sql.query import Query
 from django.db.models.sql.where import AND, XOR, WhereNode
@@ -37,20 +36,12 @@ def builtin_lookup_idx(self, compiler, connection):
     return {lhs_mql: {operator: value}}
 
 
-def in_idx(self, compiler, connection):
-    if not connection.features.supports_in_index_operator:
-        raise NotSupportedError("MongoDB < 6.0 does not support the 'in' lookup in indexes.")
-    return builtin_lookup_idx(self, compiler, connection)
-
-
 def where_node_idx(self, compiler, connection):
     if self.connector == AND:
         operator = "$and"
     elif self.connector == XOR:
         raise NotSupportedError("MongoDB does not support the '^' operator lookup in indexes.")
     else:
-        if not connection.features.supports_in_index_operator:
-            raise NotSupportedError("MongoDB < 6.0 does not support the '|' operator in indexes.")
         operator = "$or"
     if self.negated:
         raise NotSupportedError("MongoDB does not support the '~' operator in indexes.")
@@ -69,6 +60,5 @@ def where_node_idx(self, compiler, connection):
 
 def register_indexes():
     BuiltinLookup.as_mql_idx = builtin_lookup_idx
-    In.as_mql_idx = in_idx
     Index._get_condition_mql = _get_condition_mql
     WhereNode.as_mql_idx = where_node_idx
