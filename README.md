@@ -1,30 +1,36 @@
 # Django MongoDB Backend
 
+
+
 This backend is currently in development and is not advised for Production workflows. Backwards incompatible
 changes may be made without notice. We welcome your feedback as we continue to
-explore and build. The best way to share this is via our [MongoDB Community Forum](https://www.mongodb.com/community/forums/tag/python)
+explore and build. The best way to share this is via our [MongoDB Community Forum](https://www.mongodb.com/community/forums/tag/python).
 
 ## Install
 
-The development version of this package supports Django 5.0.x. To install it:
+Use the version of django-mongodb-backend that corresponds to your version of
+Django. For example, to get the latest compatible release for Django 5.0.x:
 
-`pip install django-mongodb-backend~=5.0.0`
+`pip install --pre django-mongodb-backend==5.0.*`
+
+(Until the package is out of beta, you must use pip's `--pre` option.)
 
 
 ## Quickstart
 
-This tutorial shows you how to create a Django project, connect to a MongoDB cluster hosted on MongoDB Atlas, and interact with data in your cluster. To read more, please check our MongoDB Backend for Django tutorials page.
+### Start Project
 
-### Start a Project
-
-From your shell, run the following command to create a new Django project called example based on a custom template:
+From your shell, run the following command to create a new Django project
+called example based on a custom template. Make sure the version referenced
+from `django-mongodb-labs` corresponds to your version of Django similar
+to the install stage. For example, this command works for Django 5.0.x:
 
 ```bash
 $ django-admin startproject example --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/5.0.x.zip
 ```
 
 
-### Connect to the Database
+### Connect to the database
 
 Navigate to your `example/settings.py` file and find the variable named `DATABASES` Replace the `DATABASES` setting with this:
 
@@ -34,9 +40,13 @@ DATABASES = {
 }
 ```
 
-Where `<CONNECTION_STRING_URI>` is your connection string from the previous step.
+> The MongoDB connection string must also specify a database for the parse_uri function.
+> If not already included, make sure you provide a value for `<DATABASE_NAME>`
+> in your URI as shown in the example below:
+> `mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/<DATABASE_NAME>?retryWrites=true&w=majority`
 
-### Start the Server
+
+### Run the Server
 To verify that you installed Django MongoDB Backend and correctly configured your project, run the following command from your project root:
 ```bash
 python manage.py runserver
@@ -44,140 +54,40 @@ python manage.py runserver
 Then, visit http://127.0.0.1:8000/. This page displays a "Congratulations!" message and an image of a rocket.
 
 
-## Capabilities of Django Backend for MongoDB
+## Capabilties for Django MongoDB Backend
 
 - **Model MongoDB Documents Through Django’s ORM**  
     
-  - Translate Django model instances to MongoDB documents.  
-  - Create new collections corresponding to models.  
+  - Store Django model instances as MongoDB documents.
   - Supports field validation, data storage, updating, and deletion.  
   - Maps Django's built-in fields to MongoDB data types.  
-  - Provides new custom fields for arrays (ArrayField) and embedded documents (EmbeddedModelField).  
-  - Supports core migration functionalities including creating, deleting, and updating indexes and collections
+  - Provides custom fields for arrays (`ArrayField`) and embedded documents (`EmbeddedModelField`).  
+  - Supports core migration functionalities.
 
 
 - **Index Management**  
-    
-  - Create single, compound, and unique indexes using Django Indexes  
-  - Create MongoDB partial indexes in Django using Q notation.
-
+  - Create single, compound, partial, and unique indexes using Django Indexes.
 
 - **Querying Data**  
 
-  - Supports most functions of the Django QuerySet API  
-  - Support Query Annotations and common SQL AGGREGATE operators  
-   Support foreign key usage and execute JOIN operations
-  - Through our custom raw\_aggregate call, MQL operations like Vector Search, Atlas Search, and GeoSpatial querying still yield Django QuerySet resutts,
+  - Supports most of the Django QuerySet API.
+  - Supports foreign key usage and executes JOIN operations.
+  - A custom `QuerySet.raw_aggregate` method allows MQL operations like Vector Search, Atlas Search, and GeoSpatial querying to yield Django QuerySet results.
 
 
 - **Administrator Dashboard & Authentication**  
     
-  - Manage your data in Django’s admin site.  
-  - Fully integrated with Django's authentication framework.  
+  - Manage your data in Django’s admin site.
+  - Fully integrated with Django's authentication framework.
   - Supports native user management features like creating users and sessions.
 
-## Limitations of django-mongodb-backend
-
-- Database Variables `ATOMIC_REQUESTS`, `AUTOCOMMIT`, `CONN_HEALTH_CHECKS`, `TIME_ZONE` not supported
-- No support for GeoDjango
-- Functions such as `Chr`, `ExtractQuarter`, `MD5`, `Now`, `Ord`, `Pad`, `Repeat`, `Reverse`, `Right`, `SHA1`, `SHA224`, `SHA256`, `SHA384`, `SHA512`, and `Sign`.
-- The `tzinfo` parameter of the `Trunc` database functions does not work properly because MongoDB converts the result back to UTC.
-- Schema Validation is not enforced. Refer to MongoDB documentation for how to enforce schema validation.
-- Django DDL Transactions are not supported.
-- The `migrate --fake-initial` command is not supported due to the inability to introspect MongoDB collection schema.
-- The asynchronous functionality of the Django API has not yet been tested.
-- `BSONRegExp` has no custom field class. It is best represented as a `CharField`.
-
-
-#### **Model Limitations**
-
-  - `$vectorSearch` and `$search` and Geospatial index creation through the Django Indexes API is not yet available.
-  - Updating indexes in `EmbeddedModels` do not work after the first table creation.
-
-  - **ArrayField**
-    - Does not support `EmbeddedModel` within `ArrayField`.
-
-  - **EmbeddedModel**
-    - Limited schema change support (no changing of embedded models).
-    - Embedded documents cannot take Django ForeignKeys.
-    - Arbitrary or untyped `EmbeddedModelField` is not supported. All fields must derive from an `EmbeddedModel` class.
-
-  - **JSONField**
-    - There is no way to distinguish between a JSON "null" and a SQL null in specific queries.
-    - Some queries with Q objects, e.g., `Q(value__foo="bar")`, don't work properly, particularly with `QuerySet.exclude()`.
-    - Filtering for a `None` key, e.g., `QuerySet.filter(value__j=None)`, incorrectly returns objects where the key doesn't exist.
-
-  - **DateTimeField**
-    - No support for microsecond granularity.
-
-  - **DurationField**:
-    - Stores milliseconds rather than microseconds.
-
-  - **Unavailable Fields**:
-    - `GeneratedField`
-    - `ImageField`
-
-
-- **These QuerySet API methods do not work**
-
-  - `distinct()`
-  - `dates()`
-  - `datetimes()`
-  - `prefetch_related()`
-  - `extra()`
-  - `QuerySet.delete()` and `update()` do not support queries that span multiple collections.
-
-
-- **Django Management Commands that do not work**
-  - `createcachetable`
-  - `inspectdb`
-  - `optimizemigration`
-  - `sqlflush`
-  - `sqlsequencereset`
-
-
-## Future Commitments of Django Backend for MongoDB
-
-- **Advanced Indexing**  
-    
-  - Support for advanced index types like geospatial, text, and vector search indexes.  
-      
-- **Improved Data Modeling**  
-    
-  - Support ArrayFields containing Embedded Models  
-  - Support Collections with multiple Django Models  
-  - Possible support for additional Django fields such as ImageField
-
-
-- **Extended Querying Features**  
-    
-  - Exploring smoother ways to allow users to use full-text search, vector search, or geospatial querying.
-
-
-- **Enhanced Transactions Support**  
-    
-  - Investigation and support for transactions, allowing features like `ATOMIC_REQUESTS` and `AUTOCOMMIT`.
-
-- **Asynchronous Capabilities**  
-    
-  - Evaluation and support for Django’s asynchronous callback functions.
-
-
-- **Performance Optimization**  
-    
-  - Focus on performance tuning, especially concerning JOIN operations and ensure competitive performance relative to SQL databases.
-
-
-- **Expanded Third-Party Library Support**  
-    
-  - Vet our backend library works effortlessly with major Django Third-Party solutions
-
-These future capabilities are intended to enhance the functionality of the Django Backend for MongoDB as it progresses towards a General Availability (GA) release. If you have any more specific questions or need further details, feel free to ask\!  
-
+<!-- ## Known issues and limitations 
+Check out our MongoDB Docs on library limitations here!
+-->
 
 ### Issues & Help
 
-We're glad to have such a vibrant community of users of Django MongoDB Backend. We recommend seeking support for general questions through the MongoDB Community Forums.
+We're glad to have such a vibrant community of users of Django MongoDB Backend. We recommend seeking support for general questions through the [MongoDB Community Forums](https://www.mongodb.com/community/forums/tag/python).
 
 #### Bugs / Feature Requests
 To report a bug or to request a new feature in Django MongoDB Backend, please open an issue in JIRA, our issue-management tool, using the following steps:
