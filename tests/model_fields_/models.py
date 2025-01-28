@@ -103,6 +103,7 @@ class Data(EmbeddedModel):
     integer = models.IntegerField(db_column="custom_column")
     auto_now = models.DateTimeField(auto_now=True)
     auto_now_add = models.DateTimeField(auto_now_add=True)
+    json_value = models.JSONField()
 
 
 class Address(EmbeddedModel):

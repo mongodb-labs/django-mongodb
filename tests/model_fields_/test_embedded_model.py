@@ -114,6 +114,31 @@ class QueryingTests(TestCase):
         qs = Holder.objects.filter(data__integer__gt=3).order_by("-data__integer")
         self.assertSequenceEqual(qs, list(reversed(self.objs[4:])))
 
+    def test_embedded_json_field_lookups(self):
+        objs = [
+            Holder.objects.create(
+                data=Data(json_value={"field1": i * 5, "field2": {"0": {"value": list(range(i))}}})
+            )
+            for i in range(4)
+        ]
+        self.assertCountEqual(
+            Holder.objects.filter(data__json_value__field2__0__value__0=0),
+            objs[1:],
+        )
+        self.assertCountEqual(
+            Holder.objects.filter(data__json_value__field2__0__value__1=1),
+            objs[2:],
+        )
+        self.assertCountEqual(Holder.objects.filter(data__json_value__field2__0__value__1=5), [])
+        self.assertCountEqual(Holder.objects.filter(data__json_value__field1__lt=100), objs)
+        self.assertCountEqual(Holder.objects.filter(data__json_value__field1__gt=100), [])
+        self.assertCountEqual(
+            Holder.objects.filter(
+                data__json_value__field1__gte=5, data__json_value__field1__lte=10
+            ),
+            objs[1:3],
+        )
+
     def test_order_and_group_by_embedded_field(self):
         # Create and sort test data by `data__integer`.
         expected_objs = sorted(

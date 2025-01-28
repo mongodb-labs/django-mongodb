@@ -7,6 +7,7 @@ from django.db.models.fields.related import lazy_related_operation
 from django.db.models.lookups import Transform
 
 from .. import forms
+from .json import build_json_mql_path
 
 
 class EmbeddedModelField(models.Field):
@@ -181,18 +182,27 @@ class KeyTransform(Transform):
         return result
 
     def preprocess_lhs(self, compiler, connection):
-        key_transforms = [self.key_name]
-        previous = self.lhs
+        previous = self
+        embedded_key_transforms = []
+        json_key_transforms = []
         while isinstance(previous, KeyTransform):
-            key_transforms.insert(0, previous.key_name)
+            if isinstance(previous.ref_field, EmbeddedModelField):
+                embedded_key_transforms.insert(0, previous.key_name)
+            else:
+                json_key_transforms.insert(0, previous.key_name)
             previous = previous.lhs
         mql = previous.as_mql(compiler, connection)
-        return mql, key_transforms
+        # The first json_key_transform is the field name.
+        embedded_key_transforms.append(json_key_transforms.pop(0))
+        return mql, embedded_key_transforms, json_key_transforms
 
     def as_mql(self, compiler, connection):
-        mql, key_transforms = self.preprocess_lhs(compiler, connection)
+        mql, key_transforms, json_key_transforms = self.preprocess_lhs(compiler, connection)
         transforms = ".".join(key_transforms)
-        return f"{mql}.{transforms}"
+        result = f"{mql}.{transforms}"
+        if json_key_transforms:
+            result = build_json_mql_path(result, json_key_transforms)
+        return result
 
 
 class KeyTransformFactory:
