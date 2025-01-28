@@ -8,13 +8,7 @@ explore and build. The best way to share this is via our [MongoDB Community Foru
 
 The development version of this package supports Django 5.0.x. To install it:
 
-`pip install django-mongodb-backend`
-
-### Resources
-
- Check back soon as we aim to provide more links that will dive deeper into our library!
-
-* [Developer Notes](DEV_NOTES.md)
+`pip install django-mongodb-backend~=5.0.0`
 
 
 ## Quickstart
@@ -52,12 +46,6 @@ Then, visit http://127.0.0.1:8000/. This page displays a "Congratulations!" mess
 
 ## Capabilities of Django Backend for MongoDB
 
-- **Database Connectivity**  
-    
-  - Directly tune MongoDB connection settings within your Django configuration\!  
-  - Work against a persisted cloud instance of MongoDB for free\!
-
-
 - **Model MongoDB Documents Through Django’s ORM**  
     
   - Translate Django model instances to MongoDB documents.  
@@ -75,12 +63,11 @@ Then, visit http://127.0.0.1:8000/. This page displays a "Congratulations!" mess
 
 
 - **Querying Data**  
-    
-  - Querying API powered through the amazing MongoDB Aggregation Pipeline  
+
   - Supports most functions of the Django QuerySet API  
   - Support Query Annotations and common SQL AGGREGATE operators  
-  - We support foreign keys and execute JOIN operations all in 1 database call  
-  - Through our custom raw\_aggregate call, MQL operations like Vector Search, Atlas Search, and GeoSpatial querying still yield Django QuerySet results\!
+   Support foreign key usage and execute JOIN operations
+  - Through our custom raw\_aggregate call, MQL operations like Vector Search, Atlas Search, and GeoSpatial querying still yield Django QuerySet resutts,
 
 
 - **Administrator Dashboard & Authentication**  
@@ -89,10 +76,64 @@ Then, visit http://127.0.0.1:8000/. This page displays a "Congratulations!" mess
   - Fully integrated with Django's authentication framework.  
   - Supports native user management features like creating users and sessions.
 
+## Limitations of django-mongodb-backend
 
-- **Management Commands**  
-    
-  - Use commands like `migrate`, `makemigrations`, `flush`, `sqlmigrate`, many more.
+- Database Variables `ATOMIC_REQUESTS`, `AUTOCOMMIT`, `CONN_HEALTH_CHECKS`, `TIME_ZONE` not supported
+- No support for GeoDjango
+- Functions such as `Chr`, `ExtractQuarter`, `MD5`, `Now`, `Ord`, `Pad`, `Repeat`, `Reverse`, `Right`, `SHA1`, `SHA224`, `SHA256`, `SHA384`, `SHA512`, and `Sign`.
+- The `tzinfo` parameter of the `Trunc` database functions does not work properly because MongoDB converts the result back to UTC.
+- Schema Validation is not enforced. Refer to MongoDB documentation for how to enforce schema validation.
+- Django DDL Transactions are not supported.
+- The `migrate --fake-initial` command is not supported due to the inability to introspect MongoDB collection schema.
+- The asynchronous functionality of the Django API has not yet been tested.
+- `BSONRegExp` has no custom field class. It is best represented as a `CharField`.
+
+
+#### **Model Limitations**
+
+  - `$vectorSearch` and `$search` and Geospatial index creation through the Django Indexes API is not yet available.
+  - Updating indexes in `EmbeddedModels` do not work after the first table creation.
+
+  - **ArrayField**
+    - Does not support `EmbeddedModel` within `ArrayField`.
+
+  - **EmbeddedModel**
+    - Limited schema change support (no changing of embedded models).
+    - Embedded documents cannot take Django ForeignKeys.
+    - Arbitrary or untyped `EmbeddedModelField` is not supported. All fields must derive from an `EmbeddedModel` class.
+
+  - **JSONField**
+    - There is no way to distinguish between a JSON "null" and a SQL null in specific queries.
+    - Some queries with Q objects, e.g., `Q(value__foo="bar")`, don't work properly, particularly with `QuerySet.exclude()`.
+    - Filtering for a `None` key, e.g., `QuerySet.filter(value__j=None)`, incorrectly returns objects where the key doesn't exist.
+
+  - **DateTimeField**
+    - No support for microsecond granularity.
+
+  - **DurationField**:
+    - Stores milliseconds rather than microseconds.
+
+  - **Unavailable Fields**:
+    - `GeneratedField`
+    - `ImageField`
+
+
+- **These QuerySet API methods do not work**
+
+  - `distinct()`
+  - `dates()`
+  - `datetimes()`
+  - `prefetch_related()`
+  - `extra()`
+  - `QuerySet.delete()` and `update()` do not support queries that span multiple collections.
+
+
+- **Django Management Commands that do not work**
+  - `createcachetable`
+  - `inspectdb`
+  - `optimizemigration`
+  - `sqlflush`
+  - `sqlsequencereset`
 
 
 ## Future Commitments of Django Backend for MongoDB
@@ -132,6 +173,7 @@ Then, visit http://127.0.0.1:8000/. This page displays a "Congratulations!" mess
   - Vet our backend library works effortlessly with major Django Third-Party solutions
 
 These future capabilities are intended to enhance the functionality of the Django Backend for MongoDB as it progresses towards a General Availability (GA) release. If you have any more specific questions or need further details, feel free to ask\!  
+
 
 ### Issues & Help
 
