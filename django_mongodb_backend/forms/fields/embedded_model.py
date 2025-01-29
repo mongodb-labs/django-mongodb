@@ -70,3 +70,12 @@ class EmbeddedModelField(forms.MultiValueField):
             return initial
         # Transform the bound data into a model instance.
         return self.compress(data)
+
+    def prepare_value(self, value):
+        # When rendering a form with errors, nested EmbeddedModelField data
+        # won't be compressed if MultiValueField.clean() raises ValidationError
+        # error before compress() is called. The data must be compressed here
+        # so that EmbeddedModelBoundField.value() returns a model instance
+        # (rather than a list) for initializing the form in
+        # EmbeddedModelBoundField.__str__().
+        return self.compress(value) if isinstance(value, list) else value

@@ -173,6 +173,53 @@ class NestedFormTests(TestCase):
         form = BookForm(data, instance=book)
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors["publisher"], ["Enter all required values."])
+        self.assertHTMLEqual(
+            str(form),
+            """
+            <div>
+              <label for="id_title">Title:</label>
+              <input type="text" name="title" value="Learning MongoDB!" maxlength="50"
+                required id="id_title">
+            </div>
+            <div>
+              <fieldset>
+                <legend>Publisher:</legend>
+                <ul class="errorlist">
+                  <li>Enter all required values.</li>
+                </ul>
+                <div>
+                  <label for="id_publisher-name">Name:</label>
+                  <input type="text" name="publisher-name" value="Random House!" maxlength="50"
+                    required id="id_publisher-name">
+                </div>
+                <div>
+                  <fieldset>
+                    <legend>Address:</legend>
+                    <div>
+                      <label for="id_publisher-address-po_box">PO Box:</label>
+                      <input type="text" name="publisher-address-po_box" maxlength="50"
+                        id="id_publisher-address-po_box">
+                    </div>
+                    <div>
+                      <label for="id_publisher-address-city">City:</label>
+                      <input type="text" name="publisher-address-city" value="New York City"
+                        maxlength="20" required id="id_publisher-address-city">
+                    </div>
+                    <div>
+                      <label for="id_publisher-address-state">State:</label>
+                      <input type="text" name="publisher-address-state" value="NY"
+                        maxlength="2" required id="id_publisher-address-state">
+                    </div>
+                    <div>
+                      <label for="id_publisher-address-zip_code">Zip code:</label>
+                      <input type="number" name="publisher-address-zip_code"
+                        required id="id_publisher-address-zip_code">
+                    </div>
+                  </fieldset>
+                </div>
+              </fieldset>
+            </div>""",
+        )
 
     def test_invalid_field_data(self):
         """A field's data (state) is too long."""
@@ -195,6 +242,53 @@ class NestedFormTests(TestCase):
         self.assertEqual(
             form.errors["publisher"],
             ["Ensure this value has at most 2 characters (it has 8)."],
+        )
+        self.assertHTMLEqual(
+            str(form),
+            """
+            <div>
+              <label for="id_title">Title:</label>
+              <input type="text" name="title" value="Learning MongoDB!"
+                maxlength="50" required id="id_title">
+            </div>
+            <div>
+              <fieldset>
+                <legend>Publisher:</legend>
+                <ul class="errorlist">
+                  <li>Ensure this value has at most 2 characters (it has 8).</li>
+                </ul>
+                <div>
+                  <label for="id_publisher-name">Name:</label>
+                  <input type="text" name="publisher-name" value="Random House!"
+                    maxlength="50" required id="id_publisher-name">
+                </div>
+                <div>
+                  <fieldset>
+                    <legend>Address:</legend>
+                    <div>
+                      <label for="id_publisher-address-po_box">PO Box:</label>
+                      <input type="text" name="publisher-address-po_box"
+                        maxlength="50" id="id_publisher-address-po_box">
+                    </div>
+                    <div>
+                      <label for="id_publisher-address-city">City:</label>
+                      <input type="text" name="publisher-address-city" value="New York City"
+                        maxlength="20" required id="id_publisher-address-city">
+                    </div>
+                    <div>
+                      <label for="id_publisher-address-state">State:</label>
+                      <input type="text" name="publisher-address-state" value="TOO LONG"
+                        maxlength="2" required id="id_publisher-address-state">
+                    </div>
+                    <div>
+                      <label for="id_publisher-address-zip_code">Zip code:</label>
+                      <input type="number" name="publisher-address-zip_code" value="10001"
+                        required id="id_publisher-address-zip_code">
+                    </div>
+                  </fieldset>
+                </div>
+              </fieldset>
+            </div>""",
         )
 
     def test_all_missing_data(self):
