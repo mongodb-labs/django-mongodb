@@ -256,7 +256,8 @@ class CheckTests(SimpleTestCase):
 
 
 class SubqueryExistsTests(TestCase):
-    def setUpTestData(self):
+    @classmethod
+    def setUpTestData(cls):
         address1 = Address(city="New York", state="NY", zip_code=10001)
         address2 = Address(city="Boston", state="MA", zip_code=20002)
         author1 = Author(name="Alice", age=30, address=address1)
