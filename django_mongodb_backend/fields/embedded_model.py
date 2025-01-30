@@ -1,9 +1,13 @@
+import difflib
+
 from django.core import checks
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.db.models.fields.related import lazy_related_operation
 from django.db.models.lookups import Transform
 
 from .. import forms
+from .json import build_json_mql_path
 
 
 class EmbeddedModelField(models.Field):
@@ -18,7 +22,18 @@ class EmbeddedModelField(models.Field):
         super().__init__(*args, **kwargs)
 
     def check(self, **kwargs):
+        from ..models import EmbeddedModel
+
         errors = super().check(**kwargs)
+        if not issubclass(self.embedded_model, EmbeddedModel):
+            return [
+                checks.Error(
+                    "Embedded models must be a subclass of "
+                    "django_mongodb_backend.models.EmbeddedModel.",
+                    obj=self,
+                    id="django_mongodb_backend.embedded_model.E002",
+                )
+            ]
         for field in self.embedded_model._meta.fields:
             if field.remote_field:
                 errors.append(
@@ -27,7 +42,7 @@ class EmbeddedModelField(models.Field):
                         f"({self.embedded_model().__class__.__name__}.{field.name} "
                         f"is a {field.__class__.__name__}).",
                         obj=self,
-                        id="django_mongodb.embedded_model.E001",
+                        id="django_mongodb_backend.embedded_model.E001",
                     )
                 )
         return errors
@@ -112,7 +127,8 @@ class EmbeddedModelField(models.Field):
         transform = super().get_transform(name)
         if transform:
             return transform
-        return KeyTransformFactory(name)
+        field = self.embedded_model._meta.get_field(name)
+        return KeyTransformFactory(name, field)
 
     def validate(self, value, model_instance):
         super().validate(value, model_instance)
@@ -134,28 +150,65 @@ class EmbeddedModelField(models.Field):
 
 
 class KeyTransform(Transform):
-    def __init__(self, key_name, *args, **kwargs):
+    def __init__(self, key_name, ref_field, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.key_name = str(key_name)
+        self.ref_field = ref_field
+
+    def get_transform(self, name):
+        """
+        Validate that `name` is either a field of an embedded model or a
+        lookup on an embedded model's field.
+        """
+        result = None
+        if isinstance(self.ref_field, EmbeddedModelField):
+            opts = self.ref_field.embedded_model._meta
+            new_field = opts.get_field(name)
+            result = KeyTransformFactory(name, new_field)
+        else:
+            if self.ref_field.get_transform(name) is None:
+                suggested_lookups = difflib.get_close_matches(name, self.ref_field.get_lookups())
+                if suggested_lookups:
+                    suggested_lookups = " or ".join(suggested_lookups)
+                    suggestion = f", perhaps you meant {suggested_lookups}?"
+                else:
+                    suggestion = "."
+                raise FieldDoesNotExist(
+                    f"Unsupported lookup '{name}' for "
+                    f"{self.ref_field.__class__.__name__} '{self.ref_field.name}'"
+                    f"{suggestion}"
+                )
+            result = KeyTransformFactory(name, self.ref_field)
+        return result
 
     def preprocess_lhs(self, compiler, connection):
-        key_transforms = [self.key_name]
-        previous = self.lhs
+        previous = self
+        embedded_key_transforms = []
+        json_key_transforms = []
         while isinstance(previous, KeyTransform):
-            key_transforms.insert(0, previous.key_name)
+            if isinstance(previous.ref_field, EmbeddedModelField):
+                embedded_key_transforms.insert(0, previous.key_name)
+            else:
+                json_key_transforms.insert(0, previous.key_name)
             previous = previous.lhs
         mql = previous.as_mql(compiler, connection)
-        return mql, key_transforms
+        # The first json_key_transform is the field name.
+        embedded_key_transforms.append(json_key_transforms.pop(0))
+        return mql, embedded_key_transforms, json_key_transforms
 
     def as_mql(self, compiler, connection):
-        mql, key_transforms = self.preprocess_lhs(compiler, connection)
+        mql, key_transforms, json_key_transforms = self.preprocess_lhs(compiler, connection)
         transforms = ".".join(key_transforms)
-        return f"{mql}.{transforms}"
+        result = f"{mql}.{transforms}"
+        if json_key_transforms:
+            result = build_json_mql_path(result, json_key_transforms)
+        return result
 
 
 class KeyTransformFactory:
-    def __init__(self, key_name):
+    def __init__(self, key_name, ref_field):
         self.key_name = key_name
+        self.ref_field = ref_field
 
     def __call__(self, *args, **kwargs):
-        return KeyTransform(self.key_name, *args, **kwargs)
+        return KeyTransform(self.key_name, self.ref_field, *args, **kwargs)

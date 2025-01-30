@@ -2,7 +2,7 @@ import operator
 
 from django.db import NotSupportedError, connection
 from django.db.models import Index, Q
-from django.test import TestCase, skipIfDBFeature, skipUnlessDBFeature
+from django.test import TestCase
 
 from .models import Article
 
@@ -46,26 +46,6 @@ class PartialIndexTests(TestCase):
                 condition=Q(pk=True) ^ Q(pk=False),
             )._get_condition_mql(Article, schema_editor=editor)
 
-    @skipIfDBFeature("supports_or_index_operator")
-    def test_or_not_supported(self):
-        msg = "MongoDB < 6.0 does not support the '|' operator in indexes."
-        with self.assertRaisesMessage(NotSupportedError, msg), connection.schema_editor() as editor:
-            Index(
-                name="test",
-                fields=["headline"],
-                condition=Q(pk=True) | Q(pk=False),
-            )._get_condition_mql(Article, schema_editor=editor)
-
-    @skipIfDBFeature("supports_in_index_operator")
-    def test_in_not_supported(self):
-        msg = "MongoDB < 6.0 does not support the 'in' lookup in indexes."
-        with self.assertRaisesMessage(NotSupportedError, msg), connection.schema_editor() as editor:
-            Index(
-                name="test",
-                fields=["headline"],
-                condition=Q(pk__in=[True]),
-            )._get_condition_mql(Article, schema_editor=editor)
-
     def test_operations(self):
         operators = (
             ("gt", "$gt"),
@@ -86,7 +66,6 @@ class PartialIndexTests(TestCase):
                 )
                 self.assertAddRemoveIndex(editor, Article, index)
 
-    @skipUnlessDBFeature("supports_in_index_operator")
     def test_composite_index(self):
         with connection.schema_editor() as editor:
             index = Index(
@@ -110,8 +89,6 @@ class PartialIndexTests(TestCase):
             (operator.or_, "$or"),
             (operator.and_, "$and"),
         )
-        if not connection.features.supports_or_index_operator:
-            operators = operators[1:]
         for op, mongo_operator in operators:
             with self.subTest(operator=op), connection.schema_editor() as editor:
                 index = Index(

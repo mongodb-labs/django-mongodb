@@ -3,6 +3,7 @@ import enum
 from django.db import models
 
 from django_mongodb_backend.fields import ArrayField, EmbeddedModelField, ObjectIdField
+from django_mongodb_backend.models import EmbeddedModel
 
 
 # ObjectIdField
@@ -98,19 +99,20 @@ class Holder(models.Model):
     data = EmbeddedModelField("Data", null=True, blank=True)
 
 
-class Data(models.Model):
+class Data(EmbeddedModel):
     integer = models.IntegerField(db_column="custom_column")
     auto_now = models.DateTimeField(auto_now=True)
     auto_now_add = models.DateTimeField(auto_now_add=True)
+    json_value = models.JSONField()
 
 
-class Address(models.Model):
+class Address(EmbeddedModel):
     city = models.CharField(max_length=20)
     state = models.CharField(max_length=2)
     zip_code = models.IntegerField(db_index=True)
 
 
-class Author(models.Model):
+class Author(EmbeddedModel):
     name = models.CharField(max_length=10)
     age = models.IntegerField()
     address = EmbeddedModelField(Address)
@@ -119,3 +121,12 @@ class Author(models.Model):
 class Book(models.Model):
     name = models.CharField(max_length=100)
     author = EmbeddedModelField(Author)
+
+
+class Library(models.Model):
+    name = models.CharField(max_length=100)
+    books = models.ManyToManyField("Book", related_name="libraries")
+    best_seller = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return self.name

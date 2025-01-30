@@ -17,6 +17,26 @@ from ..lookups import builtin_lookup
 from ..query_utils import process_lhs, process_rhs
 
 
+def build_json_mql_path(lhs, key_transforms):
+    # Build the MQL path using the collected key transforms.
+    result = lhs
+    for key in key_transforms:
+        get_field = {"$getField": {"input": result, "field": key}}
+        # Handle array indexing if the key is a digit. If key is something
+        # like '001', it's not an array index despite isdigit() returning True.
+        if key.isdigit() and str(int(key)) == key:
+            result = {
+                "$cond": {
+                    "if": {"$isArray": result},
+                    "then": {"$arrayElemAt": [result, int(key)]},
+                    "else": get_field,
+                }
+            }
+        else:
+            result = get_field
+    return result
+
+
 def contained_by(self, compiler, connection):  # noqa: ARG001
     raise NotSupportedError("contained_by lookup is not supported on this database backend.")
 
@@ -89,23 +109,7 @@ def key_transform(self, compiler, connection):
         key_transforms.insert(0, previous.key_name)
         previous = previous.lhs
     lhs_mql = previous.as_mql(compiler, connection)
-    result = lhs_mql
-    # Build the MQL path using the collected key transforms.
-    for key in key_transforms:
-        get_field = {"$getField": {"input": result, "field": key}}
-        # Handle array indexing if the key is a digit. If key is something
-        # like '001', it's not an array index despite isdigit() returning True.
-        if key.isdigit() and str(int(key)) == key:
-            result = {
-                "$cond": {
-                    "if": {"$isArray": result},
-                    "then": {"$arrayElemAt": [result, int(key)]},
-                    "else": get_field,
-                }
-            }
-        else:
-            result = get_field
-    return result
+    return build_json_mql_path(lhs_mql, key_transforms)
 
 
 def key_transform_in(self, compiler, connection):
