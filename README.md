@@ -1,250 +1,96 @@
 # Django MongoDB Backend
 
-This backend is currently in development and is not advised for Production workflows. Backwards incompatible
+This backend is currently in development and is not advised for production workflows. Backwards incompatible
 changes may be made without notice. We welcome your feedback as we continue to
-explore and build. The best way to share this is via our [MongoDB Community Forum](https://www.mongodb.com/community/forums/tag/python)
+explore and build. The best way to share this is via our [MongoDB Community Forum](https://www.mongodb.com/community/forums/tag/python).
 
-## Install and usage
+## Install
 
-The development version of this package supports Django 5.0.x. To install it:
+Use the version of `django-mongodb-backend` that corresponds to your version of
+Django. For example, to get the latest compatible release for Django 5.0.x:
+```bash
+$ pip install --pre django-mongodb-backend==5.0.*
+```
+(Until the package is out of beta, you must use pip's `--pre` option.)
 
-`pip install git+https://github.com/mongodb-labs/django-mongodb-backend`
 
-### Specifying the default primary key field
+## Quickstart
 
-In your Django settings, you must specify that all models should use
-`ObjectIdAutoField`.
+### Start project
 
-You can create a new project that's configured based on these steps using a
-project template:
+From your shell, run the following command to create a new Django project
+called `example` using our custom template. Make sure the zipfile referenced
+at the end of the template link corresponds to your
+version of Django. The snippet below specifies `5.0.x.zip` at the end of
+the template url to get the template for any Django version matching 5.0:
 
 ```bash
-$ django-admin startproject mysite --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/5.0.x.zip
-```
-(where "5.0" matches the version of Django that you're using.)
-
-This template includes the following line in `settings.py`:
-
-```python
-DEFAULT_AUTO_FIELD = "django_mongodb_backend.fields.ObjectIdAutoField"
+$ django-admin startproject example --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/5.0.x.zip
 ```
 
-But this setting won't override any apps that have an `AppConfig` that
-specifies `default_auto_field`. For those apps, you'll need to create a custom
-`AppConfig`.
 
-For example, the project template includes `<project_name>/apps.py`:
+### Connect to the database
 
-```python
-from django.contrib.admin.apps import AdminConfig
-from django.contrib.auth.apps import AuthConfig
-from django.contrib.contenttypes.apps import ContentTypesConfig
-
-
-class MongoAdminConfig(AdminConfig):
-    default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
-
-
-class MongoAuthConfig(AuthConfig):
-    default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
-
-
-class MongoContentTypesConfig(ContentTypesConfig):
-    default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
-```
-
-Each app reference in the `INSTALLED_APPS` setting must point to the
-corresponding ``AppConfig``. For example, instead of `'django.contrib.admin'`,
-the template uses `'<project_name>.apps.MongoAdminConfig'`.
-
-### Configuring migrations
-
-Because all models must use `ObjectIdAutoField`, each third-party and contrib app
-you use needs to have its own migrations specific to MongoDB.
-
-For example, `settings.py` in the project template specifies:
-
-```python
-MIGRATION_MODULES = {
-    "admin": "mongo_migrations.admin",
-    "auth": "mongo_migrations.auth",
-    "contenttypes": "mongo_migrations.contenttypes",
-}
-```
-
-The project template includes these migrations, but you can generate them if
-you're setting things up manually or if you need to create migrations for
-third-party apps. For example:
-
-```console
-$ python manage.py makemigrations admin auth contenttypes
-Migrations for 'admin':
-  mongo_migrations/admin/0001_initial.py
-    - Create model LogEntry
-...
-```
-
-### Creating Django applications
-
-Whenever you run `python manage.py startapp`, you must remove the line:
-
-`default_auto_field = 'django.db.models.BigAutoField'`
-
-from the new application's `apps.py` file (or change it to reference
- `"django_mongodb_backend.fields.ObjectIdAutoField"`).
-
-Alternatively, you can use the following `startapp` template which includes
-this change:
-
-```bash
-$ python manage.py startapp myapp --template https://github.com/mongodb-labs/django-mongodb-app/archive/refs/heads/5.0.x.zip
-```
-(where "5.0" matches the version of Django that you're using.)
-
-### Configuring the `DATABASES` setting
-
-After you've set up a project, configure Django's `DATABASES` setting similar
-to this:
+Navigate to your `example/settings.py` file and find the variable named
+`DATABASES` Replace the `DATABASES` variable with this:
 
 ```python
 DATABASES = {
-    "default": {
-        "ENGINE": "django_mongodb_backend",
-        "HOST": "mongodb+srv://cluster0.example.mongodb.net",
-        "NAME": "my_database",
-        "USER": "my_user",
-        "PASSWORD": "my_password",
-        "PORT": 27017,
-        "OPTIONS": {
-            # Example:
-            "retryWrites": "true",
-            "w": "majority",
-            "tls": "false",
-        },
-    },
+    "default": django_mongodb_backend.parse_uri("<CONNECTION_STRING_URI>"),
 }
 ```
 
-For a localhost configuration, you can omit `HOST` or specify
-`"HOST": "localhost"`.
-
-`HOST` only needs a scheme prefix for SRV connections (`mongodb+srv://`). A
-`mongodb://` prefix is never required.
-
-`OPTIONS` is an optional dictionary of parameters that will be passed to
-[`MongoClient`](https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html).
-
-`USER`, `PASSWORD`, and `PORT` (if 27017) may also be optional.
-
-For a replica set or sharded cluster where you have multiple hosts, include
-all of them in `HOST`, e.g.
-`"mongodb://mongos0.example.com:27017,mongos1.example.com:27017"`.
-
-Alternatively, if you prefer to simply paste in a MongoDB URI rather than parse
-it into the format above, you can use:
-
-```python
-import django_mongodb_backend
-
-MONGODB_URI = "mongodb+srv://my_user:my_password@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
-DATABASES["default"] = django_mongodb_backend.parse_uri(MONGODB_URI)
+The MongoDB `<CONNECTION_STRING_URI>` must also specify a database for the
+`parse_uri` function to work.
+If not already included, make sure you provide a value for `<DATABASE_NAME>`
+in your URI as shown in the example below:
+```bash
+mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/<DATABASE_NAME>?retryWrites=true&w=majority
 ```
 
-This constructs a `DATABASES` setting equivalent to the first example.
 
-#### `django_mongodb_backend.parse_uri(uri, conn_max_age=0, test=None)`
-
-`parse_uri()` provides a few options to customize the resulting `DATABASES`
-setting, but for maximum flexibility, construct `DATABASES` manually as
-described above.
-
-- Use `conn_max_age` to configure [persistent database connections](
-  https://docs.djangoproject.com/en/stable/ref/databases/#persistent-database-connections).
-- Use `test` to provide a dictionary of [settings for test databases](
-  https://docs.djangoproject.com/en/stable/ref/settings/#test).
-
-Congratulations, your project is ready to go!
-
-## Notes on Django QuerySets
-
-* `QuerySet.explain()` supports the [`comment` and `verbosity` options](
-  https://www.mongodb.com/docs/manual/reference/command/explain/#command-fields).
-
-   Example: `QuerySet.explain(comment="...", verbosity="...")`
-
-   Valid values for `verbosity` are `"queryPlanner"` (default),
-   `"executionStats"`, and `"allPlansExecution"`.
-
-## Known issues and limitations
-
-- The following `QuerySet` methods aren't supported:
-  - `bulk_update()`
-  - `dates()`
-  - `datetimes()`
-  - `distinct()`
-  - `extra()`
-  - `prefetch_related()`
-
-- `QuerySet.delete()` and `update()` do not support queries that span multiple
-  collections.
-
-- `DateTimeField` doesn't support microsecond precision, and correspondingly,
-  `DurationField` stores milliseconds rather than microseconds.
-
-- The following database functions aren't supported:
-    - `Chr`
-    - `ExtractQuarter`
-    - `MD5`
-    - `Now`
-    - `Ord`
-    - `Pad`
-    - `Repeat`
-    - `Reverse`
-    - `Right`
-    - `SHA1`, `SHA224`, `SHA256`, `SHA384`, `SHA512`
-    - `Sign`
-
-- The `tzinfo` parameter of the `Trunc` database functions doesn't work
-  properly because MongoDB converts the result back to UTC.
-
-- When querying `JSONField`:
-  - There is no way to distinguish between a JSON "null" (represented by
-    `Value(None, JSONField())`) and a SQL null (queried using the `isnull`
-    lookup). Both of these queries return both of these nulls.
-  - Some queries with `Q` objects, e.g. `Q(value__foo="bar")`, don't work
-    properly, particularly with `QuerySet.exclude()`.
-  - Filtering for a `None` key, e.g. `QuerySet.filter(value__j=None)`
-    incorrectly returns objects where the key doesn't exist.
-  - You can study the skipped tests in `DatabaseFeatures.django_test_skips` for
-    more details on known issues.
-
-- Due to the lack of ability to introspect MongoDB collection schema,
-  `migrate --fake-initial` isn't supported.
-
-## Troubleshooting
-
-### Debug logging
-
-To troubleshoot MongoDB connectivity issues, you can enable [PyMongo's logging](
-https://pymongo.readthedocs.io/en/stable/examples/logging.html) using
-[Django's `LOGGING` setting](https://docs.djangoproject.com/en/stable/topics/logging/).
-
-This is a minimal `LOGGING` setting that enables PyMongo's `DEBUG` logging:
-
-```python
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
-    },
-    "loggers": {
-        "pymongo": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-    },
-}
+### Run the server
+To verify that you installed Django MongoDB Backend and correctly configured your project, run the following command from your project root:
+```bash
+$ python manage.py runserver
 ```
+Then, visit http://127.0.0.1:8000/. This page displays a "Congratulations!" message and an image of a rocket.
+
+
+## Capabilities of Django MongoDB Backend
+
+- **Model MongoDB Documents Through Django’s ORM**
+
+  - Store Django model instances as MongoDB documents.
+  - Maps Django's built-in fields to MongoDB data types.
+  - Provides custom fields for arrays (`ArrayField`) and embedded documents (`EmbeddedModelField`).
+  - Supports core migration functionalities.
+- **Index Management**
+  - Create single, compound, partial, and unique indexes using Django Indexes.
+- **Querying Data**
+  - Supports most of the Django QuerySet API.
+  - Supports relational field usage and executes `JOIN` operations with MQL.
+  - A custom `QuerySet.raw_aggregate` method exposes MongoDB-specific operations like Vector Search, Atlas Search, and GeoSpatial querying to yield Django QuerySet results.
+- **Administrator Dashboard & Authentication**
+  - Manage your data in Django’s admin site.
+  - Fully integrated with Django's authentication framework.
+  - Supports native user management features like creating users and session management.
+
+
+### Issues & Help
+
+We're glad to have such a vibrant community of users of Django MongoDB Backend. We recommend seeking support for general questions through the [MongoDB Community Forums](https://www.mongodb.com/community/forums/tag/python).
+
+
+#### Bugs / Feature Requests
+To report a bug or to request a new feature in Django MongoDB Backend, please open an issue in JIRA, our issue-management tool, using the following steps:
+
+1. [Create a JIRA account.](https://jira.mongodb.org/)
+
+2. Navigate to the [Python Integrations project](https://jira.mongodb.org/projects/INTPYTHON/).
+
+3. Click **Create Issue**. Please provide as much information as possible about the issue and the steps to reproduce it.
+
+Bug reports in JIRA for the Django MongoDB Backend project can be viewed by everyone.
+
+If you identify a security vulnerability in the driver or in any other MongoDB project, please report it according to the instructions found in [Create a Vulnerability Report](https://www.mongodb.com/docs/manual/tutorial/create-a-vulnerability-report/).
