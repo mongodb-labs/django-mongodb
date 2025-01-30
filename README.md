@@ -19,9 +19,10 @@ $ pip install --pre django-mongodb-backend==5.0.*
 ### Start project
 
 From your shell, run the following command to create a new Django project
-called `example` based on a custom template. Make sure the zipfile referenced
+called `example` using our custom template. Make sure the zipfile referenced
 at the end of the template link corresponds to your
-version of Django. This snippet useso get the latest compatible release for Django 5.0.x:
+version of Django. The snippet below specifies `5.0.x.zip` at the end of
+the template url to get the template for any Django version matching 5.0:
 
 ```bash
 $ django-admin startproject example --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/5.0.x.zip
