@@ -4,6 +4,8 @@ This backend is currently in development and is not advised for production workf
 changes may be made without notice. We welcome your feedback as we continue to
 explore and build. The best way to share this is via our [MongoDB Community Forum](https://www.mongodb.com/community/forums/tag/python).
 
+Documentation is available on [MongoDB Docs](https://www.mongodb.com/docs/languages/python/django-mongodb/current/)
+
 ## Install
 
 Use the version of `django-mongodb-backend` that corresponds to your version of
