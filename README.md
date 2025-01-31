@@ -31,7 +31,7 @@ version of Django.
 
 You can check what version of Django you're using with:
 ```bash
-pip show django
+$ pip show django
 ```
 
 The snippet below specifies `5.1.x.zip` at the end of
