@@ -30,7 +30,7 @@ at the end of the template link corresponds to your version of Django.
 
 You can check what version of Django you're using with:
 ```bash
-$ pip show django
+$ django-admin --version
 ```
 
 The snippet below specifies `5.1.x.zip` at the end of
