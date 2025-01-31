@@ -4,6 +4,12 @@ This backend is currently in development and is not advised for production workf
 changes may be made without notice. We welcome your feedback as we continue to
 explore and build. The best way to share this is via our [MongoDB Community Forum](https://www.mongodb.com/community/forums/tag/python).
 
+## Index
+* [Documentation](https://www.mongodb.com/docs/languages/python/django-mongodb/current/)
+* [Getting Started](https://www.mongodb.com/docs/languages/python/django-mongodb/current/get-started/)
+* [Model Your Data](https://www.mongodb.com/docs/languages/python/django-mongodb/current/model-data/)
+* [Limitations](https://www.mongodb.com/docs/languages/python/django-mongodb/current/limitations/)
+
 ## Install
 
 Use the version of `django-mongodb-backend` that corresponds to your version of
