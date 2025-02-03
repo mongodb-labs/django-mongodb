@@ -8,7 +8,7 @@ explore and build. The best way to share this is via our [MongoDB Community Foru
 * [Documentation](https://www.mongodb.com/docs/languages/python/django-mongodb/current/)
 * [Getting Started](https://www.mongodb.com/docs/languages/python/django-mongodb/current/get-started/)
 * [Model Your Data](https://www.mongodb.com/docs/languages/python/django-mongodb/current/model-data/)
-* [Limitations](https://www.mongodb.com/docs/languages/python/django-mongodb/current/limitations/)
+* [Limitations & Future Work](https://www.mongodb.com/docs/languages/python/django-mongodb/current/limitations-upcoming/)
 
 ## Install
 
