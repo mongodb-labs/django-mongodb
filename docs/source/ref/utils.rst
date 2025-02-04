@@ -12,7 +12,7 @@ following parts can be considered stable.
 ``parse_uri()``
 ===============
 
-.. function:: parse_uri(uri, conn_max_age=0, test=None)
+.. function:: parse_uri(uri, db_name=None, conn_max_age=0, test=None)
 
 Parses a MongoDB `connection string`_ into a dictionary suitable for Django's
 :setting:`DATABASES` setting.
@@ -23,8 +23,11 @@ Example::
 
     import django_mongodb_backend
 
-    MONGODB_URI = "mongodb+srv://my_user:my_password@cluster0.example.mongodb.net/myDatabase?retryWrites=true&w=majority&tls=false"
-    DATABASES["default"] = django_mongodb_backend.parse_uri(MONGODB_URI)
+    MONGODB_URI = "mongodb+srv://my_user:my_password@cluster0.example.mongodb.net/defaultauthdb?retryWrites=true&w=majority&tls=false"
+    DATABASES["default"] = django_mongodb_backend.parse_uri(MONGODB_URI, db_name="example")
+
+You must specify ``db_name`` (the :setting:`NAME` of your database) if the URI
+doesn't specify ``defaultauthdb``.
 
 You can use the parameters to customize the resulting :setting:`DATABASES`
 setting:
