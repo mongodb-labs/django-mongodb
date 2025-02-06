@@ -187,7 +187,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         pass
 
     def set_autocommit(self, autocommit, force_begin_transaction_with_broken_autocommit=False):
-        pass
+        self.autocommit = autocommit
 
     def close(self):
         super().close()
