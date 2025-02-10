@@ -7,6 +7,10 @@ Django MongoDB Backend 5.1.x
 
 *Unreleased*
 
+- Backward-incompatible:
+  :class:`~django_mongodb_backend.fields.ObjectIdAutoField` no longer accepts
+  integer values. The undocumented behavior eased testing with Django's test
+  suite which hardcodes many integer primary key values.
 - Fixed the inability to save nested embedded model forms.
 - Fixed :ref:`persistent database connections
   <django:persistent-database-connections>`.

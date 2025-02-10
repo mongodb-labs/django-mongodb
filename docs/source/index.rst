@@ -12,7 +12,8 @@ First steps
 **Getting started:**
 
 - :doc:`Installation <intro/install>`
-- :doc:`Configuration <intro/configure>`
+- :doc:`Configuring a project <intro/configure>`
+- :doc:`howto/contrib-apps`
 
 Getting help
 ============
