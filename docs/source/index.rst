@@ -46,3 +46,8 @@ Forms
 =====
 
 - :doc:`ref/forms`
+
+How-to guides
+=============
+
+- :doc:`howto/contrib-apps`
