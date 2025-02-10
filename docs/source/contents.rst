@@ -13,6 +13,7 @@ Table of contents
     intro/index
     topics/index
     ref/index
+    howto/index
     faq
     releases/index
     internals

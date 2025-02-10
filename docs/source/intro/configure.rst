@@ -155,3 +155,7 @@ it into the format above, you can use
 This constructs a :setting:`DATABASES` setting equivalent to the first example.
 
 Congratulations, your project is ready to go!
+
+.. seealso::
+
+    :doc:`/howto/contrib-apps`
