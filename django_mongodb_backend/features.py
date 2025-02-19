@@ -34,7 +34,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     supports_temporal_subtraction = True
     # MongoDB stores datetimes in UTC.
     supports_timezones = False
-    # Not implemented: https://github.com/mongodb-labs/django-mongodb-backend/issues/7
+    # Not implemented: https://github.com/mongodb/django-mongodb-backend/issues/7
     supports_transactions = False
     supports_unspecified_pk = True
     uses_savepoints = False
@@ -575,7 +575,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
             "cache.tests.DBCacheWithTimeZoneTests",
         },
         "FilteredRelation not supported.": {
-            # https://github.com/mongodb-labs/django-mongodb-backend/issues/157
+            # https://github.com/mongodb/django-mongodb-backend/issues/157
             "filtered_relation.tests.FilteredRelationAggregationTests",
             "filtered_relation.tests.FilteredRelationAnalyticalAggregationTests",
             "filtered_relation.tests.FilteredRelationTests",
