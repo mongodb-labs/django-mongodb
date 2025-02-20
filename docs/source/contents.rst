@@ -14,6 +14,7 @@ Table of contents
     topics/index
     ref/index
     faq
+    releases/index
     internals
 
 Indices
