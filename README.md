@@ -46,23 +46,16 @@ $ django-admin startproject example --template https://github.com/mongodb-labs/d
 
 ### Connect to the database
 
-Navigate to your `example/settings.py` file and find the variable named
-`DATABASES` Replace the `DATABASES` variable with this:
+Navigate to your `example/settings.py` file and replace the `DATABASES`
+setting like so:
 
 ```python
 DATABASES = {
-    "default": django_mongodb_backend.parse_uri("<CONNECTION_STRING_URI>"),
+    "default": django_mongodb_backend.parse_uri(
+        "<CONNECTION_STRING_URI>", db_name="example"
+    ),
 }
 ```
-
-The MongoDB `<CONNECTION_STRING_URI>` must also specify a database for the
-`parse_uri` function to work.
-If not already included, make sure you provide a value for `<DATABASE_NAME>`
-in your URI as shown in the example below:
-```bash
-mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/<DATABASE_NAME>?retryWrites=true&w=majority
-```
-
 
 ### Run the server
 To verify that you installed Django MongoDB Backend and correctly configured your project, run the following command from your project root:
