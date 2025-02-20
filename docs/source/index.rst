@@ -46,3 +46,9 @@ Forms
 =====
 
 - :doc:`ref/forms`
+
+Miscellaneous
+=============
+
+- :doc:`releases/index`
+- :doc:`internals`
