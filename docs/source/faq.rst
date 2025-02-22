@@ -32,3 +32,10 @@ logging::
             },
         },
     }
+
+``dumpdata`` fails with ``CommandError: Unable to serialize database``
+----------------------------------------------------------------------
+
+If running ``manage.py dumpdata`` results in ``CommandError: Unable to
+serialize database: 'EmbeddedModelManager' object has no attribute using'``,
+see :ref:`configuring-database-routers-setting`.

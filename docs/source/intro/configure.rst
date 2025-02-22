@@ -154,6 +154,21 @@ it into the format above, you can use
 
 This constructs a :setting:`DATABASES` setting equivalent to the first example.
 
+.. _configuring-database-routers-setting:
+
+Configuring the ``DATABASE_ROUTERS`` setting
+============================================
+
+If you intend to use :doc:`embedded models </topics/embedded-models>`, you must
+configure the :setting:`DATABASE_ROUTERS` setting so that a collection for
+these models isn't created and so that embedded models won't be treated as
+normal models by :djadmin:`dumpdata`::
+
+    DATABASE_ROUTERS = ["django_mongodb_backend.routers.MongoRouter"]
+
+(If you've used the :djadmin:`startproject` template, this line is already
+present.)
+
 Congratulations, your project is ready to go!
 
 .. seealso::
