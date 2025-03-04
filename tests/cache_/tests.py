@@ -929,7 +929,7 @@ class BaseCacheTests:
             self.assertEqual(cache.get_or_set("key", "default"), "default")
 
     def test_collection_has_indexes(self):
-        indexes = list(cache.collection_to_read.list_indexes())
+        indexes = list(cache.collection_for_read.list_indexes())
         self.assertTrue(
             any(
                 index["key"] == SON([("expires_at", 1)]) and index.get("expireAfterSeconds") == 0
@@ -962,7 +962,7 @@ class DBCacheTests(BaseCacheTests, TestCase):
         self.addCleanup(self.drop_collection)
 
     def drop_collection(self):
-        cache.collection_to_write.drop()
+        cache.collection_for_write.drop()
 
     def create_cache_collection(self):
         management.call_command("createcachecollection", verbosity=0)
